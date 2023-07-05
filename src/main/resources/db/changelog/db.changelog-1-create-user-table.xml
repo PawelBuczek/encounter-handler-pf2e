@@ -9,6 +9,9 @@
             <column  name="id"  type="INTEGER">
                 <constraints  nullable="false"  primaryKey="true"  unique="true"/>
             </column>
+            <column  name="type"  type="VARCHAR(255)">
+                <constraints  nullable="false"/>
+            </column>
             <column  name="username"  type="VARCHAR(255)">
                 <constraints  nullable="false"   unique="true"/>
             </column>
@@ -18,7 +21,7 @@
             <column  name="password"  type="BINARY(60)">
                 <constraints  nullable="false"/>
             </column>
-
         </createTable>
+        <sql>ALTER TABLE user ADD CONSTRAINT check_type CHECK (type IN ("STANDARD", "ADMIN"))</sql>
     </changeSet>
 </databaseChangeLog>
