@@ -1,10 +1,10 @@
-package com.pbuczek.encounterhandlerpf2e;
+package com.pbuczek.pf;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class Encounterhandlerpf2eApplicationTests {
+class ApplicationTests {
 
 	@Test
 	void contextLoads() {

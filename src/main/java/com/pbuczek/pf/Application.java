@@ -1,13 +1,13 @@
-package com.pbuczek.encounterhandlerpf2e;
+package com.pbuczek.pf;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class Encounterhandlerpf2eApplication {
+public class Application {
 
 	public static void main(String[] args) {
-		SpringApplication.run(Encounterhandlerpf2eApplication.class, args);
+		SpringApplication.run(Application.class, args);
 	}
 
 }
