@@ -4,24 +4,25 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
-    <changeSet  author="pbuczek"  id="1">
+    <changeSet author="pbuczek" id="1">
         <createTable tableName="user">
-            <column  name="id"  type="INTEGER">
-                <constraints  nullable="false"  primaryKey="true"  unique="true"/>
+            <column name="id" type="INTEGER" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" unique="true"/>
             </column>
-            <column  name="type"  type="VARCHAR(255)">
-                <constraints  nullable="false"/>
+            <column name="type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
             </column>
-            <column  name="username"  type="VARCHAR(255)">
-                <constraints  nullable="false"   unique="true"/>
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
             </column>
-            <column  name="email"  type="VARCHAR(255)">
-                <constraints  nullable="false"   unique="true"/>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
             </column>
-            <column  name="password"  type="BINARY(60)">
-                <constraints  nullable="false"/>
+            <column name="password" type="BINARY(60)">
+                <constraints nullable="false"/>
             </column>
         </createTable>
         <sql>ALTER TABLE user ADD CONSTRAINT check_type CHECK (type IN ("STANDARD", "ADMIN"))</sql>
+        <sqlFile path="db/sqlfiles/add-user-email-validation-constraint" dbms="mysql"/>
     </changeSet>
 </databaseChangeLog>
