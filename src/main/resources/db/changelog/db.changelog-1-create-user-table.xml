@@ -23,6 +23,6 @@
             </column>
         </createTable>
         <sql>ALTER TABLE user ADD CONSTRAINT check_type CHECK (type IN ("STANDARD", "ADMIN"))</sql>
-        <sqlFile path="db/sqlfiles/add-user-email-validation-constraint" dbms="mysql"/>
+        <sqlFile path="db/sqlfiles/add-user-email-validation-constraint.sql" dbms="mysql"/>
     </changeSet>
 </databaseChangeLog>
