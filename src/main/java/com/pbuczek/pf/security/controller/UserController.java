@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -18,6 +19,12 @@ public class UserController {
     @Autowired
     public UserController(UserRepository userRepo) {
         this.userRepo = userRepo;
+    }
+
+    @GetMapping()
+    @ResponseBody
+    public List<User> getAllUsers() {
+        return userRepo.findAll();
     }
 
     @GetMapping(value = "/{userId}")
