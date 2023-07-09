@@ -23,13 +23,13 @@ public class UserController {
 
     @GetMapping()
     @ResponseBody
-    public List<User> getAllUsers() {
+    public List<User> readAllUsers() {
         return userRepo.findAll();
     }
 
     @GetMapping(value = "/{userId}")
     @ResponseBody
-    public User getUser(@PathVariable Integer userId) {
+    public User readUser(@PathVariable Integer userId) {
         Optional<User> optionalUser = userRepo.findById(userId);
         if (optionalUser.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
