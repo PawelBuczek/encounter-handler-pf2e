@@ -50,4 +50,15 @@ public class UserController {
         return userRepo.deleteUser(userId);
     }
 
+    @PutMapping(value = "/{userId}")
+    @ResponseBody
+    public User updateUser(@PathVariable Integer userId, @RequestBody User updatedUser) {
+        User user = userRepo.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("user with id %d not found", userId)));
+        user.setUsername(updatedUser.getUsername());
+        user.setEmail(updatedUser.getEmail());
+        return user;
+    }
+
 }
