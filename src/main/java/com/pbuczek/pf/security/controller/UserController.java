@@ -1,20 +1,40 @@
 package com.pbuczek.pf.security.controller;
 
 import com.pbuczek.pf.security.User;
-import com.pbuczek.pf.security.UserType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.pbuczek.pf.security.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/user")
 public class UserController {
 
-    @GetMapping(value = "/{userId}")
-    public User getUser(@PathVariable Integer userId) {
+    UserRepository userRepo;
 
-        return new User(userId, UserType.STANDARD, "test", "test.mail@com", null, null);
+    @Autowired
+    public UserController(UserRepository userRepo) {
+        this.userRepo = userRepo;
+    }
+
+    @GetMapping(value = "/{userId}")
+    @ResponseBody
+    public User getUser(@PathVariable Integer userId) {
+        Optional<User> optionalUser = userRepo.findById(userId);
+        if (optionalUser.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    String.format("user with id %d not found", userId));
+        }
+        return optionalUser.get();
+    }
+
+    @PostMapping()
+    @ResponseBody
+    public User createUser(@RequestBody User newUser) {
+        return userRepo.save(newUser);
     }
 
 }
