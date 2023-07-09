@@ -31,10 +31,16 @@ public class UserController {
         return optionalUser.get();
     }
 
-    @PostMapping()
+    @PostMapping
     @ResponseBody
     public User createUser(@RequestBody User newUser) {
         return userRepo.save(newUser);
+    }
+
+    @DeleteMapping(value = "/{userId}")
+    @ResponseBody
+    public int deleteUser(@PathVariable Integer userId) {
+        return userRepo.deleteUser(userId);
     }
 
 }
