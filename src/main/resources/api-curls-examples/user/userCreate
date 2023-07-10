@@ -3,8 +3,8 @@ curl --location 'http://localhost:8080/user' \
 --data-raw '{
   "id": 1,
   "type": "ADMIN",
+  "paymentPlan": "FREE",
   "username": "johndoe",
   "email": "johndoe@example.com",
-  "password": "",
-  "roles": []
+  "password": ""
 }'
