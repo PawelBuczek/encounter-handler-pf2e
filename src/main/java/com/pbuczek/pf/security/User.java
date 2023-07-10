@@ -1,5 +1,6 @@
 package com.pbuczek.pf.security;
 
+import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,7 +26,9 @@ public class User {
     @Enumerated(EnumType.STRING)  // doesn't have any meaning for ADMIN user type
     private PaymentPlan paymentPlan = PaymentPlan.FREE;
 
+    @Nonnull
     private String username;
+    @Nonnull
     private String email;
     @Column(columnDefinition = "BINARY")
     private byte[] password = new byte[0];
