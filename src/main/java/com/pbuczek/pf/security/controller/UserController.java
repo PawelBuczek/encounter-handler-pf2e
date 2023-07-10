@@ -42,6 +42,15 @@ public class UserController {
     @PostMapping
     @ResponseBody
     public User createUser(@RequestBody User newUser) {
+        if (userRepo.findByEmail(newUser.getEmail()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    String.format("email '%s' is already being used by another user.", newUser.getEmail()));
+        }
+        if (userRepo.findByUsername(newUser.getUsername()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    String.format("username '%s' is already being used by another user.", newUser.getUsername()));
+        }
+
         return userRepo.save(newUser);
     }
 
