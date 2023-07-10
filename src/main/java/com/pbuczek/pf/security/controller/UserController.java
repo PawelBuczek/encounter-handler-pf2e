@@ -50,9 +50,9 @@ public class UserController {
         return userRepo.deleteUser(userId);
     }
 
-    @PatchMapping(value = "/{userId}/{email}")
+    @PatchMapping(value = "/email/{userId}/{email}")
     @ResponseBody
-    public User updateUser(@PathVariable Integer userId, @PathVariable String email) {
+    public User updateEmail(@PathVariable Integer userId, @PathVariable String email) {
         User user = userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("user with id %d not found", userId)));
@@ -73,6 +73,33 @@ public class UserController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("cannot set email '%s' for user with id %d", email, userId));
+        }
+        return user;
+    }
+
+    @PatchMapping(value = "/username/{userId}/{email}")
+    @ResponseBody
+    public User updateUsername(@PathVariable Integer userId, @PathVariable String username) {
+        User user = userRepo.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("user with id %d not found", userId)));
+        username = username.trim();
+
+        if (user.getUsername().equals(username)) {
+            return user;
+        }
+
+        if (userRepo.findByUsername(username).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    String.format("username '%s' is already being used by another user.", userId));
+        }
+
+        try {
+            user.setUsername(username);
+            userRepo.save(user);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("cannot set username '%s' for user with id %d", username, userId));
         }
         return user;
     }
