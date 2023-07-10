@@ -1,5 +1,6 @@
 package com.pbuczek.pf.security.controller;
 
+import com.pbuczek.pf.security.PaymentPlan;
 import com.pbuczek.pf.security.User;
 import com.pbuczek.pf.security.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,6 +101,27 @@ public class UserController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("cannot set username '%s' for user with id %d", username, userId));
+        }
+        return user;
+    }
+
+    @PatchMapping(value = "/paymentplan/{userId}/{paymentPlan}")
+    @ResponseBody
+    public User updatePaymentPlan(@PathVariable Integer userId, @PathVariable PaymentPlan paymentPlan) {
+        User user = userRepo.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("user with id %d not found", userId)));
+
+        if (user.getPaymentPlan().equals(paymentPlan)) {
+            return user;
+        }
+
+        try {
+            user.setPaymentPlan(paymentPlan);
+            userRepo.save(user);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("cannot set paymentPlan '%s' for user with id %d", paymentPlan, userId));
         }
         return user;
     }
