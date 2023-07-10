@@ -77,7 +77,7 @@ public class UserController {
         return user;
     }
 
-    @PatchMapping(value = "/username/{userId}/{email}")
+    @PatchMapping(value = "/username/{userId}/{username}")
     @ResponseBody
     public User updateUsername(@PathVariable Integer userId, @PathVariable String username) {
         User user = userRepo.findById(userId).orElseThrow(() ->
