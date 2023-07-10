@@ -2,6 +2,6 @@ curl --location 'http://localhost:8080/user' \
 --header 'Content-Type: application/json' \
 --data-raw '{
   "type": "ADMIN",
-  "username": "johndoe3",
-  "email": "johndoe@example3.com"
+  "username": "test",
+  "email": "johndoe@example.com"
 }'
