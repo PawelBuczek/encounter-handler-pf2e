@@ -14,6 +14,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     Optional<User> findById(Integer id);
 
+    Optional<User> findByEmail(String email);
+
     @Transactional
     @Modifying
     @Query("DELETE FROM User u WHERE u.id = ?1")
