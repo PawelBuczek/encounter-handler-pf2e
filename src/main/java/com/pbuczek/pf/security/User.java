@@ -15,15 +15,15 @@ import java.time.ZoneOffset;
 @Table(name = "user")
 public class User {
 
-    public User(UserType type, String username, String email, LocalDateTime timeCreated) {
+    public User(UserType type, String username, String email) {
         this.type = type;
         this.username = username;
         this.email = email;
-        this.timeCreated = timeCreated;
+        this.timeCreated = LocalDateTime.now(ZoneOffset.UTC);
     }
 
     public User(UserDto userDto) {
-        this(userDto.getType(), userDto.getUsername(), userDto.getEmail(), LocalDateTime.now(ZoneOffset.UTC));
+        this(userDto.getType(), userDto.getUsername(), userDto.getEmail());
     }
 
     @Id
