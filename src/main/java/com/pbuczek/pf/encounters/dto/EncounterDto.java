@@ -7,5 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class EncounterDto {
     private String name;
+
+    private Integer userId;
     private String description;
 }

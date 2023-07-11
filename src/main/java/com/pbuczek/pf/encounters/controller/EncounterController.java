@@ -3,6 +3,7 @@ package com.pbuczek.pf.encounters.controller;
 import com.pbuczek.pf.encounters.Encounter;
 import com.pbuczek.pf.encounters.dto.EncounterDto;
 import com.pbuczek.pf.encounters.repository.EncounterRepository;
+import com.pbuczek.pf.security.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,15 +17,21 @@ import java.util.Optional;
 public class EncounterController {
 
     EncounterRepository encounterRepo;
+    UserRepository userRepo;
 
     @Autowired
-    public EncounterController(EncounterRepository encounterRepo) {
+    public EncounterController(EncounterRepository encounterRepo, UserRepository userRepo) {
         this.encounterRepo = encounterRepo;
+        this.userRepo = userRepo;
     }
 
     @PostMapping
     @ResponseBody
     public Encounter createEncounter(@RequestBody EncounterDto encounterDto) {
+        userRepo.findById(encounterDto.getUserId()).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("user with id %d not found", encounterDto.getUserId())));
+
         return encounterRepo.save(new Encounter(encounterDto));
     }
 

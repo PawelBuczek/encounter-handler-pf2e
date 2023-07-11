@@ -12,18 +12,22 @@ import lombok.NoArgsConstructor;
 @Table(name = "encounter")
 public class Encounter {
 
-    public Encounter(String name, String description) {
+    public Encounter(String name, Integer userId, String description) {
         this.name = name;
-        this.description= description;
+        this.description = description;
+        this.userId = userId;
     }
 
     public Encounter(EncounterDto encounterDto) {
-        this(encounterDto.getName(), encounterDto.getDescription());
+        this(encounterDto.getName(), encounterDto.getUserId(), encounterDto.getDescription());
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Nonnull
+    private Integer userId; //was created by
 
     @Nonnull
     private String name;
