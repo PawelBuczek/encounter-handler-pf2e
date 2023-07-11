@@ -2,6 +2,7 @@ package com.pbuczek.pf.encounters.controller;
 
 import com.pbuczek.pf.encounters.Encounter;
 import com.pbuczek.pf.encounters.repository.EncounterRepository;
+import com.pbuczek.pf.security.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,12 @@ public class EncounterController {
     @Autowired
     public EncounterController(EncounterRepository encounterRepo) {
         this.encounterRepo = encounterRepo;
+    }
+
+    @PostMapping
+    @ResponseBody
+    public Encounter createEncounter(@RequestBody Encounter newEncounter) {
+        return encounterRepo.save(newEncounter);
     }
 
     @GetMapping()
