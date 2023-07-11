@@ -5,16 +5,19 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @Entity
 @Table(name = "user")
 public class User {
 
-    public User(UserType type, String username, String email) {
+    public User(UserType type, String username, String email, LocalDateTime timeCreated) {
         this.type = type;
         this.username = username;
         this.email = email;
+        this.timeCreated = timeCreated;
     }
 
     @Id
@@ -30,6 +33,8 @@ public class User {
     private String username;
     @Nonnull
     private String email;
+    @Nonnull
+    private LocalDateTime timeCreated;
     @Column(columnDefinition = "BINARY")
     private byte[] password = new byte[0];
 }

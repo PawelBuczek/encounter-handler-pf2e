@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +19,7 @@ import java.util.Optional;
 public class UserController {
 
     UserRepository userRepo;
+    private final static String emailRegex = "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$";
 
     @Autowired
     public UserController(UserRepository userRepo) {
@@ -51,8 +54,17 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     String.format("username '%s' is already being used by another user.", userDto.getUsername()));
         }
+        if (! userDto.getEmail().matches(emailRegex)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    String.format("provided user email '%s' is not valid.", userDto.getEmail()));
+        }
 
-        return userRepo.save(new User(userDto.getType(), userDto.getUsername(), userDto.getEmail()));
+        return userRepo.save(new User(
+                userDto.getType(),
+                userDto.getUsername(),
+                userDto.getEmail(),
+                LocalDateTime.now(ZoneOffset.UTC)
+        ));
     }
 
     @DeleteMapping(value = "/{userId}")
