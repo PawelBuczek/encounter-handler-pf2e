@@ -58,9 +58,9 @@ public class EncounterController {
         return encounterRepo.deleteEncounter(encounterId);
     }
 
-    @PatchMapping(value = "/description/{encounterId}/{description}")
+    @PatchMapping(value = "/description/{encounterId}")
     @ResponseBody
-    public Encounter updateDescription(@PathVariable Integer encounterId, @PathVariable String description) {
+    public Encounter updateDescription(@PathVariable Integer encounterId, @RequestBody String description) {
         Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("encounter with id %d not found", encounterId)));
