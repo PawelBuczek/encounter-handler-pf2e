@@ -6,6 +6,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
 @Data
 @NoArgsConstructor
 @Entity
@@ -16,6 +19,7 @@ public class Encounter {
         this.name = name;
         this.description = description;
         this.userId = userId;
+        this.timeCreated = LocalDateTime.now(ZoneOffset.UTC);
     }
 
     public Encounter(EncounterDto encounterDto) {
@@ -27,12 +31,15 @@ public class Encounter {
     private Integer id;
 
     @Nonnull
-    private Integer userId; //was created by
+    private Integer userId;
 
     @Nonnull
     private String name;
 
     private String description;
+
+    @Nonnull
+    private LocalDateTime timeCreated;
 }
 
 
