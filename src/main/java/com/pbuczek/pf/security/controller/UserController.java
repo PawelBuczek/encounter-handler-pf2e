@@ -2,6 +2,7 @@ package com.pbuczek.pf.security.controller;
 
 import com.pbuczek.pf.security.PaymentPlan;
 import com.pbuczek.pf.security.User;
+import com.pbuczek.pf.security.dto.UserDto;
 import com.pbuczek.pf.security.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -41,17 +42,17 @@ public class UserController {
 
     @PostMapping
     @ResponseBody
-    public User createUser(@RequestBody User newUser) {
-        if (userRepo.findByEmail(newUser.getEmail()).isPresent()) {
+    public User createUser(@RequestBody UserDto userDto) {
+        if (userRepo.findByEmail(userDto.getEmail()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    String.format("email '%s' is already being used by another user.", newUser.getEmail()));
+                    String.format("email '%s' is already being used by another user.", userDto.getEmail()));
         }
-        if (userRepo.findByUsername(newUser.getUsername()).isPresent()) {
+        if (userRepo.findByUsername(userDto.getUsername()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    String.format("username '%s' is already being used by another user.", newUser.getUsername()));
+                    String.format("username '%s' is already being used by another user.", userDto.getUsername()));
         }
 
-        return userRepo.save(newUser);
+        return userRepo.save(new User(userDto.getType(), userDto.getUsername(), userDto.getEmail()));
     }
 
     @DeleteMapping(value = "/{userId}")
