@@ -1,8 +1,8 @@
 package com.pbuczek.pf.encounters.controller;
 
 import com.pbuczek.pf.encounters.Encounter;
+import com.pbuczek.pf.encounters.dto.EncounterDto;
 import com.pbuczek.pf.encounters.repository.EncounterRepository;
-import com.pbuczek.pf.security.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +24,8 @@ public class EncounterController {
 
     @PostMapping
     @ResponseBody
-    public Encounter createEncounter(@RequestBody Encounter newEncounter) {
-        return encounterRepo.save(newEncounter);
+    public Encounter createEncounter(@RequestBody EncounterDto encounterDto) {
+        return encounterRepo.save(new Encounter(encounterDto));
     }
 
     @GetMapping()
@@ -51,4 +51,21 @@ public class EncounterController {
         return encounterRepo.deleteEncounter(encounterId);
     }
 
+    @PatchMapping(value = "/description/{encounterId}/{description}")
+    @ResponseBody
+    public Encounter updateDescription(@PathVariable Integer encounterId, @PathVariable String description) {
+        Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("encounter with id %d not found", encounterId)));
+        description = description.trim();
+
+        try {
+            encounter.setDescription(description);
+            encounterRepo.save(encounter);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("cannot set description '%s' for encounter with id %d", description, encounterId));
+        }
+        return encounter;
+    }
 }
