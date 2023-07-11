@@ -59,12 +59,7 @@ public class UserController {
                     String.format("provided user email '%s' is not valid.", userDto.getEmail()));
         }
 
-        return userRepo.save(new User(
-                userDto.getType(),
-                userDto.getUsername(),
-                userDto.getEmail(),
-                LocalDateTime.now(ZoneOffset.UTC)
-        ));
+        return userRepo.save(new User(userDto));
     }
 
     @DeleteMapping(value = "/{userId}")

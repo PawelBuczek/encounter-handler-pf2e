@@ -1,11 +1,13 @@
 package com.pbuczek.pf.security;
 
+import com.pbuczek.pf.security.dto.UserDto;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Data
 @NoArgsConstructor
@@ -18,6 +20,10 @@ public class User {
         this.username = username;
         this.email = email;
         this.timeCreated = timeCreated;
+    }
+
+    public User(UserDto userDto) {
+        this(userDto.getType(), userDto.getUsername(), userDto.getEmail(), LocalDateTime.now(ZoneOffset.UTC));
     }
 
     @Id
