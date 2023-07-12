@@ -42,6 +42,12 @@ public class EncounterController {
         return encounterRepo.findAll();
     }
 
+    @GetMapping(value = "/by-user/{userId}")
+    @ResponseBody
+    public List<Encounter> readEncountersForUser(@PathVariable Integer userId) {
+        return encounterRepo.findByUserId(userId);
+    }
+
     @GetMapping(value = "/{encounterId}")
     @ResponseBody
     public Encounter readEncounter(@PathVariable Integer encounterId) {
