@@ -5,6 +5,10 @@ This is done as a training exercise.
 System logic will be based on: https://2e.aonprd.com/  
 Using MySQL database, but maybe will migrate to MongoDB later on.  
 
+Make sure below are installed first:
+- Java (17)
+- git (with Git Bash)
+
 # How to set up locally:
 1. Download https://github.com/PawelBuczek/encounter-handler-pf2e-back (this repo)  
    and https://github.com/PawelBuczek/encounter-handler-pf2e-front (front-end part)
