@@ -6,6 +6,8 @@
 # But additional data created by you locally will be lost.
 # On Production environment due to a different setup running this script will not do anything.
 
+# Standard output that is being echoed at the end is the docker container id where mysql image is now running
+
 output="$(docker run --name mysql-encounterhandlerpf2e -p 3306:3306 -e MYSQL_ROOT_PASSWORD=PASSWORD -d mysql 2>&1)"
 
 if [[ $output == *"docker: error during connect: This error may indicate that the docker daemon is not running"* ]]; then
