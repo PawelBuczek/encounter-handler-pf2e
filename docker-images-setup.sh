@@ -8,7 +8,7 @@
 
 # Standard output that is being echoed at the end is the docker container id where mysql image is now running
 
-output="$(docker run --name mysql-encounterhandlerpf2e -p 3306:3306 -e MYSQL_ROOT_PASSWORD=PASSWORD -d mysql 2>&1)"
+output="$(docker run --name mysql-encounterhandlerpf2e -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -d mysql 2>&1)"
 
 if [[ $output == *"docker: error during connect: This error may indicate that the docker daemon is not running"* ]]; then
   echo "You need to run your docker daemon/manager/desktop first. Full error below:"
