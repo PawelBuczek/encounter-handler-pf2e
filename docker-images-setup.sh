@@ -22,10 +22,10 @@ if [[ $output == "" ]]; then
   exit 0
 fi
 
-output="$(docker run --name mysql-encounterhandlerpf2e -p 3306:3306 -e MYSQL_ROOT_PASSWORD=PASSWORD -d mysql 2>&1)"
+output="$(docker container inspect -f '{{.ID}}' mysql-encounterhandlerpf2e 2>&1)"
 
-if [[ $output == *"Error response from daemon: Conflict. The container name"* ]]; then
-  container_id=$(echo "$output" | sed -n 's/.*container \"\([^"]*\)\".*/\1/p')
+if [[ $output != *"No such container"* ]]; then
+  container_id=$output
   echo "Stopping and removing previous container with id '$container_id'."
   output="$(docker stop "$container_id" 2>&1)"
   if [[ "$output" != "$container_id" ]]; then
@@ -39,7 +39,6 @@ if [[ $output == *"Error response from daemon: Conflict. The container name"* ]]
     echo "$output"
     exit 0
   fi
-  output="$(docker run --name mysql-encounterhandlerpf2e -p 3306:3306 -e MYSQL_ROOT_PASSWORD=PASSWORD -d mysql 2>&1)"
 fi
 
-echo "$output"
+docker run --name mysql-encounterhandlerpf2e -p 3306:3306 -e MYSQL_ROOT_PASSWORD=PASSWORD -d mysql 2>&1
