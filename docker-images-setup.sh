@@ -41,4 +41,4 @@ if [[ $output != *"No such container"* ]]; then
   fi
 fi
 
-docker run --name mysql-encounterhandlerpf2e -p 3306:3306 -e MYSQL_ROOT_PASSWORD=PASSWORD -d mysql 2>&1
+docker run --name mysql-encounterhandlerpf2e -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -d mysql 2>&1
