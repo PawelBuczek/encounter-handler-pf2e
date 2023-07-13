@@ -8,13 +8,21 @@
 
 # Standard output that is being echoed at the end is the docker container id where mysql image is now running
 
-output="$(docker run --name mysql-encounterhandlerpf2e -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -d mysql 2>&1)"
+output="$(docker images -q mysql 2>&1)"
 
 if [[ $output == *"docker: error during connect: This error may indicate that the docker daemon is not running"* ]]; then
   echo "You need to run your docker daemon/manager/desktop first. Full error below:"
   echo "$output"
   exit 0
 fi
+
+if [[ $output == "" ]]; then
+  echo "It seems that mysql image is not pulled."
+  echo "Please pull it using 'docker pull mysql' command and then run this script again"
+  exit 0
+fi
+
+output="$(docker run --name mysql-encounterhandlerpf2e -p 3306:3306 -e MYSQL_ROOT_PASSWORD=PASSWORD -d mysql 2>&1)"
 
 if [[ $output == *"Error response from daemon: Conflict. The container name"* ]]; then
   container_id=$(echo "$output" | sed -n 's/.*container \"\([^"]*\)\".*/\1/p')
