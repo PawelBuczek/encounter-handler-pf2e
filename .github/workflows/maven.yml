@@ -21,7 +21,7 @@ jobs:
     env:
       DB_DATABASE: pf
       DB_USER: root
-      DB_PASSWORD: PASSWORD
+      DB_PASSWORD: root
     steps:
     - name: Set up MySQL
       run: |
