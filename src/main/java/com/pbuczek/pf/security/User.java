@@ -29,7 +29,6 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
     @Enumerated(EnumType.STRING)
     private UserType type = UserType.STANDARD;
     @Enumerated(EnumType.STRING)  // doesn't have any meaning for ADMIN user type
