@@ -184,5 +184,4 @@ public class UserController {
         private String currentPassword;
         private String newPassword;
     }
-
 }
