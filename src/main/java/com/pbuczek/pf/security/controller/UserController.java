@@ -6,11 +6,11 @@ import com.pbuczek.pf.security.dto.UserDto;
 import com.pbuczek.pf.security.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +20,7 @@ public class UserController {
 
     UserRepository userRepo;
     private final static String emailRegex = "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$";
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
     public UserController(UserRepository userRepo) {
@@ -54,7 +55,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     String.format("username '%s' is already being used by another user.", userDto.getUsername()));
         }
-        if (! userDto.getEmail().matches(emailRegex)) {
+        if (!userDto.getEmail().matches(emailRegex)) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     String.format("provided user email '%s' is not valid.", userDto.getEmail()));
         }
@@ -142,5 +143,34 @@ public class UserController {
         }
         return user;
     }
+
+//    @PatchMapping(value = "/password")
+//    @ResponseBody
+//    public User updatePassword(@RequestParam("password") String password,
+//                               @RequestParam("oldpassword") String oldPassword) {
+//        User user;
+//        try {
+//            user = userRepo.findByEmail(
+//                    SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(
+//                    new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
+//                            "cannot authenticate current user"));
+//        } catch (Exception e) {
+//            throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
+//                    "cannot find current user's data");
+//        }
+//
+//        //TODO: check old password - take special care when null/empty
+//
+//        //TODO: is new password secure enough?
+//
+//        try {
+//            user.setPassword(passwordEncoder.encode(user.getPassword()));
+//            userRepo.save(user);
+//        } catch (Exception e) {
+//            throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
+//                    String.format("cannot change password for current user (user's id: '%d')", user.getId()));
+//        }
+//        return user;
+//    }
 
 }
