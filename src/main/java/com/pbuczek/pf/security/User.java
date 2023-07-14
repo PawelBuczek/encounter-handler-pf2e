@@ -41,6 +41,6 @@ public class User {
     @Nonnull
     private LocalDateTime timeCreated;
     @Nonnull
-    @Column(columnDefinition = "CHAR(70)")
+    @Column(columnDefinition = "CHAR(60)")
     private String password = "";
 }
