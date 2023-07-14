@@ -24,7 +24,7 @@
             <column name="time_created" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="password" type="BINARY(60)">
+            <column name="password" type="CHAR(70)">
                 <constraints nullable="false"/>
             </column>
         </createTable>

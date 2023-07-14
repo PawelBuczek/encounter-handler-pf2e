@@ -4,8 +4,11 @@ import com.pbuczek.pf.security.PaymentPlan;
 import com.pbuczek.pf.security.User;
 import com.pbuczek.pf.security.dto.UserDto;
 import com.pbuczek.pf.security.repository.UserRepository;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -144,33 +147,42 @@ public class UserController {
         return user;
     }
 
-//    @PatchMapping(value = "/password")
-//    @ResponseBody
-//    public User updatePassword(@RequestParam("password") String password,
-//                               @RequestParam("oldpassword") String oldPassword) {
-//        User user;
-//        try {
-//            user = userRepo.findByEmail(
-//                    SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(
-//                    new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
-//                            "cannot authenticate current user"));
-//        } catch (Exception e) {
-//            throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
-//                    "cannot find current user's data");
-//        }
-//
-//        //TODO: check old password - take special care when null/empty
-//
-//        //TODO: is new password secure enough?
-//
-//        try {
-//            user.setPassword(passwordEncoder.encode(user.getPassword()));
-//            userRepo.save(user);
-//        } catch (Exception e) {
-//            throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
-//                    String.format("cannot change password for current user (user's id: '%d')", user.getId()));
-//        }
-//        return user;
-//    }
+    @PatchMapping(value = "/password")
+    @ResponseBody
+    public User updatePassword(@RequestBody PasswordDto passwordDto) {
+        User user;
+        try {
+            user = userRepo.findByUsername( //how will it know what is 'name'? Need to test this.
+                    SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(() ->
+                    new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
+        }
+
+        if (!user.getPassword().equals("") && !user.getPassword().equals(passwordDto.getCurrentPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "provided password is not correct");
+        }
+
+        if (!passwordDto.newPassword.matches(
+                "^(?=.*[A-Z])(?=.*[0-9])([^A-Za-z0-9])((?!password).)((?!pathfinder).).{8,50}$^")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "new password doesn't satisfy requirement");
+        }
+
+        try {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepo.save(user);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
+                    String.format("cannot change password for current user (user's id: '%d')", user.getId()));
+        }
+        return user;
+    }
+
+    @Data
+    @NoArgsConstructor
+    private static class PasswordDto {
+        private String currentPassword;
+        private String newPassword;
+    }
 
 }

@@ -40,6 +40,7 @@ public class User {
     private String email;
     @Nonnull
     private LocalDateTime timeCreated;
-    @Column(columnDefinition = "BINARY")
-    private byte[] password = new byte[0];
+    @Nonnull
+    @Column(columnDefinition = "CHAR(70)")
+    private String password = "";
 }
