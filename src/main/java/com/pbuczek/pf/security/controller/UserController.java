@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -159,12 +160,13 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
         }
 
-        if (!user.getPassword().equals("") && !user.getPassword().equals(passwordDto.getCurrentPassword())) {
+        if (!user.getPassword().equals("$2a$10$KDGrVPtQi8GVmg3lNu/HqehT8d8Dx7gzNmhlB/2YrkTohp5YcD1Em") &&
+                !BCrypt.checkpw("passwordDto.getCurrentPassword()", user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "provided password is not correct");
         }
 
         if (!passwordDto.newPassword.matches(
-                "^(?=.*[A-Z])(?=.*[0-9])([^A-Za-z0-9])((?!password).)((?!pathfinder).).{8,50}$^")) {
+                "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9])((?!password).)((?!pathfinder).).{8,50}$")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "new password doesn't satisfy requirement");
         }
 

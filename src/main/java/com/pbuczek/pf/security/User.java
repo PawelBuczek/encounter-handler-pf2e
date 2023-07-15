@@ -42,5 +42,5 @@ public class User {
     private LocalDateTime timeCreated;
     @Nonnull
     @Column(columnDefinition = "CHAR(60)")
-    private String password = "";
+    private String password = "$2a$10$KDGrVPtQi8GVmg3lNu/HqehT8d8Dx7gzNmhlB/2YrkTohp5YcD1Em"; //random@123
 }
