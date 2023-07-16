@@ -68,6 +68,8 @@ public class UserController {
                     String.format("provided user email '%s' is not valid.", userDto.getEmail()));
         }
 
+        checkPasswordRegex(userDto.getPassword());
+
         return userRepo.save(new User(userDto));
     }
 
@@ -168,9 +170,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "provided current password is not correct");
         }
 
-        if (!passwordDto.newPassword.matches(passwordRegex)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "new password doesn't satisfy requirement");
-        }
+        checkPasswordRegex(passwordDto.getNewPassword());
 
         try {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -180,6 +180,12 @@ public class UserController {
                     String.format("cannot change password for current user (user's id: '%d')", user.getId()));
         }
         return user;
+    }
+
+    private void checkPasswordRegex(String password) {
+        if (!password.matches(passwordRegex)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,   "new password doesn't satisfy requirement");
+        }
     }
 
     @Data

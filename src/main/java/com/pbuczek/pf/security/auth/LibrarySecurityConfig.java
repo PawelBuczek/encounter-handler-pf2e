@@ -22,7 +22,7 @@ public class LibrarySecurityConfig {
 
     private static final String[] AUTHORIZED_ONLY_URLs = {"/user/password"};
 
-    private static final String[] UN_SECURED_URLs = {"/user/**"};
+    private static final String[] UN_SECURED_URLs = {"/user/**", "/error", "/error/**"};
 
     @Bean
     public PasswordEncoder passwordEncoder() {
