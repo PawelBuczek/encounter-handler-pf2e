@@ -15,15 +15,16 @@ import java.time.ZoneOffset;
 @Table(name = "user")
 public class User {
 
-    public User(UserType type, String username, String email) {
+    public User(UserType type, String username, String email, String password) {
         this.type = type;
         this.username = username;
         this.email = email;
+        this.password = password;
         this.timeCreated = LocalDateTime.now(ZoneOffset.UTC);
     }
 
     public User(UserDto userDto) {
-        this(userDto.getType(), userDto.getUsername(), userDto.getEmail());
+        this(userDto.getType(), userDto.getUsername(), userDto.getEmail(), userDto.getPassword());
     }
 
     @Id
@@ -42,5 +43,5 @@ public class User {
     private LocalDateTime timeCreated;
     @Nonnull
     @Column(columnDefinition = "CHAR(60)")
-    private String password = "$2a$10$KDGrVPtQi8GVmg3lNu/HqehT8d8Dx7gzNmhlB/2YrkTohp5YcD1Em"; //random@123
+    private String password;
 }

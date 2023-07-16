@@ -20,6 +20,8 @@ public class LibrarySecurityConfig {
 
     private static final String[] SECURED_URLs = {"/encounter/**"};
 
+    private static final String[] AUTHORIZED_ONLY_URLs = {"/user/password"};
+
     private static final String[] UN_SECURED_URLs = {"/user/**"};
 
     @Bean
@@ -43,13 +45,12 @@ public class LibrarySecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests((requests) ->
-                        requests.requestMatchers(UN_SECURED_URLs).permitAll())
+                .authorizeHttpRequests((requests ->
+                        requests.requestMatchers(UN_SECURED_URLs).permitAll()))
                 .authorizeHttpRequests((requests) ->
                         requests.requestMatchers(SECURED_URLs).hasAuthority("ADMIN")
                                 .anyRequest().authenticated())
                 .httpBasic(withDefaults())
                 .build();
-
     }
 }

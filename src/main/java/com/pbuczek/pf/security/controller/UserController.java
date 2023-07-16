@@ -23,7 +23,11 @@ import java.util.Optional;
 public class UserController {
 
     UserRepository userRepo;
+
+    private final static String passwordRegex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9])((?!password).)((?!pathfinder).).{8,50}$";
+    // below regex constant need to match with sql rule created with files stored in src/main/resources/db/sql-files/add-user-email-validation-constraint.sql
     private final static String emailRegex = "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$";
+
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
@@ -153,20 +157,18 @@ public class UserController {
     public User updatePassword(@RequestBody PasswordDto passwordDto) {
         User user;
         try {
-            user = userRepo.findByUsername( //how will it know what is 'name'? Need to test this.
+            user = userRepo.findByUsername(
                     SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(() ->
                     new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
         }
 
-        if (!user.getPassword().equals("$2a$10$KDGrVPtQi8GVmg3lNu/HqehT8d8Dx7gzNmhlB/2YrkTohp5YcD1Em") &&
-                !BCrypt.checkpw("passwordDto.getCurrentPassword()", user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "provided password is not correct");
+        if (!BCrypt.checkpw("passwordDto.getCurrentPassword()", user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "provided current password is not correct");
         }
 
-        if (!passwordDto.newPassword.matches(
-                "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9])((?!password).)((?!pathfinder).).{8,50}$")) {
+        if (!passwordDto.newPassword.matches(passwordRegex)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "new password doesn't satisfy requirement");
         }
 
@@ -174,7 +176,7 @@ public class UserController {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepo.save(user);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     String.format("cannot change password for current user (user's id: '%d')", user.getId()));
         }
         return user;
