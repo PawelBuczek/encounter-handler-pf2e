@@ -24,7 +24,7 @@ public class UserController {
 
     UserRepository userRepo;
 
-    private final static String passwordRegex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9])((?!password).)((?!pathfinder).)(.{8,50})$";
+    private final static String passwordRegex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*[!@#$&*]).{8,50}$";
     // below regex constant need to match with sql rule created with files stored in src/main/resources/db/sql-files/add-user-email-validation-constraint.sql
     private final static String emailRegex = "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$";
 
