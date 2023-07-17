@@ -167,14 +167,14 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
         }
 
-        if (!BCrypt.checkpw("passwordDto.getCurrentPassword()", user.getPassword())) {
+        if (!BCrypt.checkpw(passwordDto.getCurrentPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "provided current password is not correct");
         }
 
         checkPasswordRegex(passwordDto.getNewPassword());
 
         try {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setPassword(passwordEncoder.encode(passwordDto.getNewPassword()));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     String.format("cannot change password for current user (user's id: '%d')", user.getId()));
