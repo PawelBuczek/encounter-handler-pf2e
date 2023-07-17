@@ -6,6 +6,7 @@ import com.pbuczek.pf.encounters.repository.EncounterRepository;
 import com.pbuczek.pf.security.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -36,8 +37,9 @@ public class EncounterController {
         return encounterRepo.save(new Encounter(encounterDto));
     }
 
-    @GetMapping()
+    @GetMapping
     @ResponseBody
+    @PreAuthorize("hasAuthority('ADMIN')")
     public List<Encounter> readAllEncounters() {
         return encounterRepo.findAll();
     }

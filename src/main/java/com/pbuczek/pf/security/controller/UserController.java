@@ -38,7 +38,8 @@ public class UserController {
     @GetMapping()
     @ResponseBody
     public List<User> readAllUsers() {
-        return userRepo.findAll();
+        return userRepo.findAll().stream()
+                .map(this::secureUser).toList();
     }
 
     @GetMapping(value = "/{userId}")
@@ -49,7 +50,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     String.format("user with id %d not found", userId));
         }
-        return optionalUser.get();
+        return secureUser(optionalUser.get());
     }
 
     @PostMapping
@@ -59,18 +60,21 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     String.format("email '%s' is already being used by another user.", userDto.getEmail()));
         }
+        userDto.setUsername(userDto.getUsername().trim());
         if (userRepo.findByUsername(userDto.getUsername()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     String.format("username '%s' is already being used by another user.", userDto.getUsername()));
         }
+        userDto.setEmail(userDto.getEmail().trim());
         if (!userDto.getEmail().matches(emailRegex)) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     String.format("provided user email '%s' is not valid.", userDto.getEmail()));
         }
 
         checkPasswordRegex(userDto.getPassword());
+        userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
 
-        return userRepo.save(new User(userDto));
+        return secureUser(userRepo.save(new User(userDto)));
     }
 
     @DeleteMapping(value = "/{userId}")
@@ -88,7 +92,7 @@ public class UserController {
         email = email.trim();
 
         if (user.getEmail().equals(email)) {
-            return user;
+            return secureUser(user);
         }
 
         if (userRepo.findByEmail(email).isPresent()) {
@@ -98,12 +102,11 @@ public class UserController {
 
         try {
             user.setEmail(email);
-            userRepo.save(user);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("cannot set email '%s' for user with id %d", email, userId));
         }
-        return user;
+        return secureUser(userRepo.save(user));
     }
 
     @PatchMapping(value = "/username/{userId}/{username}")
@@ -115,7 +118,7 @@ public class UserController {
         username = username.trim();
 
         if (user.getUsername().equals(username)) {
-            return user;
+            return secureUser(user);
         }
 
         if (userRepo.findByUsername(username).isPresent()) {
@@ -125,12 +128,11 @@ public class UserController {
 
         try {
             user.setUsername(username);
-            userRepo.save(user);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("cannot set username '%s' for user with id %d", username, userId));
         }
-        return user;
+        return secureUser(userRepo.save(user));
     }
 
     @PatchMapping(value = "/paymentplan/{userId}/{paymentPlan}")
@@ -141,17 +143,16 @@ public class UserController {
                         String.format("user with id %d not found", userId)));
 
         if (user.getPaymentPlan().equals(paymentPlan)) {
-            return user;
+            return secureUser(user);
         }
 
         try {
             user.setPaymentPlan(paymentPlan);
-            userRepo.save(user);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("cannot set paymentPlan '%s' for user with id %d", paymentPlan, userId));
         }
-        return user;
+        return secureUser(userRepo.save(user));
     }
 
     @PatchMapping(value = "/password")
@@ -174,17 +175,21 @@ public class UserController {
 
         try {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
-            userRepo.save(user);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     String.format("cannot change password for current user (user's id: '%d')", user.getId()));
         }
-        return user;
+        return secureUser(userRepo.save(user));
+    }
+
+    private User secureUser(User u) {
+        u.setPassword("[hidden for security reasons]");
+        return u;
     }
 
     private void checkPasswordRegex(String password) {
         if (!password.matches(passwordRegex)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,   "new password doesn't satisfy requirement");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "new password doesn't satisfy requirement");
         }
     }
 
