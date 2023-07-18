@@ -46,6 +46,7 @@ public class UserController {
 
     @GetMapping(value = "/{username}")
     @ResponseBody
+    @PreAuthorize("@securityService.hasContextAnyAuthorities()")
     public User readUser(@PathVariable String username) {
         Optional<User> optionalUser = userRepo.findByUsername(username);
         if (optionalUser.isEmpty()) {
@@ -88,6 +89,7 @@ public class UserController {
 
     @PatchMapping(value = "/email/{userId}/{email}")
     @ResponseBody
+    @PreAuthorize("@securityService.isContextAdminOrSpecificUsername(#username)")
     public User updateEmail(@PathVariable Integer userId, @PathVariable String email) {
         User user = userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -112,38 +114,40 @@ public class UserController {
         return secureUser(userRepo.save(user));
     }
 
-    @PatchMapping(value = "/username/{userId}/{username}")
+    @PatchMapping(value = "/username/{currentUsername}/{newUsername}")
     @ResponseBody
-    public User updateUsername(@PathVariable Integer userId, @PathVariable String username) {
-        User user = userRepo.findById(userId).orElseThrow(() ->
+    @PreAuthorize("@securityService.isContextAdminOrSpecificUsername(#username)")
+    public User updateUsername(@PathVariable String currentUsername, @PathVariable String newUsername) {
+        User user = userRepo.findByUsername(currentUsername).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("user with id %d not found", userId)));
-        username = username.trim();
+                        String.format("username %s not found", currentUsername)));
+        newUsername = newUsername.trim();
 
-        if (user.getUsername().equals(username)) {
+        if (currentUsername.equals(newUsername)) {
             return secureUser(user);
         }
 
-        if (userRepo.findByUsername(username).isPresent()) {
+        if (userRepo.findByUsername(newUsername).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    String.format("username '%s' is already being used by another user.", userId));
+                    String.format("username '%s' is already in use.", newUsername));
         }
 
         try {
-            user.setUsername(username);
+            user.setUsername(newUsername);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot set username '%s' for user with id %d", username, userId));
+                    String.format("cannot change username from '%s' to '%s'", currentUsername, newUsername));
         }
         return secureUser(userRepo.save(user));
     }
 
-    @PatchMapping(value = "/paymentplan/{userId}/{paymentPlan}")
+    @PatchMapping(value = "/paymentplan/{username}/{paymentPlan}")
     @ResponseBody
-    public User updatePaymentPlan(@PathVariable Integer userId, @PathVariable PaymentPlan paymentPlan) {
-        User user = userRepo.findById(userId).orElseThrow(() ->
+    @PreAuthorize("@securityService.isContextAdminOrSpecificUsername(#username)")
+    public User updatePaymentPlan(@PathVariable String username, @PathVariable PaymentPlan paymentPlan) {
+        User user = userRepo.findByUsername(username).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("user with id %d not found", userId)));
+                        String.format("username %s not found", username)));
 
         if (user.getPaymentPlan().equals(paymentPlan)) {
             return secureUser(user);
@@ -153,7 +157,7 @@ public class UserController {
             user.setPaymentPlan(paymentPlan);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot set paymentPlan '%s' for user with id %d", paymentPlan, userId));
+                    String.format("cannot set paymentPlan '%s' for username '%s'", paymentPlan, username));
         }
         return secureUser(userRepo.save(user));
     }
