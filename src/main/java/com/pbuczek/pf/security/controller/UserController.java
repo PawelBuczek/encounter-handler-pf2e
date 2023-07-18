@@ -4,6 +4,7 @@ import com.pbuczek.pf.security.PaymentPlan;
 import com.pbuczek.pf.security.User;
 import com.pbuczek.pf.security.dto.UserDto;
 import com.pbuczek.pf.security.repository.UserRepository;
+import com.pbuczek.pf.security.service.SecurityService;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,17 +23,19 @@ import java.util.Optional;
 @RequestMapping(value = "/user")
 public class UserController {
 
-    UserRepository userRepo;
-
     private final static String passwordRegex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9]).{8,50}$";
     // below regex constant needs to match with sql rule created in the file 'src/main/resources/db/sql-files/add-user-email-validation-constraint.sql'
     private final static String emailRegex = "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$";
 
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    private final UserRepository userRepo;
+    private final SecurityService securityService;
+
     @Autowired
-    public UserController(UserRepository userRepo) {
+    public UserController(UserRepository userRepo, SecurityService securityService) {
         this.userRepo = userRepo;
+        this.securityService = securityService;
     }
 
     @GetMapping()
@@ -42,13 +45,17 @@ public class UserController {
                 .map(this::secureUser).toList();
     }
 
-    @GetMapping(value = "/{userId}")
+    @GetMapping(value = "/{username}")
     @ResponseBody
-    public User readUser(@PathVariable Integer userId) {
-        Optional<User> optionalUser = userRepo.findById(userId);
+    public User readUser(@PathVariable String username) {
+        if (!securityService.isContextAdminOrSpecificUsername(username)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    String.format("No acccess to user with username: %s", username));
+        }
+        Optional<User> optionalUser = userRepo.findByUsername(username);
         if (optionalUser.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    String.format("user with id %d not found", userId));
+                    String.format("username %s not found", username));
         }
         return secureUser(optionalUser.get());
     }
