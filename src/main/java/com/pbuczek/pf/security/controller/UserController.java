@@ -4,11 +4,11 @@ import com.pbuczek.pf.security.PaymentPlan;
 import com.pbuczek.pf.security.User;
 import com.pbuczek.pf.security.dto.UserDto;
 import com.pbuczek.pf.security.repository.UserRepository;
-import com.pbuczek.pf.security.service.SecurityService;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -30,16 +30,15 @@ public class UserController {
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private final UserRepository userRepo;
-    private final SecurityService securityService;
 
     @Autowired
-    public UserController(UserRepository userRepo, SecurityService securityService) {
+    public UserController(UserRepository userRepo) {
         this.userRepo = userRepo;
-        this.securityService = securityService;
     }
 
-    @GetMapping()
+    @GetMapping
     @ResponseBody
+    @PreAuthorize("hasAuthority('ADMIN')")
     public List<User> readAllUsers() {
         return userRepo.findAll().stream()
                 .map(this::secureUser).toList();
@@ -48,10 +47,6 @@ public class UserController {
     @GetMapping(value = "/{username}")
     @ResponseBody
     public User readUser(@PathVariable String username) {
-        if (!securityService.isContextAdminOrSpecificUsername(username)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    String.format("No acccess to user with username: %s", username));
-        }
         Optional<User> optionalUser = userRepo.findByUsername(username);
         if (optionalUser.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -84,10 +79,11 @@ public class UserController {
         return secureUser(userRepo.save(new User(userDto)));
     }
 
-    @DeleteMapping(value = "/{userId}")
+    @DeleteMapping(path = "/{username}")
     @ResponseBody
-    public int deleteUser(@PathVariable Integer userId) {
-        return userRepo.deleteUser(userId);
+    @PreAuthorize("@securityService.isContextAdminOrSpecificUsername(#username)")
+    public int deleteUser(@PathVariable("username") String username) {
+        return userRepo.deleteUserByUsername(username);
     }
 
     @PatchMapping(value = "/email/{userId}/{email}")

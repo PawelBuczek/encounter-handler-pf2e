@@ -16,6 +16,7 @@ public class SecurityService {
         return SecurityContextHolder.getContext().getAuthentication().getName().equals(username);
     }
 
+    @SuppressWarnings("unused")  //it is actually being used in controllers, through annotations
     public boolean isContextAdminOrSpecificUsername(String username) {
         return isContextAdmin() || doesContextUsernameMatch(username);
     }

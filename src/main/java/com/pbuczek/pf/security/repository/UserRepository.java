@@ -18,6 +18,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Transactional
     @Modifying
-    @Query("DELETE FROM User u WHERE u.id = ?1")
-    int deleteUser(Integer id);
+    @Query("DELETE FROM User u WHERE u.username = ?1")
+    int deleteUserByUsername(String id);
 }
