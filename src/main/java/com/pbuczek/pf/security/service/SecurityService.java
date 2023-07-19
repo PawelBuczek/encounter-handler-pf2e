@@ -30,7 +30,7 @@ public class SecurityService {
                 .contains(new SimpleGrantedAuthority("ADMIN"));
     }
 
-    public boolean isContextSpecificUsername(String username) {
+    private boolean isContextSpecificUsername(String username) {
         return SecurityContextHolder.getContext().getAuthentication().getName().equals(username);
     }
 
