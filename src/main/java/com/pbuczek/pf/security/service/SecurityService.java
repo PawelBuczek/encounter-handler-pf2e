@@ -25,7 +25,7 @@ public class SecurityService {
         return isContextAdmin() || isContextSpecificUsername(username);
     }
 
-    public boolean isContextAdmin() {
+    private boolean isContextAdmin() {
         return SecurityContextHolder.getContext().getAuthentication().getAuthorities()
                 .contains(new SimpleGrantedAuthority("ADMIN"));
     }
