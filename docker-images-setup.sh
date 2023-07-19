@@ -9,7 +9,7 @@
 
 output="$(docker images -q mysql 2>&1)"
 
-if [[ $output == *"docker: error during connect: This error may indicate that the docker daemon is not running"* ]]; then
+if [[ $output == *"error during connect: This error may indicate that the docker daemon is not running"* ]]; then
   echo "You need to run your docker daemon/manager/desktop first. Full error below:"
   echo "$output"
   exit 0

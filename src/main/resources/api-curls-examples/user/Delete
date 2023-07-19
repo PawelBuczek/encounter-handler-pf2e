@@ -1,1 +1,2 @@
-curl --location --request DELETE 'http://localhost:8080/user/1'
+curl --location --request DELETE 'http://localhost:8080/user/johndoe' \
+--header 'Authorization: Basic am9obmRvZTpleFBhc3NAMQ=='
