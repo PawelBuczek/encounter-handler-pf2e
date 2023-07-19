@@ -1,5 +1,6 @@
 package com.pbuczek.pf.encounter;
 
+import com.pbuczek.pf.security.SecurityService;
 import com.pbuczek.pf.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,20 +18,23 @@ public class EncounterController {
 
     EncounterRepository encounterRepo;
     UserRepository userRepo;
+    SecurityService securityService;
 
     @Autowired
-    public EncounterController(EncounterRepository encounterRepo, UserRepository userRepo) {
+    public EncounterController(EncounterRepository encounterRepo, UserRepository userRepo, SecurityService securityService) {
         this.encounterRepo = encounterRepo;
         this.userRepo = userRepo;
+        this.securityService = securityService;
     }
 
     @PostMapping
     @ResponseBody
     public Encounter createEncounter(@RequestBody EncounterDto encounterDto) {
-        userRepo.findById(encounterDto.getUserId()).orElseThrow(() ->
+        String username = userRepo.findById(encounterDto.getUserId()).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("user with id %d not found", encounterDto.getUserId())));
+                        String.format("user with id %d not found", encounterDto.getUserId()))).getUsername();
 
+        adminOrSpecificUserCheck(username);
         return encounterRepo.save(new Encounter(encounterDto));
     }
 
@@ -41,26 +45,33 @@ public class EncounterController {
         return encounterRepo.findAll();
     }
 
-    @GetMapping(value = "/by-user/{userId}")
+    @GetMapping(value = "/by-username/{username}")
     @ResponseBody
-    public List<Encounter> readEncountersForUser(@PathVariable Integer userId) {
-        return encounterRepo.findByUserId(userId);
+    public List<Encounter> readEncountersForUsername(@PathVariable String username) {
+        adminOrSpecificUserCheck(username);
+        return encounterRepo.findByUserId(userRepo.getIdByUsername(username));
     }
 
     @GetMapping(value = "/{encounterId}")
     @ResponseBody
     public Encounter readEncounter(@PathVariable Integer encounterId) {
-        Optional<Encounter> optionalEncounter = encounterRepo.findById(encounterId);
-        if (optionalEncounter.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    String.format("encounter with id %d not found", encounterId));
-        }
-        return optionalEncounter.get();
+        Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("encounter with id %d not found", encounterId)));
+
+        adminOrSpecificUserCheck(encounter.getUserId());
+        return encounter;
     }
 
     @DeleteMapping(value = "/{encounterId}")
     @ResponseBody
     public int deleteEncounter(@PathVariable Integer encounterId) {
+        Optional<Encounter> optionalEncounter = encounterRepo.findById(encounterId);
+        if (optionalEncounter.isEmpty()) {
+            return 0;
+        }
+
+        adminOrSpecificUserCheck(optionalEncounter.get().getUserId());
         return encounterRepo.deleteEncounter(encounterId);
     }
 
@@ -74,11 +85,23 @@ public class EncounterController {
 
         try {
             encounter.setDescription(description);
-            encounterRepo.save(encounter);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("cannot set description '%s' for encounter with id %d", description, encounterId));
         }
-        return encounter;
+
+        adminOrSpecificUserCheck(encounter.getUserId());
+        return encounterRepo.save(encounter);
+    }
+
+
+    private void adminOrSpecificUserCheck(Integer userId) {
+        adminOrSpecificUserCheck(userRepo.getUsernameById(userId));
+    }
+
+    private void adminOrSpecificUserCheck(String username) {
+        if (!securityService.isContextAdminOrSpecificUsername(username)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "not authorized for this resource");
+        }
     }
 }
