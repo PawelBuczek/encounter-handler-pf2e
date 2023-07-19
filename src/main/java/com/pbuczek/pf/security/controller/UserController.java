@@ -138,7 +138,7 @@ public class UserController {
 
     @PatchMapping(value = "/paymentplan/{username}/{paymentPlan}")
     @ResponseBody
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUsername(#username)")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public User updatePaymentPlan(@PathVariable String username, @PathVariable PaymentPlan paymentPlan) {
         User user = userRepo.findByUsername(username).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
