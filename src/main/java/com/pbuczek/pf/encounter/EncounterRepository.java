@@ -1,6 +1,5 @@
 package com.pbuczek.pf.encounter;
 
-import com.pbuczek.pf.encounter.Encounter;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
