@@ -31,6 +31,9 @@ public class SecurityService {
     }
 
     private boolean isContextSpecificUsername(String username) {
+        if (username == null) {
+            return false;
+        }
         return SecurityContextHolder.getContext().getAuthentication().getName().equals(username);
     }
 
