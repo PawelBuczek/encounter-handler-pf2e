@@ -1,6 +1,6 @@
-package com.pbuczek.pf.security.dto;
+package com.pbuczek.pf.user;
 
-import com.pbuczek.pf.security.UserType;
+import com.pbuczek.pf.user.UserType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

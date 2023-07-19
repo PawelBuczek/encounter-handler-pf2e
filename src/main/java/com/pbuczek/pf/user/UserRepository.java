@@ -1,6 +1,6 @@
-package com.pbuczek.pf.security.repository;
+package com.pbuczek.pf.user;
 
-import com.pbuczek.pf.security.User;
+import com.pbuczek.pf.user.User;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

@@ -1,6 +1,6 @@
-package com.pbuczek.pf.security.service;
+package com.pbuczek.pf.security;
 
-import com.pbuczek.pf.security.UserType;
+import com.pbuczek.pf.user.UserType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;

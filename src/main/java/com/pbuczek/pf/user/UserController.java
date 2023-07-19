@@ -1,9 +1,5 @@
-package com.pbuczek.pf.security.controller;
+package com.pbuczek.pf.user;
 
-import com.pbuczek.pf.security.PaymentPlan;
-import com.pbuczek.pf.security.User;
-import com.pbuczek.pf.security.dto.UserDto;
-import com.pbuczek.pf.security.repository.UserRepository;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

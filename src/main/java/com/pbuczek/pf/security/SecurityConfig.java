@@ -1,7 +1,7 @@
-package com.pbuczek.pf.security.auth;
+package com.pbuczek.pf.security;
 
-import com.pbuczek.pf.security.User;
-import com.pbuczek.pf.security.repository.UserRepository;
+import com.pbuczek.pf.user.User;
+import com.pbuczek.pf.user.UserRepository;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

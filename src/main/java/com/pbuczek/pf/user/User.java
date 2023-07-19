@@ -1,6 +1,5 @@
-package com.pbuczek.pf.security;
+package com.pbuczek.pf.user;
 
-import com.pbuczek.pf.security.dto.UserDto;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.Data;

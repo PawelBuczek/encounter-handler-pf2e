@@ -1,6 +1,5 @@
-package com.pbuczek.pf.encounters;
+package com.pbuczek.pf.encounter;
 
-import com.pbuczek.pf.encounters.dto.EncounterDto;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.Data;

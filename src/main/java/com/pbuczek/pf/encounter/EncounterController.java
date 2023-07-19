@@ -1,9 +1,6 @@
-package com.pbuczek.pf.encounters.controller;
+package com.pbuczek.pf.encounter;
 
-import com.pbuczek.pf.encounters.Encounter;
-import com.pbuczek.pf.encounters.dto.EncounterDto;
-import com.pbuczek.pf.encounters.repository.EncounterRepository;
-import com.pbuczek.pf.security.repository.UserRepository;
+import com.pbuczek.pf.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
