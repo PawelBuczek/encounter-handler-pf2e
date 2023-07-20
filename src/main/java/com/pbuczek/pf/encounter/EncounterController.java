@@ -30,11 +30,11 @@ public class EncounterController {
     @PostMapping
     @ResponseBody
     public Encounter createEncounter(@RequestBody EncounterDto encounterDto) {
-        String username = userRepo.findById(encounterDto.getUserId()).orElseThrow(() ->
+        userRepo.findById(encounterDto.getUserId()).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("user with id %d not found", encounterDto.getUserId()))).getUsername();
+                        String.format("user with id %d not found", encounterDto.getUserId())));
 
-        adminOrSpecificUserId(username);
+        adminOrSpecificUserId(encounterDto.getUserId());
         return encounterRepo.save(new Encounter(encounterDto));
     }
 
@@ -78,7 +78,7 @@ public class EncounterController {
     @GetMapping(value = "/by-username/{username}")
     @ResponseBody
     public List<Encounter> readEncountersByUsername(@PathVariable String username) {
-        adminOrSpecificUserId(username);
+        adminOrSpecificUserId(userRepo.getIdByUsername(username));
         return encounterRepo.findByUserId(userRepo.getIdByUsername(username));
     }
 
@@ -99,10 +99,6 @@ public class EncounterController {
 
         adminOrSpecificUserId(encounter.getUserId());
         return encounterRepo.save(encounter);
-    }
-
-    private void adminOrSpecificUserId(String username) {
-        adminOrSpecificUserId(userRepo.getIdByUsername(username));
     }
 
     private void adminOrSpecificUserId(Integer userId) {
