@@ -1,5 +1,6 @@
 curl --location 'http://localhost:8080/encounter' \
 --header 'Content-Type: application/json' \
+--header 'Authorization: Basic am9obmRvZTpleFBhc3NAMQ==' \
 --data '{
   "name": "enc1",
   "userId": 1,

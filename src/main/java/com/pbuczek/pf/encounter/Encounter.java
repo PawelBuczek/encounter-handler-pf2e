@@ -16,8 +16,9 @@ public class Encounter {
 
     public Encounter(String name, Integer userId, String description) {
         this.name = name;
-        this.description = description;
         this.userId = userId;
+        this.published = false;
+        this.description = description;
         this.timeCreated = LocalDateTime.now(ZoneOffset.UTC);
     }
 
@@ -33,12 +34,16 @@ public class Encounter {
     private Integer userId;
 
     @Nonnull
+    private Boolean published; //publicly available
+
+    @Nonnull
     private String name;
 
     private String description;
 
     @Nonnull
     private LocalDateTime timeCreated;
+
 }
 
 

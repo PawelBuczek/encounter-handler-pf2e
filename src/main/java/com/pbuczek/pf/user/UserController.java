@@ -55,13 +55,12 @@ public class UserController {
         return secureUser(userRepo.save(new User(userDto)));
     }
 
-    @DeleteMapping(path = "/{username}")
+    @DeleteMapping(path = "/{userId}")
     @ResponseBody
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUsername(#username)")
-    public int deleteUser(@PathVariable("username") String username) {
-        return userRepo.deleteUserByUsername(username);
+    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    public int deleteUser(@PathVariable("userId") Integer userId) {
+        return userRepo.deleteUserByUserId(userId);
     }
-
 
     @GetMapping
     @ResponseBody
@@ -90,13 +89,13 @@ public class UserController {
         ));
     }
 
-    @PatchMapping(value = "/email/{username}/{email}")
+    @PatchMapping(value = "/email/{userId}/{email}")
     @ResponseBody
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUsername(#username)")
-    public User updateEmail(@PathVariable String username, @PathVariable String email) {
-        User user = userRepo.findByUsername(username).orElseThrow(() ->
+    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    public User updateEmail(@PathVariable Integer userId, @PathVariable String email) {
+        User user = userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("username '%s' not found", username)));
+                        String.format("username '%d' not found", userId)));
 
         if (user.getEmail().equals(email)) {
             return secureUser(user);
@@ -111,18 +110,18 @@ public class UserController {
             user.setEmail(email);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot set email '%s' for username '%s'", email, username));
+                    String.format("cannot set email '%s' for user with id '%d'", email, userId));
         }
         return secureUser(userRepo.save(user));
     }
 
     @PatchMapping(value = "/password")
     @ResponseBody
-    public User updatePassword(@RequestBody PasswordDto passwordDto) {
+    public User updateOwnPassword(@RequestBody PasswordDto passwordDto) {
         User user;
         try {
-            user = userRepo.findByUsername(
-                    SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(() ->
+            user = userRepo.findById(
+                    Integer.valueOf(SecurityContextHolder.getContext().getAuthentication().getName())).orElseThrow(() ->
                     new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
@@ -143,13 +142,13 @@ public class UserController {
         return secureUser(userRepo.save(user));
     }
 
-    @PatchMapping(value = "/paymentplan/{username}/{paymentPlan}")
+    @PatchMapping(value = "/paymentplan/{userId}/{paymentPlan}")
     @ResponseBody
     @PreAuthorize("hasAuthority('ADMIN')")
-    public User updatePaymentPlan(@PathVariable String username, @PathVariable PaymentPlan paymentPlan) {
-        User user = userRepo.findByUsername(username).orElseThrow(() ->
+    public User updatePaymentPlan(@PathVariable Integer userId, @PathVariable PaymentPlan paymentPlan) {
+        User user = userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("username '%s' not found", username)));
+                        String.format("username '%d' not found", userId)));
 
         if (user.getPaymentPlan().equals(paymentPlan)) {
             return secureUser(user);
@@ -159,21 +158,21 @@ public class UserController {
             user.setPaymentPlan(paymentPlan);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot set paymentPlan '%s' for username '%s'", paymentPlan.toString(), username));
+                    String.format("cannot set paymentPlan '%s' for username '%d'", paymentPlan.toString(), userId));
         }
         return secureUser(userRepo.save(user));
     }
 
-    @PatchMapping(value = "/username/{currentUsername}/{newUsername}")
+    @PatchMapping(value = "/username/{userId}/{newUsername}")
     @ResponseBody
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUsername(#currentUsername)")
-    public User updateUsername(@PathVariable String currentUsername, @PathVariable String newUsername) {
-        User user = userRepo.findByUsername(currentUsername).orElseThrow(() ->
+    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    public User updateUsername(@PathVariable Integer userId, @PathVariable String newUsername) {
+        User user = userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("username '%s' not found", currentUsername)));
+                        String.format("username '%d' not found", userId)));
         newUsername = newUsername.trim();
 
-        if (currentUsername.equals(newUsername)) {
+        if (user.getUsername().equals(newUsername)) {
             return secureUser(user);
         }
 
@@ -186,18 +185,18 @@ public class UserController {
             user.setUsername(newUsername);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot change username from '%s' to '%s'", currentUsername, newUsername));
+                    String.format("cannot change username from '%s' to '%s'", user.getUsername(), newUsername));
         }
         return secureUser(userRepo.save(user));
     }
 
-    @PatchMapping(value = "/usertype/{username}/{userType}")
+    @PatchMapping(value = "/usertype/{userId}/{userType}")
     @ResponseBody
     @PreAuthorize("hasAuthority('ADMIN')")
-    public User updateUserType(@PathVariable String username, @PathVariable UserType userType) {
-        User user = userRepo.findByUsername(username).orElseThrow(() ->
+    public User updateUserType(@PathVariable Integer userId, @PathVariable UserType userType) {
+        User user = userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("username '%s' not found", username)));
+                        String.format("username '%d' not found", userId)));
 
         if (user.getType().equals(userType)) {
             return secureUser(user);

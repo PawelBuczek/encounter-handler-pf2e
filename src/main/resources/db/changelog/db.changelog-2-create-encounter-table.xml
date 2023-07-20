@@ -15,6 +15,9 @@
             <column name="name" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="published" type="TINYINT(1)">
+                <constraints nullable="false"/>
+            </column>
             <column name="description" type="VARCHAR(3000)"/>
             <column name="time_created" type="TIMESTAMP">
                 <constraints nullable="false"/>

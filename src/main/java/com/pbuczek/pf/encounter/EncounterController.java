@@ -30,11 +30,11 @@ public class EncounterController {
     @PostMapping
     @ResponseBody
     public Encounter createEncounter(@RequestBody EncounterDto encounterDto) {
-        String username = userRepo.findById(encounterDto.getUserId()).orElseThrow(() ->
+        userRepo.findById(encounterDto.getUserId()).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("user with id %d not found", encounterDto.getUserId()))).getUsername();
+                        String.format("user with id %d not found", encounterDto.getUserId())));
 
-        adminOrSpecificUserCheck(username);
+        adminOrSpecificUserId(encounterDto.getUserId());
         return encounterRepo.save(new Encounter(encounterDto));
     }
 
@@ -46,7 +46,7 @@ public class EncounterController {
             return 0;
         }
 
-        adminOrSpecificUserCheck(optionalEncounter.get().getUserId());
+        adminOrSpecificUserId(optionalEncounter.get().getUserId());
         return encounterRepo.deleteEncounter(encounterId);
     }
 
@@ -64,21 +64,21 @@ public class EncounterController {
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("encounter with id %d not found", encounterId)));
 
-        adminOrSpecificUserCheck(encounter.getUserId());
+        adminOrSpecificUserId(encounter.getUserId());
         return encounter;
     }
 
     @GetMapping(value = "/by-userid/{userid}")
     @ResponseBody
     public List<Encounter> readEncountersByUserid(@PathVariable Integer userid) {
-        adminOrSpecificUserCheck(userid);
+        adminOrSpecificUserId(userid);
         return encounterRepo.findByUserId(userid);
     }
 
     @GetMapping(value = "/by-username/{username}")
     @ResponseBody
     public List<Encounter> readEncountersByUsername(@PathVariable String username) {
-        adminOrSpecificUserCheck(username);
+        adminOrSpecificUserId(userRepo.getIdByUsername(username));
         return encounterRepo.findByUserId(userRepo.getIdByUsername(username));
     }
 
@@ -97,17 +97,30 @@ public class EncounterController {
                     String.format("cannot set description '%s' for encounter with id %d", description, encounterId));
         }
 
-        adminOrSpecificUserCheck(encounter.getUserId());
+        adminOrSpecificUserId(encounter.getUserId());
         return encounterRepo.save(encounter);
     }
 
+    @PatchMapping(value = "/published/{encounterId}")
+    @ResponseBody
+    public Encounter changePublished(@PathVariable Integer encounterId) {
+        Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("encounter with id %d not found", encounterId)));
 
-    private void adminOrSpecificUserCheck(Integer userId) {
-        adminOrSpecificUserCheck(userRepo.getUsernameById(userId));
+        try {
+            encounter.setPublished(!encounter.getPublished());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("cannot publish/unpublish encounter with id %d", encounterId));
+        }
+
+        adminOrSpecificUserId(encounter.getUserId());
+        return encounterRepo.save(encounter);
     }
 
-    private void adminOrSpecificUserCheck(String username) {
-        if (!securityService.isContextAdminOrSpecificUsername(username)) {
+    private void adminOrSpecificUserId(Integer userId) {
+        if (!securityService.isContextAdminOrSpecificUserId(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "not authorized for this resource");
         }
     }
