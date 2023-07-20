@@ -101,6 +101,24 @@ public class EncounterController {
         return encounterRepo.save(encounter);
     }
 
+    @PatchMapping(value = "/published/{encounterId}")
+    @ResponseBody
+    public Encounter changePublished(@PathVariable Integer encounterId) {
+        Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("encounter with id %d not found", encounterId)));
+
+        try {
+            encounter.setPublished(!encounter.getPublished());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("cannot publish/unpublish encounter with id %d", encounterId));
+        }
+
+        adminOrSpecificUserId(encounter.getUserId());
+        return encounterRepo.save(encounter);
+    }
+
     private void adminOrSpecificUserId(Integer userId) {
         if (!securityService.isContextAdminOrSpecificUserId(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "not authorized for this resource");
