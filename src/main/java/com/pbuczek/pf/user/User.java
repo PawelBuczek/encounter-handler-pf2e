@@ -1,6 +1,5 @@
-package com.pbuczek.pf.security;
+package com.pbuczek.pf.user;
 
-import com.pbuczek.pf.security.dto.UserDto;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -15,15 +14,16 @@ import java.time.ZoneOffset;
 @Table(name = "user")
 public class User {
 
-    public User(UserType type, String username, String email) {
+    public User(UserType type, String username, String email, String password) {
         this.type = type;
         this.username = username;
         this.email = email;
+        this.password = password;
         this.timeCreated = LocalDateTime.now(ZoneOffset.UTC);
     }
 
     public User(UserDto userDto) {
-        this(userDto.getType(), userDto.getUsername(), userDto.getEmail());
+        this(UserType.STANDARD, userDto.getUsername(), userDto.getEmail(), userDto.getPassword());
     }
 
     @Id
@@ -40,6 +40,7 @@ public class User {
     private String email;
     @Nonnull
     private LocalDateTime timeCreated;
-    @Column(columnDefinition = "BINARY")
-    private byte[] password = new byte[0];
+    @Nonnull
+    @Column(columnDefinition = "CHAR(60)")
+    private String password;
 }

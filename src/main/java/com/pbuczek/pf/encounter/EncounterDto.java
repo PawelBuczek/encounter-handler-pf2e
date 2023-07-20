@@ -1,4 +1,4 @@
-package com.pbuczek.pf.encounters.dto;
+package com.pbuczek.pf.encounter;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
