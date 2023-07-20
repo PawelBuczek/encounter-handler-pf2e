@@ -33,7 +33,7 @@ public class UserController {
 
     @PostMapping
     @ResponseBody
-    public User createUser(@RequestBody UserDto userDto) {
+    public User createStandardUser(@RequestBody UserDto userDto) {
         if (userRepo.findByEmail(userDto.getEmail()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     String.format("email '%s' is already being used by another user.", userDto.getEmail()));
@@ -55,6 +55,14 @@ public class UserController {
         return secureUser(userRepo.save(new User(userDto)));
     }
 
+    @DeleteMapping(path = "/{username}")
+    @ResponseBody
+    @PreAuthorize("@securityService.isContextAdminOrSpecificUsername(#username)")
+    public int deleteUser(@PathVariable("username") String username) {
+        return userRepo.deleteUserByUsername(username);
+    }
+
+
     @GetMapping
     @ResponseBody
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -62,7 +70,17 @@ public class UserController {
         return userRepo.findAll().stream().map(this::secureUser).toList();
     }
 
-    @GetMapping(value = "/{username}")
+    @GetMapping(value = "/by-userid/{userId}")
+    @ResponseBody
+    @PreAuthorize("@securityService.hasContextAnyAuthorities()")
+    public User readUser(@PathVariable Integer userId) {
+        return secureUser(userRepo.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("user with id '%d' not found", userId))
+        ));
+    }
+
+    @GetMapping(value = "/by-username/{username}")
     @ResponseBody
     @PreAuthorize("@securityService.hasContextAnyAuthorities()")
     public User readUser(@PathVariable String username) {
@@ -70,13 +88,6 @@ public class UserController {
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("username '%s' not found", username))
         ));
-    }
-
-    @DeleteMapping(path = "/{username}")
-    @ResponseBody
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUsername(#username)")
-    public int deleteUser(@PathVariable("username") String username) {
-        return userRepo.deleteUserByUsername(username);
     }
 
     @PatchMapping(value = "/email/{username}/{email}")
@@ -101,6 +112,54 @@ public class UserController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("cannot set email '%s' for username '%s'", email, username));
+        }
+        return secureUser(userRepo.save(user));
+    }
+
+    @PatchMapping(value = "/password")
+    @ResponseBody
+    public User updatePassword(@RequestBody PasswordDto passwordDto) {
+        User user;
+        try {
+            user = userRepo.findByUsername(
+                    SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(() ->
+                    new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
+        }
+
+        if (!BCrypt.checkpw(passwordDto.getCurrentPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "provided current password is not correct");
+        }
+
+        checkPasswordRegex(passwordDto.getNewPassword());
+
+        try {
+            user.setPassword(passwordEncoder.encode(passwordDto.getNewPassword()));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    String.format("cannot change password for current user (user's id: '%d')", user.getId()));
+        }
+        return secureUser(userRepo.save(user));
+    }
+
+    @PatchMapping(value = "/paymentplan/{username}/{paymentPlan}")
+    @ResponseBody
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public User updatePaymentPlan(@PathVariable String username, @PathVariable PaymentPlan paymentPlan) {
+        User user = userRepo.findByUsername(username).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("username '%s' not found", username)));
+
+        if (user.getPaymentPlan().equals(paymentPlan)) {
+            return secureUser(user);
+        }
+
+        try {
+            user.setPaymentPlan(paymentPlan);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("cannot set paymentPlan '%s' for username '%s'", paymentPlan.toString(), username));
         }
         return secureUser(userRepo.save(user));
     }
@@ -132,50 +191,23 @@ public class UserController {
         return secureUser(userRepo.save(user));
     }
 
-    @PatchMapping(value = "/paymentplan/{username}/{paymentPlan}")
+    @PatchMapping(value = "/usertype/{username}/{userType}")
     @ResponseBody
     @PreAuthorize("hasAuthority('ADMIN')")
-    public User updatePaymentPlan(@PathVariable String username, @PathVariable PaymentPlan paymentPlan) {
+    public User updateUserType(@PathVariable String username, @PathVariable UserType userType) {
         User user = userRepo.findByUsername(username).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("username '%s' not found", username)));
 
-        if (user.getPaymentPlan().equals(paymentPlan)) {
+        if (user.getType().equals(userType)) {
             return secureUser(user);
         }
 
         try {
-            user.setPaymentPlan(paymentPlan);
+            user.setType(userType);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot set paymentPlan '%s' for username '%s'", paymentPlan.toString(), username));
-        }
-        return secureUser(userRepo.save(user));
-    }
-
-    @PatchMapping(value = "/password")
-    @ResponseBody
-    public User updatePassword(@RequestBody PasswordDto passwordDto) {
-        User user;
-        try {
-            user = userRepo.findByUsername(
-                    SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(() ->
-                    new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
-        }
-
-        if (!BCrypt.checkpw(passwordDto.getCurrentPassword(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "provided current password is not correct");
-        }
-
-        checkPasswordRegex(passwordDto.getNewPassword());
-
-        try {
-            user.setPassword(passwordEncoder.encode(passwordDto.getNewPassword()));
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    String.format("cannot change password for current user (user's id: '%d')", user.getId()));
+                    String.format("cannot change userType from '%s' to '%s'", user.getType(), userType));
         }
         return secureUser(userRepo.save(user));
     }

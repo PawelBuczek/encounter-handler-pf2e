@@ -23,7 +23,7 @@ public class User {
     }
 
     public User(UserDto userDto) {
-        this(userDto.getType(), userDto.getUsername(), userDto.getEmail(), userDto.getPassword());
+        this(UserType.STANDARD, userDto.getUsername(), userDto.getEmail(), userDto.getPassword());
     }
 
     @Id
