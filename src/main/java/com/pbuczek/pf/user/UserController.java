@@ -62,7 +62,6 @@ public class UserController {
         return userRepo.deleteUserByUserId(userId);
     }
 
-
     @GetMapping
     @ResponseBody
     @PreAuthorize("hasAuthority('ADMIN')")
