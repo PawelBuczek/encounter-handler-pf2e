@@ -61,12 +61,12 @@ public class SecurityConfig {
     @Data
     public static class UserDetails implements org.springframework.security.core.userdetails.UserDetails {
 
-        private String userName;
+        private Integer userName;
         private String password;
         private List<GrantedAuthority> authorities;
 
         public UserDetails(User user) {
-            userName = user.getUsername();
+            userName = user.getId();
             password = user.getPassword();
             authorities = List.of(new SimpleGrantedAuthority(user.getType().toString()));
         }
@@ -83,7 +83,7 @@ public class SecurityConfig {
 
         @Override
         public String getUsername() {
-            return userName;
+            return String.valueOf(userName);
         }
 
         @Override
