@@ -16,13 +16,14 @@ public class SecurityService {
     @SuppressWarnings("unused")
     public boolean hasContextAnyAuthorities() {
         return !SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                //replace below with any match? or even entirely with Collections.disjoint
                 .filter(grantedAuthority -> userTypes.contains(grantedAuthority.toString()))
                 .toList().isEmpty();
     }
 
     @SuppressWarnings("unused")
-    public boolean isContextAdminOrSpecificUsername(String username) {
-        return isContextAdmin() || isContextSpecificUsername(username);
+    public boolean isContextAdminOrSpecificUserId(Integer userId) {
+        return isContextAdmin() || isContextSpecificUserId(userId);
     }
 
     private boolean isContextAdmin() {
@@ -30,11 +31,11 @@ public class SecurityService {
                 .contains(new SimpleGrantedAuthority("ADMIN"));
     }
 
-    private boolean isContextSpecificUsername(String username) {
-        if (username == null) {
+    private boolean isContextSpecificUserId(Integer userId) {
+        if (userId == null) {
             return false;
         }
-        return SecurityContextHolder.getContext().getAuthentication().getName().equals(username);
+        return SecurityContextHolder.getContext().getAuthentication().getName().equals(String.valueOf(userId));
     }
 
 }

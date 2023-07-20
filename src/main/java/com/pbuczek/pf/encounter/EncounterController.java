@@ -34,7 +34,7 @@ public class EncounterController {
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("user with id %d not found", encounterDto.getUserId()))).getUsername();
 
-        adminOrSpecificUserCheck(username);
+        adminOrSpecificUserId(username);
         return encounterRepo.save(new Encounter(encounterDto));
     }
 
@@ -46,7 +46,7 @@ public class EncounterController {
             return 0;
         }
 
-        adminOrSpecificUserCheck(optionalEncounter.get().getUserId());
+        adminOrSpecificUserId(optionalEncounter.get().getUserId());
         return encounterRepo.deleteEncounter(encounterId);
     }
 
@@ -64,21 +64,21 @@ public class EncounterController {
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("encounter with id %d not found", encounterId)));
 
-        adminOrSpecificUserCheck(encounter.getUserId());
+        adminOrSpecificUserId(encounter.getUserId());
         return encounter;
     }
 
     @GetMapping(value = "/by-userid/{userid}")
     @ResponseBody
     public List<Encounter> readEncountersByUserid(@PathVariable Integer userid) {
-        adminOrSpecificUserCheck(userid);
+        adminOrSpecificUserId(userid);
         return encounterRepo.findByUserId(userid);
     }
 
     @GetMapping(value = "/by-username/{username}")
     @ResponseBody
     public List<Encounter> readEncountersByUsername(@PathVariable String username) {
-        adminOrSpecificUserCheck(username);
+        adminOrSpecificUserId(username);
         return encounterRepo.findByUserId(userRepo.getIdByUsername(username));
     }
 
@@ -97,17 +97,16 @@ public class EncounterController {
                     String.format("cannot set description '%s' for encounter with id %d", description, encounterId));
         }
 
-        adminOrSpecificUserCheck(encounter.getUserId());
+        adminOrSpecificUserId(encounter.getUserId());
         return encounterRepo.save(encounter);
     }
 
-
-    private void adminOrSpecificUserCheck(Integer userId) {
-        adminOrSpecificUserCheck(userRepo.getUsernameById(userId));
+    private void adminOrSpecificUserId(String username) {
+        adminOrSpecificUserId(userRepo.getIdByUsername(username));
     }
 
-    private void adminOrSpecificUserCheck(String username) {
-        if (!securityService.isContextAdminOrSpecificUsername(username)) {
+    private void adminOrSpecificUserId(Integer userId) {
+        if (!securityService.isContextAdminOrSpecificUserId(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "not authorized for this resource");
         }
     }
