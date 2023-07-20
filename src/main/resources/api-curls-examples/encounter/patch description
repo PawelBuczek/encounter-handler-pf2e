@@ -1,3 +1,4 @@
 curl --location --request PATCH 'http://localhost:8080/encounter/description/1' \
 --header 'Content-Type: text/plain' \
+--header 'Authorization: Basic am9obmRvZTpleFBhc3NAMQ==' \
 --data 'weak goblins free xp'

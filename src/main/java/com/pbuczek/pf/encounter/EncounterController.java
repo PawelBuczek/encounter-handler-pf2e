@@ -38,25 +38,23 @@ public class EncounterController {
         return encounterRepo.save(new Encounter(encounterDto));
     }
 
+    @DeleteMapping(value = "/{encounterId}")
+    @ResponseBody
+    public int deleteEncounter(@PathVariable Integer encounterId) {
+        Optional<Encounter> optionalEncounter = encounterRepo.findById(encounterId);
+        if (optionalEncounter.isEmpty()) {
+            return 0;
+        }
+
+        adminOrSpecificUserCheck(optionalEncounter.get().getUserId());
+        return encounterRepo.deleteEncounter(encounterId);
+    }
+
     @GetMapping
     @ResponseBody
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<Encounter> readAllEncounters() {
         return encounterRepo.findAll();
-    }
-
-    @GetMapping(value = "/by-username/{username}")
-    @ResponseBody
-    public List<Encounter> readEncountersByUsername(@PathVariable String username) {
-        adminOrSpecificUserCheck(username);
-        return encounterRepo.findByUserId(userRepo.getIdByUsername(username));
-    }
-
-    @GetMapping(value = "/by-userid/{userid}")
-    @ResponseBody
-    public List<Encounter> readEncountersByUserid(@PathVariable Integer userid) {
-        adminOrSpecificUserCheck(userid);
-        return encounterRepo.findByUserId(userid);
     }
 
     @GetMapping(value = "/{encounterId}")
@@ -70,16 +68,18 @@ public class EncounterController {
         return encounter;
     }
 
-    @DeleteMapping(value = "/{encounterId}")
+    @GetMapping(value = "/by-userid/{userid}")
     @ResponseBody
-    public int deleteEncounter(@PathVariable Integer encounterId) {
-        Optional<Encounter> optionalEncounter = encounterRepo.findById(encounterId);
-        if (optionalEncounter.isEmpty()) {
-            return 0;
-        }
+    public List<Encounter> readEncountersByUserid(@PathVariable Integer userid) {
+        adminOrSpecificUserCheck(userid);
+        return encounterRepo.findByUserId(userid);
+    }
 
-        adminOrSpecificUserCheck(optionalEncounter.get().getUserId());
-        return encounterRepo.deleteEncounter(encounterId);
+    @GetMapping(value = "/by-username/{username}")
+    @ResponseBody
+    public List<Encounter> readEncountersByUsername(@PathVariable String username) {
+        adminOrSpecificUserCheck(username);
+        return encounterRepo.findByUserId(userRepo.getIdByUsername(username));
     }
 
     @PatchMapping(value = "/description/{encounterId}")

@@ -212,6 +212,7 @@ public class UserController {
         return secureUser(userRepo.save(user));
     }
 
+
     private User secureUser(User u) {
         u.setPassword("[hidden for security reasons]");
         return u;
@@ -222,6 +223,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "new password doesn't satisfy requirement");
         }
     }
+
 
     @Data
     @NoArgsConstructor
