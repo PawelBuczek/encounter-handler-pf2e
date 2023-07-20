@@ -16,8 +16,9 @@ public class Encounter {
 
     public Encounter(String name, Integer userId, String description) {
         this.name = name;
-        this.description = description;
         this.userId = userId;
+        this.published = false;
+        this.description = description;
         this.timeCreated = LocalDateTime.now(ZoneOffset.UTC);
     }
 

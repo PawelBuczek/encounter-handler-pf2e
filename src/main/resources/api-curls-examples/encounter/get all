@@ -1,1 +1,2 @@
-curl --location 'http://localhost:8080/encounter'
+curl --location 'http://localhost:8080/encounter' \
+--header 'Authorization: Basic am9obmRvZTpleFBhc3NAMQ=='
