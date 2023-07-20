@@ -30,10 +30,10 @@ public class Encounter {
     private Integer id;
 
     @Nonnull
-    private Boolean published; //publicly available
+    private Integer userId;
 
     @Nonnull
-    private Integer userId;
+    private Boolean published; //publicly available
 
     @Nonnull
     private String name;
