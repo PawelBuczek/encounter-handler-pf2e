@@ -9,7 +9,7 @@
 
 output="$(docker images -q mysql 2>&1)"
 
-if [[ $output == *"error during connect: This error may indicate that the docker daemon is not running"* ]]; then
+if [[ $output == *"error during connect"* ]]; then
   echo "You need to run your docker daemon/manager/desktop first. Full error below:"
   echo "$output"
   exit 0
@@ -21,10 +21,13 @@ if [[ $output == "" ]]; then
   exit 0
 fi
 
-output="$(docker container inspect -f '{{.ID}}' mysql-encounterhandlerpf2e 2>&1)"
+container_name="mysql-encounterhandlerpf2e"
+
+output="$(docker container inspect -f '{{.ID}}' $container_name 2>&1)"
 
 if [[ $output != *"No such container"* ]]; then
   container_id=$output
+
   echo "Stopping and removing previous container with id '$container_id'."
   output="$(docker stop "$container_id" 2>&1)"
   if [[ "$output" != "$container_id" ]]; then
@@ -32,6 +35,7 @@ if [[ $output != *"No such container"* ]]; then
     echo "$output"
     exit 0
   fi
+
   output="$(docker rm "$container_id" 2>&1)"
   if [[ "$output" != "$container_id" ]]; then
     echo "Container stopped, but could not be removed. Full error below:"
@@ -40,6 +44,19 @@ if [[ $output != *"No such container"* ]]; then
   fi
 fi
 
-docker run --name mysql-encounterhandlerpf2e -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -d mysql
+output="$(docker run --name $container_name -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -d mysql 2>&1)"
 
-#maybe check if the container with id is running?
+if [[ $output == *"error"* ]]; then
+  echo "Cannot run container. Full error below:"
+  echo "$output"
+  exit 0
+fi
+
+for _ in {1..7} ; do
+  if [ "$( docker container inspect -f '{{.State.Running}}' $container_name )" = "true" ]; then
+    echo "docker container with name '$container_name' and id '$output' is now running."
+    break
+  else
+    sleep 1
+  fi
+done
