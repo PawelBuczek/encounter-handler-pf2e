@@ -39,6 +39,9 @@ public class Encounter {
 
     @Nonnull
     private LocalDateTime timeCreated;
+
+    @Nonnull
+    private Boolean published;
 }
 
 
