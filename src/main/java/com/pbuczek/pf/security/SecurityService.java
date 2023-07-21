@@ -15,13 +15,11 @@ public class SecurityService {
 
     @SuppressWarnings("unused")
     public boolean hasContextAnyAuthorities() {
-        return !SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                //replace below with any match? or even entirely with Collections.disjoint
-                .filter(grantedAuthority -> userTypes.contains(grantedAuthority.toString()))
-                .toList().isEmpty();
+        System.out.println(SecurityContextHolder.getContext().getAuthentication());
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(grantedAuthority -> userTypes.contains(grantedAuthority.toString()));
     }
 
-    @SuppressWarnings("unused")
     public boolean isContextAdminOrSpecificUserId(Integer userId) {
         return isContextAdmin() || isContextSpecificUserId(userId);
     }

@@ -1,5 +1,6 @@
 package com.pbuczek.pf.security;
 
+import com.pbuczek.pf.security.apikey.AuthenticationFilter;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserRepository;
 import lombok.Data;
@@ -14,10 +15,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -52,11 +55,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        SecurityContextHolder.getContext().setAuthentication(authentication);
         return http.csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(withDefaults())
+                .addFilterBefore(new AuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
-
 
     @Data
     public static class UserDetails implements org.springframework.security.core.userdetails.UserDetails {

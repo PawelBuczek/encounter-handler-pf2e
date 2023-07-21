@@ -1,6 +1,5 @@
 package com.pbuczek.pf.security.apikey;
 
-import com.pbuczek.pf.security.apikey.AuthenticationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
