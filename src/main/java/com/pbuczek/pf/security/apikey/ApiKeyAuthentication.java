@@ -1,4 +1,4 @@
-package com.pbuczek.pf.security;
+package com.pbuczek.pf.security.apikey;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
