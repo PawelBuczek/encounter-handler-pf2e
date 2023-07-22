@@ -16,7 +16,7 @@ public interface EncounterRepository extends JpaRepository<Encounter, Integer> {
 
     @Transactional
     @Modifying
-    @Query("DELETE FROM Encounter u WHERE u.id = ?1")
+    @Query("DELETE FROM Encounter e WHERE e.id = ?1")
     int deleteEncounter(Integer id);
 
 }

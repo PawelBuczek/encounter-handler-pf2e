@@ -12,7 +12,10 @@
             <column name="user_id" type="INTEGER">
                 <constraints nullable="false"/>
             </column>
-            <column name="api_key_value" type="CHAR(32)">
+            <column name="time_created" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="api_key_value" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
         </createTable>

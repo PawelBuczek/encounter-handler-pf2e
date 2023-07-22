@@ -14,6 +14,7 @@ import java.util.Optional;
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping(value = "/encounter")
+@ResponseBody
 public class EncounterController {
 
     EncounterRepository encounterRepo;
@@ -28,7 +29,6 @@ public class EncounterController {
     }
 
     @PostMapping
-    @ResponseBody
     public Encounter createEncounter(@RequestBody EncounterDto encounterDto) {
         userRepo.findById(encounterDto.getUserId()).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -39,7 +39,6 @@ public class EncounterController {
     }
 
     @DeleteMapping(value = "/{encounterId}")
-    @ResponseBody
     public int deleteEncounter(@PathVariable Integer encounterId) {
         Optional<Encounter> optionalEncounter = encounterRepo.findById(encounterId);
         if (optionalEncounter.isEmpty()) {
@@ -51,14 +50,12 @@ public class EncounterController {
     }
 
     @GetMapping
-    @ResponseBody
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<Encounter> readAllEncounters() {
         return encounterRepo.findAll();
     }
 
     @GetMapping(value = "/{encounterId}")
-    @ResponseBody
     public Encounter readEncounter(@PathVariable Integer encounterId) {
         Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -69,21 +66,18 @@ public class EncounterController {
     }
 
     @GetMapping(value = "/by-userid/{userid}")
-    @ResponseBody
     public List<Encounter> readEncountersByUserid(@PathVariable Integer userid) {
         adminOrSpecificUserId(userid);
         return encounterRepo.findByUserId(userid);
     }
 
     @GetMapping(value = "/by-username/{username}")
-    @ResponseBody
     public List<Encounter> readEncountersByUsername(@PathVariable String username) {
         adminOrSpecificUserId(userRepo.getIdByUsername(username));
         return encounterRepo.findByUserId(userRepo.getIdByUsername(username));
     }
 
     @PatchMapping(value = "/description/{encounterId}")
-    @ResponseBody
     public Encounter updateDescription(@PathVariable Integer encounterId, @RequestBody String description) {
         Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -102,7 +96,6 @@ public class EncounterController {
     }
 
     @PatchMapping(value = "/published/{encounterId}")
-    @ResponseBody
     public Encounter changePublished(@PathVariable Integer encounterId) {
         Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,

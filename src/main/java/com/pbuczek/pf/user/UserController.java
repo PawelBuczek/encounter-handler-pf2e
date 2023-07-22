@@ -1,5 +1,7 @@
 package com.pbuczek.pf.user;
 
+import com.pbuczek.pf.user.apikey.ApiKey;
+import com.pbuczek.pf.user.apikey.ApiKeyRepository;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/user")
+@ResponseBody
 public class UserController {
 
     private final static String passwordRegex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9]).{8,50}$";
@@ -25,14 +28,15 @@ public class UserController {
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private final UserRepository userRepo;
+    private final ApiKeyRepository apiKeyRepo;
 
     @Autowired
-    public UserController(UserRepository userRepo) {
+    public UserController(UserRepository userRepo, ApiKeyRepository apiKeyRepo) {
         this.userRepo = userRepo;
+        this.apiKeyRepo = apiKeyRepo;
     }
 
     @PostMapping
-    @ResponseBody
     public User createStandardUser(@RequestBody UserDto userDto) {
         userDto.setEmail(userDto.getEmail().trim());
         if (userRepo.findByEmail(userDto.getEmail()).isPresent()) {
@@ -55,44 +59,52 @@ public class UserController {
         return secureUser(userRepo.save(new User(userDto)));
     }
 
-//    @PostMapping(path = "/apikey")
-//    @ResponseBody
-//    @PreAuthorize("@securityService.hasContextAnyAuthorities()")
-//    public User createAPIKeyForUser(@RequestBody ApiKeyDto apiKeyDto) {
-//        apiKeyDto.setName(apiKeyDto.getName().trim());
-//        String providedName = apiKeyDto.getName();
-//        String realName = SecurityContextHolder.getContext().getAuthentication().getName() + "%APIKEY%" + providedName;
-//        if (userRepo.findByUsername(realName).isPresent()) {
-//            throw new ResponseStatusException(HttpStatus.CONFLICT,
-//                    String.format("api key with name '%s' already exists for your account.", providedName));
-//        }
-//
-//        checkPasswordRegex(apiKeyDto.getKey());
-//
-//        User userForApiKey = new User();
-//        userForApiKey.setUsername(realName);
-//        userForApiKey.setEmail(realName); // that is one strange logic, and doesn't work :D, maybe this can be changed?
-//        userForApiKey.setPassword(passwordEncoder.encode(apiKeyDto.getKey()));
-//
-//        return secureUser(userRepo.save(userForApiKey));
-//    }
+    @PostMapping(path = "/apikey")
+    @PreAuthorize("@securityService.hasContextAnyAuthorities()")
+    public String createAPIKey() {
+        User user;
+        try {
+            user = userRepo.findById(
+                    Integer.valueOf(SecurityContextHolder.getContext().getAuthentication().getName())).orElseThrow(() ->
+                    new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
+        }
+
+        return apiKeyRepo.save(new ApiKey(user.getId())).getApiKeyValue();
+    }
+
+    @PostMapping(path = "/apikey/by-id/{userId}/{apiKeyId}")
+    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    public int deleteAPIKeyById(@PathVariable Integer userId, @PathVariable Integer apiKeyId) {
+        userRepo.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("user with id '%d' not found", userId)));
+
+        return apiKeyRepo.deleteApiKeyById(apiKeyId);
+    }
+
+    @PostMapping(path = "/apikey/by-value/{userId}/{apiKeyValue}")
+    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    public int deleteAPIKeyByValue(@PathVariable Integer userId, @PathVariable String apiKeyValue) {
+        userRepo.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("user with id '%d' not found", userId)));
+
+        return apiKeyRepo.deleteApiKeyByValue(apiKeyValue);
+    }
 
     @DeleteMapping(path = "/{userId}")
-    @ResponseBody
     @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
-    public int deleteUser(@PathVariable("userId") Integer userId) {
+    public int deleteUser(@PathVariable Integer userId) {
         return userRepo.deleteUserByUserId(userId);
     }
 
     @GetMapping
-    @ResponseBody
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<User> readAllUsers() {
         return userRepo.findAll().stream().map(this::secureUser).toList();
     }
 
     @GetMapping(path = "/by-userid/{userId}")
-    @ResponseBody
     @PreAuthorize("@securityService.hasContextAnyAuthorities()")
     public User readUser(@PathVariable Integer userId) {
         return secureUser(userRepo.findById(userId).orElseThrow(() ->
@@ -102,7 +114,6 @@ public class UserController {
     }
 
     @GetMapping(path = "/by-username/{username}")
-    @ResponseBody
     @PreAuthorize("@securityService.hasContextAnyAuthorities()")
     public User readUser(@PathVariable String username) {
         return secureUser(userRepo.findByUsername(username).orElseThrow(() ->
@@ -112,7 +123,6 @@ public class UserController {
     }
 
     @PatchMapping(path = "/email/{userId}/{email}")
-    @ResponseBody
     @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
     public User updateEmail(@PathVariable Integer userId, @PathVariable String email) {
         User user = userRepo.findById(userId).orElseThrow(() ->
@@ -138,7 +148,6 @@ public class UserController {
     }
 
     @PatchMapping(path = "/password")
-    @ResponseBody
     public User updateOwnPassword(@RequestBody PasswordDto passwordDto) {
         User user;
         try {
@@ -165,7 +174,6 @@ public class UserController {
     }
 
     @PatchMapping(path = "/paymentplan/{userId}/{paymentPlan}")
-    @ResponseBody
     @PreAuthorize("hasAuthority('ADMIN')")
     public User updatePaymentPlan(@PathVariable Integer userId, @PathVariable PaymentPlan paymentPlan) {
         User user = userRepo.findById(userId).orElseThrow(() ->
@@ -186,7 +194,6 @@ public class UserController {
     }
 
     @PatchMapping(path = "/username/{userId}/{newUsername}")
-    @ResponseBody
     @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
     public User updateUsername(@PathVariable Integer userId, @PathVariable String newUsername) {
         User user = userRepo.findById(userId).orElseThrow(() ->
@@ -213,7 +220,6 @@ public class UserController {
     }
 
     @PatchMapping(path = "/usertype/{userId}/{userType}")
-    @ResponseBody
     @PreAuthorize("hasAuthority('ADMIN')")
     public User updateUserType(@PathVariable Integer userId, @PathVariable UserType userType) {
         User user = userRepo.findById(userId).orElseThrow(() ->
@@ -245,18 +251,10 @@ public class UserController {
         }
     }
 
-
     @Data
     @NoArgsConstructor
     private static class PasswordDto {
         private String currentPassword;
         private String newPassword;
     }
-
-//    @Data
-//    @NoArgsConstructor
-//    private static class ApiKeyDto {
-//        private String name;
-//        private String key;
-//    }
 }
