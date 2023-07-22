@@ -253,10 +253,10 @@ public class UserController {
         private String newPassword;
     }
 
-    @Data
-    @NoArgsConstructor
-    private static class ApiKeyDto {
-        private String name;
-        private String key;
-    }
+//    @Data
+//    @NoArgsConstructor
+//    private static class ApiKeyDto {
+//        private String name;
+//        private String key;
+//    }
 }
