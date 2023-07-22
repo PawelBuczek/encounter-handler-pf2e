@@ -8,6 +8,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -37,7 +38,13 @@ public class ApiKeyFilter extends OncePerRequestFilter {
         }
 
         apiKey = apiKey.trim();
-        UserDetails userDetails = userDetailsService.loadByApiKey(apiKey);
+        UserDetails userDetails;
+        try {
+            userDetails = userDetailsService.loadByApiKey(apiKey);
+        } catch (UsernameNotFoundException e) {
+            response.sendError(401, e.getMessage());
+            return;
+        }
 
         if (userDetails == null || userDetails.getPassword() == null || userDetails.getAuthorities() == null) {
             filterChain.doFilter(request, response);

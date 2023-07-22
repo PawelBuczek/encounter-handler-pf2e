@@ -15,8 +15,6 @@ public class SecurityService {
 
     @SuppressWarnings("unused")
     public boolean hasContextAnyAuthorities() {
-        System.out.println(SecurityContextHolder.getContext().getAuthentication());
-
         return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(grantedAuthority -> userTypes.contains(grantedAuthority.toString()));
     }

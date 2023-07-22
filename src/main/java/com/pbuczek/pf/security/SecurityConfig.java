@@ -31,11 +31,6 @@ public class SecurityConfig {
     @Autowired
     UserDetailsService userDetailsService;
 
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        return new UserDetailsService();
-//    }
-
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
