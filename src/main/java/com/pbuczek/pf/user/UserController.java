@@ -59,39 +59,6 @@ public class UserController {
         return secureUser(userRepo.save(new User(userDto)));
     }
 
-    @PostMapping(path = "/apikey")
-    @PreAuthorize("@securityService.hasContextAnyAuthorities()")
-    public String createAPIKey() {
-        User user;
-        try {
-            user = userRepo.findById(
-                    Integer.valueOf(SecurityContextHolder.getContext().getAuthentication().getName())).orElseThrow(() ->
-                    new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
-        }
-
-        return apiKeyRepo.save(new ApiKey(user.getId())).getApiKeyValue();
-    }
-
-    @PostMapping(path = "/apikey/by-id/{userId}/{apiKeyId}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
-    public int deleteAPIKeyById(@PathVariable Integer userId, @PathVariable Integer apiKeyId) {
-        userRepo.findById(userId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("user with id '%d' not found", userId)));
-
-        return apiKeyRepo.deleteApiKeyById(apiKeyId);
-    }
-
-    @PostMapping(path = "/apikey/by-value/{userId}/{apiKeyValue}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
-    public int deleteAPIKeyByValue(@PathVariable Integer userId, @PathVariable String apiKeyValue) {
-        userRepo.findById(userId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("user with id '%d' not found", userId)));
-
-        return apiKeyRepo.deleteApiKeyByValue(apiKeyValue);
-    }
-
     @DeleteMapping(path = "/{userId}")
     @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
     public int deleteUser(@PathVariable Integer userId) {
@@ -256,5 +223,47 @@ public class UserController {
     private static class PasswordDto {
         private String currentPassword;
         private String newPassword;
+    }
+
+
+    @PostMapping(path = "/apikey")
+    @PreAuthorize("@securityService.hasContextAnyAuthorities()")
+    public String createAPIKey() {
+        User user;
+        try {
+            user = userRepo.findById(
+                    Integer.valueOf(SecurityContextHolder.getContext().getAuthentication().getName())).orElseThrow(() ->
+                    new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
+        }
+
+        return apiKeyRepo.save(new ApiKey(user.getId())).getApiKeyValue();
+    }
+
+    @PostMapping(path = "/apikey/by-id/{userId}/{apiKeyId}")
+    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    public int deleteAPIKeyById(@PathVariable Integer userId, @PathVariable Integer apiKeyId) {
+        checkIfUserExists(userId);
+        return apiKeyRepo.deleteApiKeyById(apiKeyId);
+    }
+
+    @PostMapping(path = "/apikey/by-value/{userId}/{apiKeyValue}")
+    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    public int deleteAPIKeyByValue(@PathVariable Integer userId, @PathVariable String apiKeyValue) {
+        checkIfUserExists(userId);
+        return apiKeyRepo.deleteApiKeyByValue(apiKeyValue);
+    }
+
+    @GetMapping(path = "/apikey/{userId}")
+    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    public List<ApiKey> getApiKeysByUserId(@PathVariable Integer userId) {
+        checkIfUserExists(userId);
+        return apiKeyRepo.findByUserId(userId);
+    }
+
+    private void checkIfUserExists(Integer userId) {
+        userRepo.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("user with id '%d' not found", userId)));
     }
 }
