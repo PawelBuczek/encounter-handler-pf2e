@@ -34,6 +34,7 @@ public class UserController {
     @PostMapping
     @ResponseBody
     public User createStandardUser(@RequestBody UserDto userDto) {
+        userDto.setEmail(userDto.getEmail().trim());
         if (userRepo.findByEmail(userDto.getEmail()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     String.format("email '%s' is already being used by another user.", userDto.getEmail()));
@@ -43,7 +44,6 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     String.format("username '%s' is already being used by another user.", userDto.getUsername()));
         }
-        userDto.setEmail(userDto.getEmail().trim());
         if (!userDto.getEmail().matches(emailRegex)) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     String.format("provided user email '%s' is not valid.", userDto.getEmail()));
