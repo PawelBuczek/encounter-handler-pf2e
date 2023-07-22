@@ -5,12 +5,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.parameters.P;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
@@ -20,8 +20,11 @@ import java.util.List;
 public class ApiKeyFilter extends GenericFilterBean {
     //actually not a filter! I just have no idea how else to get the request in this strange setup
 
-    @Autowired
-    UserDetailsService userDetailsService;
+    static UserDetailsService userDetailsService;
+
+    public ApiKeyFilter(UserDetailsService userDetailsService) {
+        ApiKeyFilter.userDetailsService = userDetailsService;
+    }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
@@ -46,10 +49,10 @@ public class ApiKeyFilter extends GenericFilterBean {
             Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
             System.out.println("current auth = " + currentAuthentication);
             if (currentAuthentication == null) {
-                userDetailsService.loadUserByUsername("1");
+                UserDetails userDetails = userDetailsService.loadUserByUsername("johndoe");
                 SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
-                        currentAuthentication.getPrincipal(),
-                        currentAuthentication.getCredentials(),
+                        apiKey,
+                        userDetails.getPassword(),
                         List.of(new SimpleGrantedAuthority("STANDARD"))));
             }
             System.out.println("new auth= " + SecurityContextHolder.getContext().getAuthentication());
