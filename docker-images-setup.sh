@@ -55,6 +55,7 @@ fi
 for _ in {1..7} ; do
   if [ "$( docker container inspect -f '{{.State.Running}}' $container_name )" = "true" ]; then
     echo "docker container with name '$container_name' and id '$output' is now running."
+    echo "it still may need some time (~5 seconds on my machine) before it can be used."
     break
   else
     sleep 1
