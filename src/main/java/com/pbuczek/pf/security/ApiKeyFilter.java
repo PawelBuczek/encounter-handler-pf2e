@@ -13,11 +13,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 public class ApiKeyFilter extends OncePerRequestFilter {
-    //actually not a filter! I just have no idea how else to get the request in this strange setup
+    //actually not a filter! It adds authentication.
+    // I just have no idea how else to get the request in this strange setup
 
-    private static SecurityConfig.UserDetailsService userDetailsService;
+    private static UserDetailsService userDetailsService;
 
-    public ApiKeyFilter(SecurityConfig.UserDetailsService userDetailsService) {
+    public ApiKeyFilter(UserDetailsService userDetailsService) {
         ApiKeyFilter.userDetailsService = userDetailsService;
     }
 
@@ -45,7 +46,7 @@ public class ApiKeyFilter extends OncePerRequestFilter {
 
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
                 apiKey,
-                "",
+                null,
                 userDetails.getAuthorities()));
 
         filterChain.doFilter(request, response);
