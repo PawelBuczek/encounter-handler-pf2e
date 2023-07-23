@@ -1,6 +1,6 @@
 package com.pbuczek.pf.encounter;
 
-import com.pbuczek.pf.security.SecurityService;
+import com.pbuczek.pf.security.SecurityHelper;
 import com.pbuczek.pf.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,17 +18,16 @@ public class EncounterController {
 
     EncounterRepository encounterRepo;
     UserRepository userRepo;
-    SecurityService securityService;
+    SecurityHelper securityHelper;
 
     @Autowired
-    public EncounterController(EncounterRepository encounterRepo, UserRepository userRepo, SecurityService securityService) {
+    public EncounterController(EncounterRepository encounterRepo, UserRepository userRepo, SecurityHelper securityHelper) {
         this.encounterRepo = encounterRepo;
         this.userRepo = userRepo;
-        this.securityService = securityService;
+        this.securityHelper = securityHelper;
     }
 
     @PostMapping
-    @ResponseBody
     public Encounter createEncounter(@RequestBody EncounterDto encounterDto) {
         userRepo.findById(encounterDto.getUserId()).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -39,7 +38,6 @@ public class EncounterController {
     }
 
     @DeleteMapping(value = "/{encounterId}")
-    @ResponseBody
     public int deleteEncounter(@PathVariable Integer encounterId) {
         Optional<Encounter> optionalEncounter = encounterRepo.findById(encounterId);
         if (optionalEncounter.isEmpty()) {
@@ -51,14 +49,12 @@ public class EncounterController {
     }
 
     @GetMapping
-    @ResponseBody
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<Encounter> readAllEncounters() {
         return encounterRepo.findAll();
     }
 
     @GetMapping(value = "/{encounterId}")
-    @ResponseBody
     public Encounter readEncounter(@PathVariable Integer encounterId) {
         Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -69,21 +65,18 @@ public class EncounterController {
     }
 
     @GetMapping(value = "/by-userid/{userid}")
-    @ResponseBody
     public List<Encounter> readEncountersByUserid(@PathVariable Integer userid) {
         adminOrSpecificUserId(userid);
         return encounterRepo.findByUserId(userid);
     }
 
     @GetMapping(value = "/by-username/{username}")
-    @ResponseBody
     public List<Encounter> readEncountersByUsername(@PathVariable String username) {
         adminOrSpecificUserId(userRepo.getIdByUsername(username));
         return encounterRepo.findByUserId(userRepo.getIdByUsername(username));
     }
 
     @PatchMapping(value = "/description/{encounterId}")
-    @ResponseBody
     public Encounter updateDescription(@PathVariable Integer encounterId, @RequestBody String description) {
         Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -102,7 +95,6 @@ public class EncounterController {
     }
 
     @PatchMapping(value = "/published/{encounterId}")
-    @ResponseBody
     public Encounter changePublished(@PathVariable Integer encounterId) {
         Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -120,7 +112,7 @@ public class EncounterController {
     }
 
     private void adminOrSpecificUserId(Integer userId) {
-        if (!securityService.isContextAdminOrSpecificUserId(userId)) {
+        if (!securityHelper.isContextAdminOrSpecificUserId(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "not authorized for this resource");
         }
     }

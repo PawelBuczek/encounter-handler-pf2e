@@ -16,7 +16,7 @@ Recommended to install first:
 2. For now the only external dependency is mysql database.  
    You may install it locally if you want to, matching it with src/main/resources/application.properties file.  
    But it's easier with docker:  
-   - install rancher desktop or docker desktop or any other docker tool that you like
+   - install (and run) rancher desktop or docker desktop or any other docker tool that you like
    - download mysql image with command `docker pull mysql`  
      if you want, you can read more about this image on https://hub.docker.com/_/mysql
    - now we need to run this image in a container. You can do it yourself if you want to, but...  
@@ -29,3 +29,11 @@ Recommended to install first:
 leave `Database` blank  
 in Driver properties change `allowPublicKeyRetrieval` to `TRUE`. Below screenshot from DBeaver:  
 ![img.png](src/main/resources/pictures/dbeaver_driver_properties.png)
+
+# Notes about usage:
+- there are 2 User types, STANDARD and ADMIN
+- when creating new User, it will always have STANDARD type
+- only ADMIN type users are allowed to change user types, 
+  so if you want to test out ADMIN only endpoints you need to change user type in database
+- authentication & authorization can be done by Basic Auth (providing username and password)
+  or by API Key. API Keys are always bound to a User and have the same authorities.
