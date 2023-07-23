@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Data
@@ -19,7 +20,17 @@ public class ApiKey {
     public ApiKey(Integer userId) {
         this.userId = userId;
         this.timeCreated = LocalDateTime.now(ZoneOffset.UTC);
-        this.apiKeyValue = this.timeCreated + "%" + UUID.randomUUID();
+        this.apiKeyValue = replaceDigitsWithLetters(this.timeCreated + "%") + UUID.randomUUID();
+        System.out.println(this.apiKeyValue);
+    }
+
+    private String replaceDigitsWithLetters(String s) {
+        return s.chars().mapToObj(ApiKey::intToRandomCapitalizationLetter).collect(Collectors.joining());
+    }
+
+    private static String intToRandomCapitalizationLetter(int i) {
+        int addition = Math.random() < 0.5 ? 17 : 49;
+        return i >= 48 && i <= 57 ? String.valueOf((char) (i + addition)) : String.valueOf((char) i);
     }
 
     @Id
@@ -30,5 +41,6 @@ public class ApiKey {
     @Nonnull
     private LocalDateTime timeCreated;
     @Nonnull
+    @Column(columnDefinition = "CHAR(66)")
     private String apiKeyValue;
 }

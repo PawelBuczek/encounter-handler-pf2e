@@ -15,7 +15,7 @@
             <column name="time_created" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="api_key_value" type="VARCHAR(255)">
+            <column name="api_key_value" type="CHAR(66)">
                 <constraints nullable="false"/>
             </column>
         </createTable>
