@@ -1,4 +1,4 @@
-package com.pbuczek.pf.user.apikey;
+package com.pbuczek.pf.apikey;
 
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
@@ -21,7 +21,6 @@ public class ApiKey {
         this.userId = userId;
         this.validTillDate = LocalDate.now(ZoneOffset.UTC).plusYears(1);
         this.apiKeyValue = getTimeBasedPartOfApiKeyValue() + UUID.randomUUID();
-        System.out.println(this.apiKeyValue);
     }
 
     private String getTimeBasedPartOfApiKeyValue() {

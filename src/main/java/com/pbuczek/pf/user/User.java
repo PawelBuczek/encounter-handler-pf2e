@@ -10,6 +10,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+import static com.pbuczek.pf.security.SecurityHelper.passwordEncoder;
+
 @ResponseBody
 @Data
 @NoArgsConstructor
@@ -21,7 +23,7 @@ public class User {
         this.type = type;
         this.username = username;
         this.email = email;
-        this.password = password;
+        this.password = passwordEncoder.encode(password);
         this.timeCreated = LocalDateTime.now(ZoneOffset.UTC);
         this.passwordLastUpdatedDate = LocalDate.now(ZoneOffset.UTC);
     }

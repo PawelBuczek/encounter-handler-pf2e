@@ -1,8 +1,8 @@
 package com.pbuczek.pf.user;
 
 import com.pbuczek.pf.security.SecurityHelper;
-import com.pbuczek.pf.user.apikey.ApiKey;
-import com.pbuczek.pf.user.apikey.ApiKeyRepository;
+import com.pbuczek.pf.apikey.ApiKey;
+import com.pbuczek.pf.apikey.ApiKeyRepository;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class UserController {
     // below regex constant needs to match with sql rule created in the file 'src/main/resources/db/sql-files/add-user-email-validation-constraint.sql'
     private final static String emailRegex = "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$";
 
-    private final PasswordEncoder passwordEncoder = SecurityHelper.getPasswordEncoder();
+    private final PasswordEncoder passwordEncoder = SecurityHelper.passwordEncoder;
 
     private final UserRepository userRepo;
     private final ApiKeyRepository apiKeyRepo;
@@ -54,7 +54,6 @@ public class UserController {
         }
 
         checkPasswordRegex(userDto.getPassword());
-        userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
 
         return secureUser(userRepo.save(new User(userDto)));
     }
@@ -227,29 +226,4 @@ public class UserController {
         return apiKeyRepo.save(new ApiKey(user.getId())).getApiKeyValue();
     }
 
-    @DeleteMapping(path = "/apikey/by-id/{userId}/{apiKeyId}")
-    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
-    public int deleteAPIKeyById(@PathVariable Integer userId, @PathVariable Integer apiKeyId) {
-        checkIfUserExists(userId);
-        return apiKeyRepo.deleteApiKeyById(apiKeyId);
-    }
-
-    @DeleteMapping(path = "/apikey/by-value/{userId}")
-    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
-    public int deleteAPIKeyByValue(@PathVariable Integer userId, @RequestBody String apiKeyValue) {
-        checkIfUserExists(userId);
-        return apiKeyRepo.deleteApiKeyByValue(apiKeyValue);
-    }
-
-    @GetMapping(path = "/apikey/{userId}")
-    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
-    public List<ApiKey> getApiKeysByUserId(@PathVariable Integer userId) {
-        checkIfUserExists(userId);
-        return apiKeyRepo.findByUserId(userId);
-    }
-
-    private void checkIfUserExists(Integer userId) {
-        userRepo.findById(userId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("user with id '%d' not found", userId)));
-    }
 }

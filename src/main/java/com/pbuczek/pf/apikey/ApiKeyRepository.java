@@ -1,4 +1,4 @@
-package com.pbuczek.pf.user.apikey;
+package com.pbuczek.pf.apikey;
 
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;

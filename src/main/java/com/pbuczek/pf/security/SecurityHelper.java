@@ -3,7 +3,7 @@ package com.pbuczek.pf.security;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserRepository;
 import com.pbuczek.pf.user.UserType;
-import com.pbuczek.pf.user.apikey.ApiKeyRepository;
+import com.pbuczek.pf.apikey.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -30,11 +30,7 @@ public class SecurityHelper {
     }
 
     private static final List<String> userTypes = Stream.of(UserType.values()).map(Enum::name).toList();
-    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    public static PasswordEncoder getPasswordEncoder() {
-        return passwordEncoder;
-    }
+    public static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 
     public User getContextCurrentUser() {
