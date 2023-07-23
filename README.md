@@ -29,3 +29,11 @@ Recommended to install first:
 leave `Database` blank  
 in Driver properties change `allowPublicKeyRetrieval` to `TRUE`. Below screenshot from DBeaver:  
 ![img.png](src/main/resources/pictures/dbeaver_driver_properties.png)
+
+# Notes about usage:
+- there are 2 User types, STANDARD and ADMIN
+- when creating new User, it will always have STANDARD type
+- only ADMIN type users are allowed to change user types, 
+  so if you want to test out ADMIN only endpoints you need to change user type in database
+- authentication & authorization can be done by Basic Auth (providing username and password)
+  or by API Key. API Keys are always bound to a User and have the same authorities.
