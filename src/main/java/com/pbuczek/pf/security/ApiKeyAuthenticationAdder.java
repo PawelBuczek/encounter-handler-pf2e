@@ -14,14 +14,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 
-public class ApiKeyFilter extends OncePerRequestFilter {
-    //actually not a filter! It adds authentication.
-    // I just have no idea how else to get the request in this strange setup
+public class ApiKeyAuthenticationAdder extends OncePerRequestFilter {
 
     private static UserDetailsService userDetailsService;
 
-    public ApiKeyFilter(UserDetailsService userDetailsService) {
-        ApiKeyFilter.userDetailsService = userDetailsService;
+    public ApiKeyAuthenticationAdder(UserDetailsService userDetailsService) {
+        ApiKeyAuthenticationAdder.userDetailsService = userDetailsService;
     }
 
     @Override
