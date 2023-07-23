@@ -1,6 +1,6 @@
 package com.pbuczek.pf.encounter;
 
-import com.pbuczek.pf.security.SecurityService;
+import com.pbuczek.pf.security.SecurityHelper;
 import com.pbuczek.pf.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,13 +18,13 @@ public class EncounterController {
 
     EncounterRepository encounterRepo;
     UserRepository userRepo;
-    SecurityService securityService;
+    SecurityHelper securityHelper;
 
     @Autowired
-    public EncounterController(EncounterRepository encounterRepo, UserRepository userRepo, SecurityService securityService) {
+    public EncounterController(EncounterRepository encounterRepo, UserRepository userRepo, SecurityHelper securityHelper) {
         this.encounterRepo = encounterRepo;
         this.userRepo = userRepo;
-        this.securityService = securityService;
+        this.securityHelper = securityHelper;
     }
 
     @PostMapping
@@ -112,7 +112,7 @@ public class EncounterController {
     }
 
     private void adminOrSpecificUserId(Integer userId) {
-        if (!securityService.isContextAdminOrSpecificUserId(userId)) {
+        if (!securityHelper.isContextAdminOrSpecificUserId(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "not authorized for this resource");
         }
     }

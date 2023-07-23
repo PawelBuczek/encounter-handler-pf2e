@@ -1,5 +1,6 @@
 package com.pbuczek.pf.user;
 
+import com.pbuczek.pf.security.SecurityHelper;
 import com.pbuczek.pf.user.apikey.ApiKey;
 import com.pbuczek.pf.user.apikey.ApiKeyRepository;
 import lombok.Data;
@@ -7,9 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,15 +23,17 @@ public class UserController {
     // below regex constant needs to match with sql rule created in the file 'src/main/resources/db/sql-files/add-user-email-validation-constraint.sql'
     private final static String emailRegex = "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$";
 
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder = SecurityHelper.getPasswordEncoder();
 
     private final UserRepository userRepo;
     private final ApiKeyRepository apiKeyRepo;
+    private final SecurityHelper securityHelper;
 
     @Autowired
-    public UserController(UserRepository userRepo, ApiKeyRepository apiKeyRepo) {
+    public UserController(UserRepository userRepo, ApiKeyRepository apiKeyRepo, SecurityHelper securityHelper) {
         this.userRepo = userRepo;
         this.apiKeyRepo = apiKeyRepo;
+        this.securityHelper = securityHelper;
     }
 
     @PostMapping
@@ -117,9 +118,7 @@ public class UserController {
     public User updateOwnPassword(@RequestBody PasswordDto passwordDto) {
         User user;
         try {
-            user = userRepo.findById(
-                    Integer.valueOf(SecurityContextHolder.getContext().getAuthentication().getName())).orElseThrow(() ->
-                    new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
+            user = securityHelper.getContextCurrentUser();
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
         }
@@ -230,9 +229,7 @@ public class UserController {
     public String createAPIKey() {
         User user;
         try {
-            user = userRepo.findById(
-                    Integer.valueOf(SecurityContextHolder.getContext().getAuthentication().getName())).orElseThrow(() ->
-                    new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
+            user = securityHelper.getContextCurrentUser();
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
         }
@@ -240,16 +237,16 @@ public class UserController {
         return apiKeyRepo.save(new ApiKey(user.getId())).getApiKeyValue();
     }
 
-    @PostMapping(path = "/apikey/by-id/{userId}/{apiKeyId}")
+    @DeleteMapping(path = "/apikey/by-id/{userId}/{apiKeyId}")
     @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
     public int deleteAPIKeyById(@PathVariable Integer userId, @PathVariable Integer apiKeyId) {
         checkIfUserExists(userId);
         return apiKeyRepo.deleteApiKeyById(apiKeyId);
     }
 
-    @PostMapping(path = "/apikey/by-value/{userId}/{apiKeyValue}")
+    @DeleteMapping(path = "/apikey/by-value/{userId}")
     @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
-    public int deleteAPIKeyByValue(@PathVariable Integer userId, @PathVariable String apiKeyValue) {
+    public int deleteAPIKeyByValue(@PathVariable Integer userId, @RequestBody String apiKeyValue) {
         checkIfUserExists(userId);
         return apiKeyRepo.deleteApiKeyByValue(apiKeyValue);
     }
