@@ -32,7 +32,7 @@ public class SecurityHelper {
     private static final List<String> userTypes = Stream.of(UserType.values()).map(Enum::name).toList();
     private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public static PasswordEncoder getPasswordEncoder(){
+    public static PasswordEncoder getPasswordEncoder() {
         return passwordEncoder;
     }
 
@@ -43,10 +43,12 @@ public class SecurityHelper {
         if (name == null || name.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user");
         }
-        Optional<User> optionalUser = userRepo.findById(Integer.valueOf(name));
-
-        if (optionalUser.isPresent()) {
-            return optionalUser.get();
+        try {
+            Optional<User> optionalUser = userRepo.findById(Integer.valueOf(name));
+            if (optionalUser.isPresent()) {
+                return optionalUser.get();
+            }
+        } catch (NumberFormatException ignored) {
         }
 
         Integer userIdByApiKey = userRepo.getUserIdByApiKey(name).orElseThrow(() ->

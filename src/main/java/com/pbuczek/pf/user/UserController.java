@@ -116,12 +116,7 @@ public class UserController {
 
     @PatchMapping(path = "/password")
     public User updateOwnPassword(@RequestBody PasswordDto passwordDto) {
-        User user;
-        try {
-            user = securityHelper.getContextCurrentUser();
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
-        }
+        User user = securityHelper.getContextCurrentUser();
 
         if (!BCrypt.checkpw(passwordDto.getCurrentPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "provided current password is not correct");
@@ -227,12 +222,7 @@ public class UserController {
     @PostMapping(path = "/apikey")
     @PreAuthorize("@securityService.hasContextAnyAuthorities()")
     public String createAPIKey() {
-        User user;
-        try {
-            user = securityHelper.getContextCurrentUser();
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "cannot find current user's data");
-        }
+        User user = securityHelper.getContextCurrentUser();
 
         return apiKeyRepo.save(new ApiKey(user.getId())).getApiKeyValue();
     }
