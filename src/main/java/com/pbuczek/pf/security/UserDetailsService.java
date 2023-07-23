@@ -65,18 +65,20 @@ public class UserDetailsService implements org.springframework.security.core.use
             return String.valueOf(userName);
         }
 
+        // No hard restriction. There is only a password-update reminder (yet to be implemented)
+
         @Override
         public boolean isAccountNonExpired() {
             return isCredentialsNonExpired();
         }
 
         @Override
-        public boolean isAccountNonLocked() {
+        public boolean isCredentialsNonExpired() {
             return true;
         }
 
         @Override
-        public boolean isCredentialsNonExpired() {
+        public boolean isAccountNonLocked() {
             return true;
         }
 

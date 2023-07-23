@@ -27,6 +27,15 @@
             <column name="password" type="CHAR(60)">
                 <constraints nullable="false"/>
             </column>
+            <column name="password_last_updated_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked" type="TINYINT(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="TINYINT(1)">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
         <sql>ALTER TABLE user ADD CONSTRAINT check_type CHECK (type IN ("STANDARD", "ADMIN"))</sql>
         <sqlFile path="db/sql-files/add-user-email-validation-constraint.sql" dbms="mysql"/>

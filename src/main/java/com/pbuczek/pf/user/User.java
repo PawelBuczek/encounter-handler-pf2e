@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
@@ -22,6 +23,7 @@ public class User {
         this.email = email;
         this.password = password;
         this.timeCreated = LocalDateTime.now(ZoneOffset.UTC);
+        this.passwordLastUpdatedDate = LocalDate.now(ZoneOffset.UTC);
     }
 
     public User(UserDto userDto) {
@@ -45,4 +47,10 @@ public class User {
     @Nonnull
     @Column(columnDefinition = "CHAR(60)")
     private String password;
+    @Nonnull
+    private LocalDate passwordLastUpdatedDate;
+    @Nonnull
+    private Boolean locked = false;
+    @Nonnull
+    private Boolean enabled = false;
 }

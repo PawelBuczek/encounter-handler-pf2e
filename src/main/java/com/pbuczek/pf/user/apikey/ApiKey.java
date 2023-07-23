@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,13 +19,15 @@ public class ApiKey {
 
     public ApiKey(Integer userId) {
         this.userId = userId;
-        this.timeCreated = LocalDateTime.now(ZoneOffset.UTC);
-        this.apiKeyValue = replaceDigitsWithLetters(this.timeCreated + "%") + UUID.randomUUID();
+        this.validTillDate = LocalDate.now(ZoneOffset.UTC).plusYears(1);
+        this.apiKeyValue = getTimeBasedPartOfApiKeyValue() + UUID.randomUUID();
         System.out.println(this.apiKeyValue);
     }
 
-    private String replaceDigitsWithLetters(String s) {
-        return s.chars().mapToObj(ApiKey::intToRandomCapitalizationLetter).collect(Collectors.joining());
+    private String getTimeBasedPartOfApiKeyValue() {
+        return LocalDate.now(ZoneOffset.UTC).toString().chars()
+                .mapToObj(ApiKey::intToRandomCapitalizationLetter)
+                .collect(Collectors.joining());
     }
 
     private static String intToRandomCapitalizationLetter(int i) {
@@ -39,7 +41,7 @@ public class ApiKey {
     @Nonnull
     private Integer userId;
     @Nonnull
-    private LocalDateTime timeCreated;
+    private LocalDate validTillDate;
     @Nonnull
     @Column(columnDefinition = "CHAR(66)")
     private String apiKeyValue;
