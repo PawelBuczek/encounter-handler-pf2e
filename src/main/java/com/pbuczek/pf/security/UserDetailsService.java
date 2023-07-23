@@ -43,11 +43,16 @@ public class UserDetailsService implements org.springframework.security.core.use
         private Integer userName;
         private String password;
         private List<GrantedAuthority> authorities;
+        // should I only check below values once here? Checking it now
+        private Boolean locked;
+        private Boolean enabled;
 
         public UserDetails(User user) {
             userName = user.getId();
             password = user.getPassword();
             authorities = List.of(new SimpleGrantedAuthority(user.getType().toString()));
+            locked = user.getLocked();
+            enabled = user.getEnabled();
         }
 
         @Override
@@ -79,12 +84,12 @@ public class UserDetailsService implements org.springframework.security.core.use
 
         @Override
         public boolean isAccountNonLocked() {
-            return true;
+            return locked;
         }
 
         @Override
         public boolean isEnabled() {
-            return true;
+            return enabled;
         }
     }
 }
