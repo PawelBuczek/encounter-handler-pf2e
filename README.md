@@ -16,7 +16,7 @@ Recommended to install first:
 2. For now the only external dependency is mysql database.  
    You may install it locally if you want to, matching it with src/main/resources/application.properties file.  
    But it's easier with docker:  
-   - install rancher desktop or docker desktop or any other docker tool that you like
+   - install (and run) rancher desktop or docker desktop or any other docker tool that you like
    - download mysql image with command `docker pull mysql`  
      if you want, you can read more about this image on https://hub.docker.com/_/mysql
    - now we need to run this image in a container. You can do it yourself if you want to, but...  
