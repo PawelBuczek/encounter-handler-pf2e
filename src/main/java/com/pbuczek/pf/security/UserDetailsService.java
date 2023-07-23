@@ -4,10 +4,12 @@ import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserRepository;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collection;
 import java.util.List;
@@ -82,12 +84,18 @@ public class UserDetailsService implements org.springframework.security.core.use
 
         @Override
         public boolean isAccountNonLocked() {
-            return !locked;
+            if (locked) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Your account is locked.");
+            }
+            return true;
         }
 
         @Override
         public boolean isEnabled() {
-            return enabled;
+            if (!enabled) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Your account is not enabled.");
+            }
+            return true;
         }
     }
 }
