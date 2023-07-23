@@ -43,7 +43,7 @@ public class UserDetailsService implements org.springframework.security.core.use
         private Integer userName;
         private String password;
         private List<GrantedAuthority> authorities;
-        // should I only check below values once here? Checking it now
+        // yes, this is getting updated for every request
         private Boolean locked;
         private Boolean enabled;
 
@@ -70,8 +70,6 @@ public class UserDetailsService implements org.springframework.security.core.use
             return String.valueOf(userName);
         }
 
-        // No hard restriction. There is only a password-update reminder (yet to be implemented)
-
         @Override
         public boolean isAccountNonExpired() {
             return isCredentialsNonExpired();
@@ -84,7 +82,7 @@ public class UserDetailsService implements org.springframework.security.core.use
 
         @Override
         public boolean isAccountNonLocked() {
-            return locked;
+            return !locked;
         }
 
         @Override

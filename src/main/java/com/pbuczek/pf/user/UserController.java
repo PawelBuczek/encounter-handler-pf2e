@@ -60,7 +60,7 @@ public class UserController {
     }
 
     @DeleteMapping(path = "/{userId}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public int deleteUser(@PathVariable Integer userId) {
         return userRepo.deleteUserByUserId(userId);
     }
@@ -72,7 +72,7 @@ public class UserController {
     }
 
     @GetMapping(path = "/by-userid/{userId}")
-    @PreAuthorize("@securityService.hasContextAnyAuthorities()")
+    @PreAuthorize("@securityHelper.hasContextAnyAuthorities()")
     public User readUser(@PathVariable Integer userId) {
         return secureUser(userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -81,7 +81,7 @@ public class UserController {
     }
 
     @GetMapping(path = "/by-username/{username}")
-    @PreAuthorize("@securityService.hasContextAnyAuthorities()")
+    @PreAuthorize("@securityHelper.hasContextAnyAuthorities()")
     public User readUser(@PathVariable String username) {
         return secureUser(userRepo.findByUsername(username).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -90,7 +90,7 @@ public class UserController {
     }
 
     @PatchMapping(path = "/email/{userId}/{email}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public User updateEmail(@PathVariable Integer userId, @PathVariable String email) {
         User user = userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -154,7 +154,7 @@ public class UserController {
     }
 
     @PatchMapping(path = "/username/{userId}/{newUsername}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public User updateUsername(@PathVariable Integer userId, @PathVariable String newUsername) {
         User user = userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -220,7 +220,7 @@ public class UserController {
 
 
     @PostMapping(path = "/apikey")
-    @PreAuthorize("@securityService.hasContextAnyAuthorities()")
+    @PreAuthorize("@securityHelper.hasContextAnyAuthorities()")
     public String createAPIKey() {
         User user = securityHelper.getContextCurrentUser();
 
@@ -228,21 +228,21 @@ public class UserController {
     }
 
     @DeleteMapping(path = "/apikey/by-id/{userId}/{apiKeyId}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public int deleteAPIKeyById(@PathVariable Integer userId, @PathVariable Integer apiKeyId) {
         checkIfUserExists(userId);
         return apiKeyRepo.deleteApiKeyById(apiKeyId);
     }
 
     @DeleteMapping(path = "/apikey/by-value/{userId}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public int deleteAPIKeyByValue(@PathVariable Integer userId, @RequestBody String apiKeyValue) {
         checkIfUserExists(userId);
         return apiKeyRepo.deleteApiKeyByValue(apiKeyValue);
     }
 
     @GetMapping(path = "/apikey/{userId}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public List<ApiKey> getApiKeysByUserId(@PathVariable Integer userId) {
         checkIfUserExists(userId);
         return apiKeyRepo.findByUserId(userId);
