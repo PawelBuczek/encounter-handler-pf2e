@@ -16,8 +16,11 @@
                 <constraints nullable="false"/>
             </column>
             <column name="api_key_value" type="CHAR(66)">
-                <constraints nullable="false"/>
+                <constraints nullable="false" unique="true"/>
             </column>
         </createTable>
+        <createIndex indexName="index_user_id" tableName="api_key">
+            <column name="user_id"/>
+        </createIndex>
     </changeSet>
 </databaseChangeLog>

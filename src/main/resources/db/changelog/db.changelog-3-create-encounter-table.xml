@@ -23,5 +23,11 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <createIndex indexName="index_user_id" tableName="encounter">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex indexName="index_name" tableName="encounter">
+            <column name="name"/>
+        </createIndex>
     </changeSet>
 </databaseChangeLog>
