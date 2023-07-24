@@ -44,7 +44,6 @@ public class ApiKeyAuthenticationAdder extends OncePerRequestFilter {
             return;
         }
 
-        apiKey = apiKey.trim();
         UserDetails userDetails;
         try {
             userDetails = userDetailsService.loadByApiKey(apiKey);

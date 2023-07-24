@@ -34,7 +34,7 @@ public class UserDetailsService implements org.springframework.security.core.use
     }
 
     public UserDetails loadByApiKey(String apiKey) {
-        return userRepo.getUserIdByApiKey(apiKey)
+        return userRepo.getUserIdByApiKeyIdentifier(apiKey.trim().substring(0, 35))
                 .map(this::loadUserByUserId)
                 .orElseThrow(() -> new UsernameNotFoundException("No user found for provided API Key"));
     }

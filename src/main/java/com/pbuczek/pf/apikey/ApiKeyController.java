@@ -1,7 +1,6 @@
 package com.pbuczek.pf.apikey;
 
 import com.pbuczek.pf.security.SecurityHelper;
-import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping(value = "/apiKey")
@@ -26,13 +26,12 @@ public class ApiKeyController {
         this.securityHelper = securityHelper;
     }
 
-
     @PostMapping
     @PreAuthorize("@securityHelper.hasContextAnyAuthorities()")
     public String createAPIKey() {
-        User user = securityHelper.getContextCurrentUser();
-
-        return apiKeyRepo.save(new ApiKey(user.getId())).getApiKeyValue();
+        String pass = UUID.randomUUID().toString();
+        return apiKeyRepo.save(new ApiKey(pass, securityHelper.getContextCurrentUser().getId()))
+                .getApiKeyValue() + pass; // 35 + 36 chars
     }
 
     @DeleteMapping(path = "/by-id/{userId}/{apiKeyId}")
@@ -53,11 +52,17 @@ public class ApiKeyController {
     @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public List<ApiKey> getApiKeysByUserId(@PathVariable Integer userId) {
         checkIfUserExists(userId);
-        return apiKeyRepo.findByUserId(userId);
+        return apiKeyRepo.findByUserId(userId).stream()
+                .map(this::secureApiKey).toList();
     }
 
     private void checkIfUserExists(Integer userId) {
         userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("user with id '%d' not found", userId)));
+    }
+
+    private ApiKey secureApiKey(ApiKey key) {
+        key.setApiKeyValue("[hidden for security reasons]");
+        return key;
     }
 }

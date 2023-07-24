@@ -1,8 +1,6 @@
 package com.pbuczek.pf.user;
 
 import com.pbuczek.pf.security.SecurityHelper;
-import com.pbuczek.pf.apikey.ApiKey;
-import com.pbuczek.pf.apikey.ApiKeyRepository;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +24,11 @@ public class UserController {
     private final PasswordEncoder passwordEncoder = SecurityHelper.passwordEncoder;
 
     private final UserRepository userRepo;
-    private final ApiKeyRepository apiKeyRepo;
     private final SecurityHelper securityHelper;
 
     @Autowired
-    public UserController(UserRepository userRepo, ApiKeyRepository apiKeyRepo, SecurityHelper securityHelper) {
+    public UserController(UserRepository userRepo, SecurityHelper securityHelper) {
         this.userRepo = userRepo;
-        this.apiKeyRepo = apiKeyRepo;
         this.securityHelper = securityHelper;
     }
 
@@ -215,15 +211,6 @@ public class UserController {
     private static class PasswordDto {
         private String currentPassword;
         private String newPassword;
-    }
-
-
-    @PostMapping(path = "/apikey")
-    @PreAuthorize("@securityHelper.hasContextAnyAuthorities()")
-    public String createAPIKey() {
-        User user = securityHelper.getContextCurrentUser();
-
-        return apiKeyRepo.save(new ApiKey(user.getId())).getApiKeyValue();
     }
 
 }

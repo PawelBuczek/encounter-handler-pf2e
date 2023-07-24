@@ -1,14 +1,19 @@
 package com.pbuczek.pf.apikey;
 
 import jakarta.annotation.Nonnull;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.pbuczek.pf.security.SecurityHelper.passwordEncoder;
 
 
 @Data
@@ -17,14 +22,18 @@ import java.util.stream.Collectors;
 @Table(name = "api_key")
 public class ApiKey {
 
-    public ApiKey(Integer userId) {
+    public ApiKey(String apiKeyValue, Integer userId) {
+        this.identifier = createUniqueIdentifier();
+        this.apiKeyValue = passwordEncoder.encode(apiKeyValue);
         this.userId = userId;
         this.validTillDate = LocalDate.now(ZoneOffset.UTC).plusYears(1);
-        this.apiKeyValue = getTimeBasedPartOfApiKeyValue() + UUID.randomUUID();
     }
 
-    private String getTimeBasedPartOfApiKeyValue() {
-        return LocalDate.now(ZoneOffset.UTC).toString().chars()
+    private String createUniqueIdentifier() {
+        String timePlusUserId = LocalDateTime.now(ZoneOffset.UTC) +
+                String.format("%06d", Integer.valueOf(
+                        this.userId.toString().substring(this.userId.toString().length() - 6)));
+        return timePlusUserId.chars()
                 .mapToObj(ApiKey::intToRandomCapitalizationLetter)
                 .collect(Collectors.joining());
     }
@@ -35,13 +44,14 @@ public class ApiKey {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(columnDefinition = "CHAR(35)")
+    private String identifier;
+    @Nonnull
+//    @Column(columnDefinition = "CHAR(36)") //this would be before encryption
+    @Column(columnDefinition = "CHAR(60)")
+    private String apiKeyValue;
     @Nonnull
     private Integer userId;
     @Nonnull
     private LocalDate validTillDate;
-    @Nonnull
-    @Column(columnDefinition = "CHAR(66)")
-    private String apiKeyValue;
 }
