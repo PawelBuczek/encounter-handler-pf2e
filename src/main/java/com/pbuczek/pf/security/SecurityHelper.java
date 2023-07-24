@@ -1,10 +1,10 @@
 package com.pbuczek.pf.security;
 
 import com.pbuczek.pf.apikey.ApiKey;
+import com.pbuczek.pf.apikey.ApiKeyRepository;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserRepository;
 import com.pbuczek.pf.user.UserType;
-import com.pbuczek.pf.apikey.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
