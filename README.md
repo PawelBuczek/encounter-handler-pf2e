@@ -36,4 +36,5 @@ in Driver properties change `allowPublicKeyRetrieval` to `TRUE`. Below screensho
 - only ADMIN type users are allowed to change user types, 
   so if you want to test out ADMIN only endpoints you need to change user type in database
 - authentication & authorization can be done by Basic Auth (providing username and password)
-  or by API Key. API Keys are always bound to a User and have the same authorities.
+  or by API Key (using X-API-KEY header). API Keys are always bound to a User and have the same authorities
+- if both API Key and Basic Auth is provided, then API Key is ignored
