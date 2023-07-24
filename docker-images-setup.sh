@@ -51,6 +51,8 @@ if [[ $output != *"No such container"* ]]; then
   fi
 fi
 
+#maybe lets not worry about pulling the image, it will do it automatically anyway
+
 output="$(docker run --name $container_name -e MARIADB_ROOT_PASSWORD=root -p 3306:3306 -d mariadb:latest 2>&1)"
 
 if [[ $output == *"error"* ]]; then
