@@ -81,16 +81,16 @@ public class EncounterController {
         Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("encounter with id %d not found", encounterId)));
-        description = description.trim();
-
-        try {
-            encounter.setDescription(description);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot set description '%s' for encounter with id %d", description, encounterId));
-        }
 
         adminOrSpecificUserId(encounter.getUserId());
+
+        description = description.trim();
+        if (description.length() > Encounter.maxDescriptionLength) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("description too long. Max '%s' signs allowed.", Encounter.maxDescriptionLength));
+        }
+
+        encounter.setDescription(description);
         return encounterRepo.save(encounter);
     }
 
@@ -100,14 +100,9 @@ public class EncounterController {
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("encounter with id %d not found", encounterId)));
 
-        try {
-            encounter.setPublished(!encounter.getPublished());
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot publish/unpublish encounter with id %d", encounterId));
-        }
-
         adminOrSpecificUserId(encounter.getUserId());
+
+        encounter.setPublished(!encounter.getPublished());
         return encounterRepo.save(encounter);
     }
 

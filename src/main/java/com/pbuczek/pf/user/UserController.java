@@ -100,12 +100,7 @@ public class UserController {
                     String.format("email '%s' is already being used by another user.", email));
         }
 
-        try {
-            user.setEmail(email);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot set email '%s' for user with id '%d'", email, userId));
-        }
+        user.setEmail(email);
         return secureUser(userRepo.save(user));
     }
 
@@ -139,12 +134,7 @@ public class UserController {
             return secureUser(user);
         }
 
-        try {
-            user.setPaymentPlan(paymentPlan);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot set paymentPlan '%s' for username '%d'", paymentPlan.toString(), userId));
-        }
+        user.setPaymentPlan(paymentPlan);
         return secureUser(userRepo.save(user));
     }
 
@@ -153,7 +143,7 @@ public class UserController {
     public User updateUsername(@PathVariable Integer userId, @PathVariable String newUsername) {
         User user = userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("username '%d' not found", userId)));
+                        String.format("user with id '%d' not found", userId)));
         newUsername = newUsername.trim();
 
         if (user.getUsername().equals(newUsername)) {
@@ -165,12 +155,22 @@ public class UserController {
                     String.format("username '%s' is already in use.", newUsername));
         }
 
-        try {
-            user.setUsername(newUsername);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot change username from '%s' to '%s'", user.getUsername(), newUsername));
+        user.setUsername(newUsername);
+        return secureUser(userRepo.save(user));
+    }
+
+    @PatchMapping(path = "/enable/{userId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public User enableUser(@PathVariable Integer userId) {
+        User user = userRepo.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("user with id '%d' not found", userId)));
+
+        if (user.getEnabled()) {
+            return secureUser(user);
         }
+
+        user.setEnabled(Boolean.TRUE);
         return secureUser(userRepo.save(user));
     }
 
@@ -185,12 +185,7 @@ public class UserController {
             return secureUser(user);
         }
 
-        try {
-            user.setType(userType);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot change userType from '%s' to '%s'", user.getType(), userType));
-        }
+        user.setType(userType);
         return secureUser(userRepo.save(user));
     }
 

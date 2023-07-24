@@ -16,6 +16,8 @@ import java.time.ZoneOffset;
 @Table(name = "encounter")
 public class Encounter {
 
+    public static final Integer maxDescriptionLength = 3000;
+
     public Encounter(String name, Integer userId, String description) {
         this.name = name;
         this.userId = userId;

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping(value = "/apiKey")
+@RequestMapping(value = "/apikey")
 public class ApiKeyController {
 
     private final UserRepository userRepo;
@@ -31,7 +31,7 @@ public class ApiKeyController {
     public String createAPIKey() {
         String pass = UUID.randomUUID().toString();
         return apiKeyRepo.save(new ApiKey(pass, securityHelper.getContextCurrentUser().getId()))
-                .getApiKeyValue() + pass; // 35 + 36 chars
+                .getIdentifier() + pass; // 35 + 36 chars
     }
 
     @DeleteMapping(path = "/by-id/{userId}/{apiKeyId}")

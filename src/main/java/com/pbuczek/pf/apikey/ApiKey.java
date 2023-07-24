@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import static com.pbuczek.pf.security.SecurityHelper.passwordEncoder;
@@ -22,21 +23,39 @@ import static com.pbuczek.pf.security.SecurityHelper.passwordEncoder;
 @Table(name = "api_key")
 public class ApiKey {
 
+    private static final int IDENTIFIER_LENGTH = 35;
+
     public ApiKey(String apiKeyValue, Integer userId) {
-        this.identifier = createUniqueIdentifier();
-        this.apiKeyValue = passwordEncoder.encode(apiKeyValue);
         this.userId = userId;
+        this.identifier = createUniqueIdentifier();
+        System.out.println("identifier=" + identifier);
+        System.out.println("apiKeyValue=" + apiKeyValue);
+        this.apiKeyValue = passwordEncoder.encode(apiKeyValue);
         this.validTillDate = LocalDate.now(ZoneOffset.UTC).plusYears(1);
     }
 
     private String createUniqueIdentifier() {
-        String timePlusUserId = LocalDateTime.now(ZoneOffset.UTC) +
-                String.format("%06d", Integer.valueOf(
-                        this.userId.toString().substring(this.userId.toString().length() - 6)));
-        return timePlusUserId.chars()
-                .mapToObj(ApiKey::intToRandomCapitalizationLetter)
-                .collect(Collectors.joining());
+        String currentTimeUTC = LocalDateTime.now(ZoneOffset.UTC).toString();
+        String userIdLast6Digits = this.userId.toString().substring(
+                Math.max(0, this.userId.toString().length() - 6));
+
+        String timePlusUserId = currentTimeUTC + String.format("%06d", Integer.valueOf(userIdLast6Digits));
+
+        StringBuilder uniqueIdWithRandomCapitalization = new StringBuilder(
+                timePlusUserId.chars()
+                        .mapToObj(ApiKey::intToRandomCapitalizationLetter)
+                        .collect(Collectors.joining())
+        );
+
+        Random random = new Random();
+        while (uniqueIdWithRandomCapitalization.length() < IDENTIFIER_LENGTH) {
+            char randomChar = (char) (random.nextInt(60) + 'A');
+            uniqueIdWithRandomCapitalization.append(randomChar);
+        }
+
+        return uniqueIdWithRandomCapitalization.toString();
     }
+
 
     private static String intToRandomCapitalizationLetter(int i) {
         int addition = Math.random() < 0.5 ? 17 : 49;
