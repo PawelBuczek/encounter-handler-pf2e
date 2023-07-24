@@ -23,7 +23,7 @@ import static com.pbuczek.pf.security.SecurityHelper.passwordEncoder;
 @Table(name = "api_key")
 public class ApiKey {
 
-    private static final int IDENTIFIER_LENGTH = 35;
+    public static final int IDENTIFIER_LENGTH = 35;
 
     public ApiKey(String apiKeyValue, Integer userId) {
         this.userId = userId;

@@ -1,5 +1,6 @@
 package com.pbuczek.pf.security;
 
+import com.pbuczek.pf.apikey.ApiKey;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserRepository;
 import com.pbuczek.pf.user.UserType;
@@ -47,8 +48,10 @@ public class SecurityHelper {
         } catch (NumberFormatException ignored) {
         }
 
-        Integer userIdByApiKey = userRepo.getUserIdByApiKeyIdentifier(name).orElseThrow(() ->
+        Integer userIdByApiKey = userRepo.getUserIdByApiKeyIdentifier(
+                name.substring(0, ApiKey.IDENTIFIER_LENGTH)).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
+
         return userRepo.findById(userIdByApiKey).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
     }
