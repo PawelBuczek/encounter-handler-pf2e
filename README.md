@@ -27,8 +27,7 @@ Recommended to install first:
 *(if you changed setup of db, please adjust below values accordingly)*  
 `Server Host: 127.0.0.1`  `Port: 3306`  `Username: root`  `Password: PASSWORD`  `Driver name: MariaDB`  
 leave `Database` blank  
-in Driver properties change `allowPublicKeyRetrieval` to `TRUE`. Below screenshot from DBeaver:  
-![img.png](src/main/resources/pictures/dbeaver_driver_properties.png)
+_note: for some tools it may be required to set driver property `allowPublicKeyRetrieval` to `true`_
 
 # Notes about usage:
 - there are 2 User types, STANDARD and ADMIN
