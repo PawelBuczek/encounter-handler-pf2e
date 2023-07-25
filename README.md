@@ -17,9 +17,8 @@ Recommended to install first:
    You may install it locally if you want to, matching it with src/main/resources/application.properties file.  
    But it's easier with docker:  
    - install (and run) rancher desktop or docker desktop or any other docker tool that you like
-   - download mysql image with command `docker pull mysql`  
-     if you want, you can read more about this image on https://hub.docker.com/_/mysql  
-     (yes, using mysql image may not be the smartest move here, I should probably change it to MariaDB)
+   - download mariadb image with command `docker pull mariadb`  
+     if you want, you can read more about this image on https://hub.docker.com/_/mariadb
    - now we need to run this image in a container. You can do it yourself if you want to, but...  
      you can also run bash script `docker-images-setup.sh` for that, it is in repository root of this project
 3. Run `src/main/java/com/pbuczek/pf/Application.java` *(database structure will be created by Liquibase)*
