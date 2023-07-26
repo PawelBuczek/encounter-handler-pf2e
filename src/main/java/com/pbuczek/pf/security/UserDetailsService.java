@@ -40,7 +40,7 @@ public class UserDetailsService implements org.springframework.security.core.use
         LocalDate validTillDate = apiKeyRepo.getValidTillDateByIdentifier(apiKey.trim().substring(0, 35)).orElseThrow(() ->
                 new AuthenticationServiceException("API Key with provided value not found"));
 
-        if (validTillDate.isAfter(LocalDate.now())) {
+        if (validTillDate.isBefore(LocalDate.now())) {
             throw new AuthenticationServiceException("API Key has expired. Please generate new one.");
         }
 
