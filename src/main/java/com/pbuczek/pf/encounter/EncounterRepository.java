@@ -14,6 +14,9 @@ public interface EncounterRepository extends JpaRepository<Encounter, Integer> {
 
     List<Encounter> findByUserId(Integer userId);
 
+    @Query("SELECT COUNT(*) FROM Encounter e WHERE e.userId = ?1")
+    Integer getCountOfEncountersByUserId(Integer userId);
+
     @Transactional
     @Modifying
     @Query("DELETE FROM Encounter e WHERE e.id = ?1")

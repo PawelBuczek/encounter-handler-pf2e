@@ -1,7 +1,10 @@
 package com.pbuczek.pf.encounter;
 
 import com.pbuczek.pf.security.SecurityHelper;
+import com.pbuczek.pf.user.PaymentPlan;
+import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserRepository;
+import com.pbuczek.pf.user.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,12 +12,18 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping(value = "/encounter")
 public class EncounterController {
+
+    private final static Map<PaymentPlan, Integer> ENCOUNTER_LIMITS = Map.of(
+            PaymentPlan.FREE, 30,
+            PaymentPlan.ADVENTURER, 100,
+            PaymentPlan.HERO, 1000);
 
     EncounterRepository encounterRepo;
     UserRepository userRepo;
@@ -29,11 +38,18 @@ public class EncounterController {
 
     @PostMapping
     public Encounter createEncounter(@RequestBody EncounterDto encounterDto) {
-        userRepo.findById(encounterDto.getUserId()).orElseThrow(() ->
+        User user = userRepo.findById(encounterDto.getUserId()).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("user with id %d not found", encounterDto.getUserId())));
 
-        adminOrSpecificUserId(encounterDto.getUserId());
+        adminOrSpecificUserId(user.getId());
+
+        Integer limit = ENCOUNTER_LIMITS.get(user.getPaymentPlan());
+        if(!user.getType().equals(UserType.ADMIN) && encounterRepo.getCountOfEncountersByUserId(user.getId()) >= limit) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("Cannot create. Reached limit of Encounters: %d", limit));
+        }
+
         return encounterRepo.save(new Encounter(encounterDto));
     }
 

@@ -1,7 +1,10 @@
 package com.pbuczek.pf.apikey;
 
 import com.pbuczek.pf.security.SecurityHelper;
+import com.pbuczek.pf.user.PaymentPlan;
+import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserRepository;
+import com.pbuczek.pf.user.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -10,11 +13,17 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping(value = "/apikey")
 public class ApiKeyController {
+
+    private final static Map<PaymentPlan, Integer> API_KEY_LIMITS = Map.of(
+            PaymentPlan.FREE, 0,
+            PaymentPlan.ADVENTURER, 2,
+            PaymentPlan.HERO, 5);
 
     private final UserRepository userRepo;
     private final ApiKeyRepository apiKeyRepo;
@@ -30,8 +39,15 @@ public class ApiKeyController {
     @PostMapping
     @PreAuthorize("@securityHelper.hasContextAnyAuthorities()")
     public String createAPIKey() {
+        User user = securityHelper.getContextCurrentUser();
+        Integer limit = API_KEY_LIMITS.get(user.getPaymentPlan());
+        if(!user.getType().equals(UserType.ADMIN) && apiKeyRepo.getCountOfApiKeysByUserId(user.getId()) >= limit) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("Cannot create. Reached limit of API Keys: %d", limit));
+        }
+
         String pass = UUID.randomUUID().toString();
-        return apiKeyRepo.save(new ApiKey(pass, securityHelper.getContextCurrentUser().getId()))
+        return apiKeyRepo.save(new ApiKey(pass, user.getId()))
                 .getIdentifier() + pass; // 35 + 36 chars
     }
 
