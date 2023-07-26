@@ -1,5 +1,6 @@
 package com.pbuczek.pf.security;
 
+import com.pbuczek.pf.apikey.ApiKey;
 import com.pbuczek.pf.apikey.ApiKeyRepository;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserRepository;
@@ -37,14 +38,15 @@ public class UserDetailsService implements org.springframework.security.core.use
     }
 
     public UserDetails loadUserByApiKey(String apiKey) {
-        LocalDate validTillDate = apiKeyRepo.getValidTillDateByIdentifier(apiKey.trim().substring(0, 35)).orElseThrow(() ->
+        LocalDate validTillDate = apiKeyRepo.getValidTillDateByIdentifier(
+                apiKey.trim().substring(0, ApiKey.IDENTIFIER_LENGTH)).orElseThrow(() ->
                 new AuthenticationServiceException("API Key with provided value not found"));
 
         if (validTillDate.isBefore(LocalDate.now())) {
             throw new AuthenticationServiceException("API Key has expired. Please generate new one.");
         }
 
-        return apiKeyRepo.getUserIdByApiKeyIdentifier(apiKey.trim().substring(0, 35))
+        return apiKeyRepo.getUserIdByApiKeyIdentifier(apiKey.trim().substring(0, ApiKey.IDENTIFIER_LENGTH))
                 .map(this::loadUserByUserId)
                 .orElseThrow(() -> new UsernameNotFoundException("No user found for provided API Key"));
     }
