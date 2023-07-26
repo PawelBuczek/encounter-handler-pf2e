@@ -1,0 +1,2 @@
+curl --location --request PATCH 'http://localhost:8080/user/lock-unlock/1' \
+--header 'Authorization: Basic am9obmRvZTpleFBhc3NAMQ=='

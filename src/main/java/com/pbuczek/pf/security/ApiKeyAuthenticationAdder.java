@@ -4,23 +4,23 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 
-public class ApiKeyFilter extends OncePerRequestFilter {
-    //actually not a filter! It adds authentication.
-    // I just have no idea how else to get the request in this strange setup
+public class ApiKeyAuthenticationAdder extends OncePerRequestFilter {
 
     private static UserDetailsService userDetailsService;
 
-    public ApiKeyFilter(UserDetailsService userDetailsService) {
-        ApiKeyFilter.userDetailsService = userDetailsService;
+    public ApiKeyAuthenticationAdder(UserDetailsService userDetailsService) {
+        ApiKeyAuthenticationAdder.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -33,16 +33,26 @@ public class ApiKeyFilter extends OncePerRequestFilter {
 
         String apiKey = request.getHeader("X-API-KEY");
         if (apiKey == null || apiKey.isBlank()) {
-            filterChain.doFilter(request, response);
+            try {
+                filterChain.doFilter(request, response);
+            } catch (ResponseStatusException e) {
+                if (e.getMessage().startsWith("401 UNAUTHORIZED ")) {
+                    response.sendError(401, e.getMessage().substring(17).replaceAll("\"", ""));
+                } else {
+                    throw e;
+                }
+            }
             return;
         }
 
-        apiKey = apiKey.trim();
         UserDetails userDetails;
         try {
-            userDetails = userDetailsService.loadByApiKey(apiKey);
+            userDetails = userDetailsService.loadUserByApiKey(apiKey);
         } catch (UsernameNotFoundException e) {
             response.sendError(401, e.getMessage());
+            return;
+        } catch (AuthenticationServiceException e) {
+            response.sendError(498, e.getMessage());
             return;
         }
 

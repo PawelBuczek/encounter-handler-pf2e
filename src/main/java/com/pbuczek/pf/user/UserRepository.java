@@ -18,12 +18,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("SELECT u.id FROM User u WHERE u.username = ?1")
     Integer getIdByUsername(String username);
 
-    @Query("SELECT u.username FROM User u WHERE u.id = ?1")
-    String getUsernameById(Integer id);
-
-    @Query("SELECT a.userId FROM ApiKey a WHERE a.apiKeyValue = ?1")
-    Optional<Integer> getUserIdByApiKey(String apiKey);
-
     @Transactional
     @Modifying
     @Query("DELETE FROM User u WHERE u.id = ?1")

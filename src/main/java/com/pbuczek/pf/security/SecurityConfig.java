@@ -35,7 +35,7 @@ public class SecurityConfig {
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(userDetailsService);
-        authenticationProvider.setPasswordEncoder(SecurityHelper.getPasswordEncoder());
+        authenticationProvider.setPasswordEncoder(SecurityHelper.passwordEncoder);
         return authenticationProvider;
     }
 
@@ -43,9 +43,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(withDefaults())
-                //below is not really a filter, it adds authentication based on API Key.
-                // But no idea how to achieve it in a different way :)
-                .addFilterBefore(new ApiKeyFilter(userDetailsService), UsernamePasswordAuthenticationFilter.class)
+                // this is NOT a filter!
+                .addFilterBefore(new ApiKeyAuthenticationAdder(userDetailsService), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }

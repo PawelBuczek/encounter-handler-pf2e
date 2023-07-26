@@ -1,8 +1,6 @@
 package com.pbuczek.pf.user;
 
 import com.pbuczek.pf.security.SecurityHelper;
-import com.pbuczek.pf.user.apikey.ApiKey;
-import com.pbuczek.pf.user.apikey.ApiKeyRepository;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,20 +17,18 @@ import java.util.List;
 @RequestMapping(value = "/user")
 public class UserController {
 
-    private final static String passwordRegex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9]).{8,50}$";
+    private final static String PASSWORD_REGEX = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9]).{8,50}$";
     // below regex constant needs to match with sql rule created in the file 'src/main/resources/db/sql-files/add-user-email-validation-constraint.sql'
-    private final static String emailRegex = "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$";
+    private final static String EMAIL_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$";
 
-    private final PasswordEncoder passwordEncoder = SecurityHelper.getPasswordEncoder();
+    private final PasswordEncoder passwordEncoder = SecurityHelper.passwordEncoder;
 
     private final UserRepository userRepo;
-    private final ApiKeyRepository apiKeyRepo;
     private final SecurityHelper securityHelper;
 
     @Autowired
-    public UserController(UserRepository userRepo, ApiKeyRepository apiKeyRepo, SecurityHelper securityHelper) {
+    public UserController(UserRepository userRepo, SecurityHelper securityHelper) {
         this.userRepo = userRepo;
-        this.apiKeyRepo = apiKeyRepo;
         this.securityHelper = securityHelper;
     }
 
@@ -48,19 +44,18 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     String.format("username '%s' is already being used by another user.", userDto.getUsername()));
         }
-        if (!userDto.getEmail().matches(emailRegex)) {
+        if (!userDto.getEmail().matches(EMAIL_REGEX)) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     String.format("provided user email '%s' is not valid.", userDto.getEmail()));
         }
 
         checkPasswordRegex(userDto.getPassword());
-        userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
 
         return secureUser(userRepo.save(new User(userDto)));
     }
 
     @DeleteMapping(path = "/{userId}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public int deleteUser(@PathVariable Integer userId) {
         return userRepo.deleteUserByUserId(userId);
     }
@@ -72,7 +67,7 @@ public class UserController {
     }
 
     @GetMapping(path = "/by-userid/{userId}")
-    @PreAuthorize("@securityService.hasContextAnyAuthorities()")
+    @PreAuthorize("@securityHelper.hasContextAnyAuthorities()")
     public User readUser(@PathVariable Integer userId) {
         return secureUser(userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -81,7 +76,7 @@ public class UserController {
     }
 
     @GetMapping(path = "/by-username/{username}")
-    @PreAuthorize("@securityService.hasContextAnyAuthorities()")
+    @PreAuthorize("@securityHelper.hasContextAnyAuthorities()")
     public User readUser(@PathVariable String username) {
         return secureUser(userRepo.findByUsername(username).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -90,7 +85,7 @@ public class UserController {
     }
 
     @PatchMapping(path = "/email/{userId}/{email}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public User updateEmail(@PathVariable Integer userId, @PathVariable String email) {
         User user = userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -105,12 +100,7 @@ public class UserController {
                     String.format("email '%s' is already being used by another user.", email));
         }
 
-        try {
-            user.setEmail(email);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot set email '%s' for user with id '%d'", email, userId));
-        }
+        user.setEmail(email);
         return secureUser(userRepo.save(user));
     }
 
@@ -130,6 +120,8 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     String.format("cannot change password for current user (user's id: '%d')", user.getId()));
         }
+
+        user.refreshPasswordLastUpdatedDate();
         return secureUser(userRepo.save(user));
     }
 
@@ -144,21 +136,16 @@ public class UserController {
             return secureUser(user);
         }
 
-        try {
-            user.setPaymentPlan(paymentPlan);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot set paymentPlan '%s' for username '%d'", paymentPlan.toString(), userId));
-        }
+        user.setPaymentPlan(paymentPlan);
         return secureUser(userRepo.save(user));
     }
 
     @PatchMapping(path = "/username/{userId}/{newUsername}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
+    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public User updateUsername(@PathVariable Integer userId, @PathVariable String newUsername) {
         User user = userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("username '%d' not found", userId)));
+                        String.format("user with id '%d' not found", userId)));
         newUsername = newUsername.trim();
 
         if (user.getUsername().equals(newUsername)) {
@@ -170,12 +157,22 @@ public class UserController {
                     String.format("username '%s' is already in use.", newUsername));
         }
 
-        try {
-            user.setUsername(newUsername);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot change username from '%s' to '%s'", user.getUsername(), newUsername));
+        user.setUsername(newUsername);
+        return secureUser(userRepo.save(user));
+    }
+
+    @PatchMapping(path = "/enable/{userId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public User enableUser(@PathVariable Integer userId) {
+        User user = userRepo.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("user with id '%d' not found", userId)));
+
+        if (user.getEnabled()) {
+            return secureUser(user);
         }
+
+        user.setEnabled(Boolean.TRUE);
         return secureUser(userRepo.save(user));
     }
 
@@ -190,15 +187,30 @@ public class UserController {
             return secureUser(user);
         }
 
-        try {
-            user.setType(userType);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("cannot change userType from '%s' to '%s'", user.getType(), userType));
-        }
+        user.setType(userType);
         return secureUser(userRepo.save(user));
     }
 
+    @PatchMapping(path = "/refresh-password-last-updated-date/{userId}")
+    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
+    public User refreshPasswordLastUpdatedDate(@PathVariable Integer userId) {
+        User user = userRepo.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("user with id '%d' not found", userId)));
+        user.refreshPasswordLastUpdatedDate();
+        return secureUser(userRepo.save(user));
+    }
+
+    @PatchMapping(path = "/lock-unlock/{userId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public User lockUnlock(@PathVariable Integer userId) {
+        User user = userRepo.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("user with id '%d' not found", userId)));
+
+        user.setLocked(!user.getLocked());
+        return secureUser(userRepo.save(user));
+    }
 
     private User secureUser(User u) {
         u.setPassword("[hidden for security reasons]");
@@ -206,7 +218,7 @@ public class UserController {
     }
 
     private void checkPasswordRegex(String password) {
-        if (!password.matches(passwordRegex)) {
+        if (!password.matches(PASSWORD_REGEX)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "new password doesn't satisfy requirement");
         }
     }
@@ -218,38 +230,4 @@ public class UserController {
         private String newPassword;
     }
 
-
-    @PostMapping(path = "/apikey")
-    @PreAuthorize("@securityService.hasContextAnyAuthorities()")
-    public String createAPIKey() {
-        User user = securityHelper.getContextCurrentUser();
-
-        return apiKeyRepo.save(new ApiKey(user.getId())).getApiKeyValue();
-    }
-
-    @DeleteMapping(path = "/apikey/by-id/{userId}/{apiKeyId}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
-    public int deleteAPIKeyById(@PathVariable Integer userId, @PathVariable Integer apiKeyId) {
-        checkIfUserExists(userId);
-        return apiKeyRepo.deleteApiKeyById(apiKeyId);
-    }
-
-    @DeleteMapping(path = "/apikey/by-value/{userId}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
-    public int deleteAPIKeyByValue(@PathVariable Integer userId, @RequestBody String apiKeyValue) {
-        checkIfUserExists(userId);
-        return apiKeyRepo.deleteApiKeyByValue(apiKeyValue);
-    }
-
-    @GetMapping(path = "/apikey/{userId}")
-    @PreAuthorize("@securityService.isContextAdminOrSpecificUserId(#userId)")
-    public List<ApiKey> getApiKeysByUserId(@PathVariable Integer userId) {
-        checkIfUserExists(userId);
-        return apiKeyRepo.findByUserId(userId);
-    }
-
-    private void checkIfUserExists(Integer userId) {
-        userRepo.findById(userId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("user with id '%d' not found", userId)));
-    }
 }

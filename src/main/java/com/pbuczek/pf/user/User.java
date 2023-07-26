@@ -6,8 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+
+import static com.pbuczek.pf.security.SecurityHelper.passwordEncoder;
 
 @ResponseBody
 @Data
@@ -20,8 +23,9 @@ public class User {
         this.type = type;
         this.username = username;
         this.email = email;
-        this.password = password;
+        this.password = passwordEncoder.encode(password);
         this.timeCreated = LocalDateTime.now(ZoneOffset.UTC);
+        this.passwordLastUpdatedDate = LocalDate.now(ZoneOffset.UTC);
     }
 
     public User(UserDto userDto) {
@@ -33,7 +37,7 @@ public class User {
     private Integer id;
     @Enumerated(EnumType.STRING)
     private UserType type = UserType.STANDARD;
-    @Enumerated(EnumType.STRING)  // doesn't have any meaning for ADMIN user type
+    @Enumerated(EnumType.STRING)  // shouldn't have any meaning for ADMIN user type
     private PaymentPlan paymentPlan = PaymentPlan.FREE;
 
     @Nonnull
@@ -45,4 +49,14 @@ public class User {
     @Nonnull
     @Column(columnDefinition = "CHAR(60)")
     private String password;
+    @Nonnull
+    private LocalDate passwordLastUpdatedDate;
+    @Nonnull
+    private Boolean locked = false;
+    @Nonnull
+    private Boolean enabled = false;
+
+    public void refreshPasswordLastUpdatedDate() {
+        this.passwordLastUpdatedDate = LocalDate.now(ZoneOffset.UTC);
+    }
 }

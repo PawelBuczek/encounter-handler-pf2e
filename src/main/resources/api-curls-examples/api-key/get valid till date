@@ -1,0 +1,2 @@
+curl --location 'http://localhost:8080/apikey/valid-till-date/1/cAcD-aH-CGTbG:Fb:eE.fBFIjFeaaaAAAAB' \
+--header 'Authorization: Basic am9obmRvZTpleFBhc3NAMQ=='

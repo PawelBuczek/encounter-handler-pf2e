@@ -1,9 +1,10 @@
 package com.pbuczek.pf.security;
 
+import com.pbuczek.pf.apikey.ApiKey;
+import com.pbuczek.pf.apikey.ApiKeyRepository;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserRepository;
 import com.pbuczek.pf.user.UserType;
-import com.pbuczek.pf.user.apikey.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -29,12 +30,8 @@ public class SecurityHelper {
         this.apiKeyRepo = apiKeyRepo;
     }
 
-    private static final List<String> userTypes = Stream.of(UserType.values()).map(Enum::name).toList();
-    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    public static PasswordEncoder getPasswordEncoder() {
-        return passwordEncoder;
-    }
+    private static final List<String> USER_TYPES = Stream.of(UserType.values()).map(Enum::name).toList();
+    public static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 
     public User getContextCurrentUser() {
@@ -51,8 +48,10 @@ public class SecurityHelper {
         } catch (NumberFormatException ignored) {
         }
 
-        Integer userIdByApiKey = userRepo.getUserIdByApiKey(name).orElseThrow(() ->
+        Integer userIdByApiKey = apiKeyRepo.getUserIdByApiKeyIdentifier(
+                name.substring(0, ApiKey.IDENTIFIER_LENGTH)).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
+
         return userRepo.findById(userIdByApiKey).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
     }
@@ -60,7 +59,7 @@ public class SecurityHelper {
     @SuppressWarnings("unused")
     public boolean hasContextAnyAuthorities() {
         return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(grantedAuthority -> userTypes.contains(grantedAuthority.toString()));
+                .anyMatch(grantedAuthority -> USER_TYPES.contains(grantedAuthority.toString()));
     }
 
     public boolean isContextAdminOrSpecificUserId(Integer userId) {
