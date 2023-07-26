@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,21 +29,16 @@ public class ApiKey {
     public ApiKey(String apiKeyValue, Integer userId) {
         this.userId = userId;
         this.identifier = createUniqueIdentifier();
-        System.out.println("identifier=" + identifier);
-        System.out.println("apiKeyValue=" + apiKeyValue);
         this.apiKeyValue = passwordEncoder.encode(apiKeyValue);
         this.validTillDate = LocalDate.now(ZoneOffset.UTC).plusYears(1);
     }
 
     private String createUniqueIdentifier() {
-        String currentTimeUTC = LocalDateTime.now(ZoneOffset.UTC).toString();
-        String userIdLast6Digits = this.userId.toString().substring(
-                Math.max(0, this.userId.toString().length() - 6));
-
-        String timePlusUserId = currentTimeUTC + String.format("%06d", Integer.valueOf(userIdLast6Digits));
+        String uniqueString = RandomStringUtils.random(6, true, false) +
+                LocalDateTime.now(ZoneOffset.UTC);
 
         StringBuilder uniqueIdWithRandomCapitalization = new StringBuilder(
-                timePlusUserId.chars()
+                uniqueString.chars()
                         .mapToObj(ApiKey::intToRandomCapitalizationLetter)
                         .collect(Collectors.joining())
         );
