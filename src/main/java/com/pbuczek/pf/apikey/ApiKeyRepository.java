@@ -19,16 +19,14 @@ public interface ApiKeyRepository extends JpaRepository<ApiKey, Integer> {
     @Query("SELECT a.userId FROM ApiKey a WHERE a.identifier = ?1")
     Optional<Integer> getUserIdByApiKeyIdentifier(String apiKey);
 
+    @Query("SELECT COUNT(*) FROM ApiKey a WHERE a.userId = ?1")
+    Integer getCountOfApiKeysByUserId(Integer userId);
+
     List<ApiKey> findByUserId(Integer userId);
 
     @Transactional
     @Modifying
     @Query("DELETE FROM ApiKey a WHERE a.identifier = ?1")
     int deleteApiKeyByIdentifier(String identifier);
-
-    @Transactional
-    @Modifying
-    @Query("DELETE FROM ApiKey a WHERE a.apiKeyValue = ?1")
-    int deleteApiKeyByValue(String id);
 
 }
