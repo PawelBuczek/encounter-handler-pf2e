@@ -44,7 +44,7 @@ public class UserDetailsService implements org.springframework.security.core.use
             throw new AuthenticationServiceException("API Key has expired. Please generate new one.");
         }
 
-        return userRepo.getUserIdByApiKeyIdentifier(apiKey.trim().substring(0, 35))
+        return apiKeyRepo.getUserIdByApiKeyIdentifier(apiKey.trim().substring(0, 35))
                 .map(this::loadUserByUserId)
                 .orElseThrow(() -> new UsernameNotFoundException("No user found for provided API Key"));
     }

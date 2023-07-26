@@ -48,7 +48,7 @@ public class SecurityHelper {
         } catch (NumberFormatException ignored) {
         }
 
-        Integer userIdByApiKey = userRepo.getUserIdByApiKeyIdentifier(
+        Integer userIdByApiKey = apiKeyRepo.getUserIdByApiKeyIdentifier(
                 name.substring(0, ApiKey.IDENTIFIER_LENGTH)).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "cannot authenticate current user"));
 

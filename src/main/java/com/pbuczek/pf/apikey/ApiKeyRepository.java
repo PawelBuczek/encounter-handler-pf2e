@@ -16,6 +16,9 @@ public interface ApiKeyRepository extends JpaRepository<ApiKey, Integer> {
     @Query("SELECT a.validTillDate FROM ApiKey a WHERE a.identifier = ?1")
     Optional<LocalDate> getValidTillDateByIdentifier(String identifier);
 
+    @Query("SELECT a.userId FROM ApiKey a WHERE a.identifier = ?1")
+    Optional<Integer> getUserIdByApiKeyIdentifier(String apiKey);
+
     List<ApiKey> findByUserId(Integer userId);
 
     @Transactional
