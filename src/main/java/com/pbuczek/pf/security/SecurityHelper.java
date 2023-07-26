@@ -30,7 +30,7 @@ public class SecurityHelper {
         this.apiKeyRepo = apiKeyRepo;
     }
 
-    private static final List<String> userTypes = Stream.of(UserType.values()).map(Enum::name).toList();
+    private static final List<String> USER_TYPES = Stream.of(UserType.values()).map(Enum::name).toList();
     public static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 
@@ -59,7 +59,7 @@ public class SecurityHelper {
     @SuppressWarnings("unused")
     public boolean hasContextAnyAuthorities() {
         return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(grantedAuthority -> userTypes.contains(grantedAuthority.toString()));
+                .anyMatch(grantedAuthority -> USER_TYPES.contains(grantedAuthority.toString()));
     }
 
     public boolean isContextAdminOrSpecificUserId(Integer userId) {

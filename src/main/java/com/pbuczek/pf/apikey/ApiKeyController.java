@@ -59,7 +59,7 @@ public class ApiKeyController {
 
     @GetMapping(path = "/valid-till-date/{userId}/{apiKeyId}")
     @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
-    public LocalDate getApiKeyValidTillDate(@PathVariable Integer userId, @PathVariable Integer apiKeyId) {
+    public LocalDate getValidTillDate(@PathVariable Integer userId, @PathVariable Integer apiKeyId) {
         checkIfUserExists(userId);
         ApiKey apiKey = apiKeyRepo.findById(apiKeyId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("apiKey with id '%d' not found", apiKeyId)));

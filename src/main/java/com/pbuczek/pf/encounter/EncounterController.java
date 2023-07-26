@@ -85,9 +85,9 @@ public class EncounterController {
         adminOrSpecificUserId(encounter.getUserId());
 
         description = description.trim();
-        if (description.length() > Encounter.maxDescriptionLength) {
+        if (description.length() > Encounter.MAX_DESCRIPTION_LENGTH) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("description too long. Max '%s' signs allowed.", Encounter.maxDescriptionLength));
+                    String.format("description too long. Max '%d' signs allowed.", Encounter.MAX_DESCRIPTION_LENGTH));
         }
 
         encounter.setDescription(description);

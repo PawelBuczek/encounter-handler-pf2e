@@ -17,9 +17,9 @@ import java.util.List;
 @RequestMapping(value = "/user")
 public class UserController {
 
-    private final static String passwordRegex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9]).{8,50}$";
+    private final static String PASSWORD_REGEX = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9]).{8,50}$";
     // below regex constant needs to match with sql rule created in the file 'src/main/resources/db/sql-files/add-user-email-validation-constraint.sql'
-    private final static String emailRegex = "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$";
+    private final static String EMAIL_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$";
 
     private final PasswordEncoder passwordEncoder = SecurityHelper.passwordEncoder;
 
@@ -44,7 +44,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     String.format("username '%s' is already being used by another user.", userDto.getUsername()));
         }
-        if (!userDto.getEmail().matches(emailRegex)) {
+        if (!userDto.getEmail().matches(EMAIL_REGEX)) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     String.format("provided user email '%s' is not valid.", userDto.getEmail()));
         }
@@ -218,7 +218,7 @@ public class UserController {
     }
 
     private void checkPasswordRegex(String password) {
-        if (!password.matches(passwordRegex)) {
+        if (!password.matches(PASSWORD_REGEX)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "new password doesn't satisfy requirement");
         }
     }
