@@ -13,8 +13,10 @@ class ApiKeyTest {
     void apiKeyIsGeneratedCorrectly() {
         ApiKey apiKey = new ApiKey(UUID.randomUUID().toString(),1);
 
+        System.out.println(apiKey);
+
         assertThat(apiKey.getUserId()).isEqualTo(1);
-        assertThat(apiKey.getIdentifier()).isNotEmpty().inUnicode().hasSize(35)
+        assertThat(apiKey.getIdentifier()).isNotEmpty().isAlphanumeric().hasSize(35)
                 .doesNotContainAnyWhitespaces().hasLineCount(1);
         assertThat(apiKey.getValidTillDate()).isBeforeOrEqualTo(LocalDate.now().plusYears(1));
         assertThat(apiKey.getApiKeyValue()).hasSize(60)
