@@ -1,2 +1,0 @@
-curl --location --request DELETE 'http://localhost:8080/user/apikey/by-id/1/3' \
---header 'Authorization: Basic am9obmRvZTpleFBhc3NAMQ=='
