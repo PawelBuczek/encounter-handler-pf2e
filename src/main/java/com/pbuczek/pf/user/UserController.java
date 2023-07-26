@@ -203,7 +203,7 @@ public class UserController {
 
     @PatchMapping(path = "/lock-unlock/{userId}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public User lockUnlockUser(@PathVariable Integer userId) {
+    public User lockUnlock(@PathVariable Integer userId) {
         User user = userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("user with id '%d' not found", userId)));
