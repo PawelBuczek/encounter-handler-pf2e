@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,9 +47,12 @@ public class ApiKeyAuthenticationAdder extends OncePerRequestFilter {
 
         UserDetails userDetails;
         try {
-            userDetails = userDetailsService.loadByApiKey(apiKey);
+            userDetails = userDetailsService.loadUserByApiKey(apiKey);
         } catch (UsernameNotFoundException e) {
             response.sendError(401, e.getMessage());
+            return;
+        } catch (AuthenticationServiceException e) {
+            response.sendError(498, e.getMessage());
             return;
         }
 

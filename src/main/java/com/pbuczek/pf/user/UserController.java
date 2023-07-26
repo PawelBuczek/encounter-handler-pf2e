@@ -120,6 +120,8 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     String.format("cannot change password for current user (user's id: '%d')", user.getId()));
         }
+
+        user.refreshPasswordLastUpdatedDate();
         return secureUser(userRepo.save(user));
     }
 
@@ -189,6 +191,26 @@ public class UserController {
         return secureUser(userRepo.save(user));
     }
 
+    @PatchMapping(path = "/refresh-password-last-updated-date/{userId}")
+    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
+    public User refreshPasswordLastUpdatedDate(@PathVariable Integer userId) {
+        User user = userRepo.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("user with id '%d' not found", userId)));
+        user.refreshPasswordLastUpdatedDate();
+        return secureUser(userRepo.save(user));
+    }
+
+    @PatchMapping(path = "/lock-unlock/{userId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public User lockUnlockUser(@PathVariable Integer userId) {
+        User user = userRepo.findById(userId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("user with id '%d' not found", userId)));
+
+        user.setLocked(!user.getLocked());
+        return secureUser(userRepo.save(user));
+    }
 
     private User secureUser(User u) {
         u.setPassword("[hidden for security reasons]");

@@ -1,42 +1,58 @@
 package com.pbuczek.pf.security;
 
+import com.pbuczek.pf.apikey.ApiKeyRepository;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserRepository;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
 @Component
 public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
 
+    UserRepository userRepo;
+    ApiKeyRepository apiKeyRepo;
+
     @Autowired
-    private UserRepository userRepo;
+    public UserDetailsService(UserRepository userRepo, ApiKeyRepository apiKeyRepo) {
+        this.userRepo = userRepo;
+        this.apiKeyRepo = apiKeyRepo;
+    }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) {
         return userRepo.findByUsername(username)
                 .map(UserDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("No user found"));
     }
 
-    public UserDetails loadUserByUserId(Integer userId) throws UsernameNotFoundException {
-        return userRepo.findById(userId)
-                .map(UserDetails::new)
-                .orElseThrow(() -> new UsernameNotFoundException("No user found"));
-    }
+    public UserDetails loadUserByApiKey(String apiKey) {
+        LocalDate validTillDate = apiKeyRepo.getValidTillDateByIdentifier(apiKey.trim().substring(0, 35)).orElseThrow(() ->
+                new AuthenticationServiceException("API Key with provided value not found"));
 
-    public UserDetails loadByApiKey(String apiKey) {
+        if (validTillDate.isAfter(LocalDate.now())) {
+            throw new AuthenticationServiceException("API Key has expired. Please generate new one.");
+        }
+
         return userRepo.getUserIdByApiKeyIdentifier(apiKey.trim().substring(0, 35))
                 .map(this::loadUserByUserId)
                 .orElseThrow(() -> new UsernameNotFoundException("No user found for provided API Key"));
+    }
+
+    private UserDetails loadUserByUserId(Integer userId) throws UsernameNotFoundException {
+        return userRepo.findById(userId)
+                .map(UserDetails::new)
+                .orElseThrow(() -> new UsernameNotFoundException("No user found"));
     }
 
     @Data

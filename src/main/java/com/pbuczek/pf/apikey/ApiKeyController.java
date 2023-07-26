@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -54,6 +55,15 @@ public class ApiKeyController {
         checkIfUserExists(userId);
         return apiKeyRepo.findByUserId(userId).stream()
                 .map(this::secureApiKey).toList();
+    }
+
+    @GetMapping(path = "/valid-till-date/{userId}/{apiKeyId}")
+    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
+    public LocalDate getApiKeyValidTillDate(@PathVariable Integer userId, @PathVariable Integer apiKeyId) {
+        checkIfUserExists(userId);
+        ApiKey apiKey = apiKeyRepo.findById(apiKeyId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("apiKey with id '%d' not found", apiKeyId)));
+        return apiKey.getValidTillDate();
     }
 
     private void checkIfUserExists(Integer userId) {
