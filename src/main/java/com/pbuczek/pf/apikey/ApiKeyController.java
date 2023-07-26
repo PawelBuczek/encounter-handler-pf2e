@@ -35,18 +35,11 @@ public class ApiKeyController {
                 .getIdentifier() + pass; // 35 + 36 chars
     }
 
-    @DeleteMapping(path = "/by-id/{userId}/{apiKeyId}")
+    @DeleteMapping(path = "/{userId}/{identifier}")
     @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
-    public int deleteAPIKeyById(@PathVariable Integer userId, @PathVariable Integer apiKeyId) {
+    public int deleteAPIKeyById(@PathVariable Integer userId, @PathVariable String identifier) {
         checkIfUserExists(userId);
-        return apiKeyRepo.deleteApiKeyById(apiKeyId);
-    }
-
-    @DeleteMapping(path = "/by-value/{userId}")
-    @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
-    public int deleteAPIKeyByValue(@PathVariable Integer userId, @RequestBody String apiKeyValue) {
-        checkIfUserExists(userId);
-        return apiKeyRepo.deleteApiKeyByValue(apiKeyValue);
+        return apiKeyRepo.deleteApiKeyByIdentifier(identifier);
     }
 
     @GetMapping(path = "/{userId}")
@@ -57,12 +50,13 @@ public class ApiKeyController {
                 .map(this::secureApiKey).toList();
     }
 
-    @GetMapping(path = "/valid-till-date/{userId}/{apiKeyId}")
+    @GetMapping(path = "/valid-till-date/{userId}/{identifier}")
     @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
-    public LocalDate getValidTillDate(@PathVariable Integer userId, @PathVariable Integer apiKeyId) {
+    public LocalDate getValidTillDate(@PathVariable Integer userId, @PathVariable String identifier) {
         checkIfUserExists(userId);
-        ApiKey apiKey = apiKeyRepo.findById(apiKeyId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("apiKey with id '%d' not found", apiKeyId)));
+        ApiKey apiKey = apiKeyRepo.findByIdentifier(identifier).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("apiKey with identifier '%s' not found", identifier)));
         return apiKey.getValidTillDate();
     }
 

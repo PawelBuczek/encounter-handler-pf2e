@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public interface ApiKeyRepository extends JpaRepository<ApiKey, Integer> {
 
-    Optional<ApiKey> findById(Integer id);
+    Optional<ApiKey> findByIdentifier(String identifier);
 
     @Query("SELECT a.validTillDate FROM ApiKey a WHERE a.identifier = ?1")
     Optional<LocalDate> getValidTillDateByIdentifier(String identifier);
@@ -23,8 +23,8 @@ public interface ApiKeyRepository extends JpaRepository<ApiKey, Integer> {
 
     @Transactional
     @Modifying
-    @Query("DELETE FROM ApiKey a WHERE a.id = ?1")
-    int deleteApiKeyById(Integer id);
+    @Query("DELETE FROM ApiKey a WHERE a.identifier = ?1")
+    int deleteApiKeyByIdentifier(String identifier);
 
     @Transactional
     @Modifying
