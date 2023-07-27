@@ -9,7 +9,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 
 @IncludeTags("UnitTest")
 @Suite
-@SuiteDisplayName("UnitTestsPf")
+@SuiteDisplayName("UnitTests")
 public class UnitTests {
 
 }
