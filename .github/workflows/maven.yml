@@ -38,7 +38,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Build with Maven
-        run: mvn -B package --file pom.xml
+        run: mvn -B package --file pom.xml -DskipTests
+      - name: Run ApplicationTests
+        run: mvn -Dtest=com/pbuczek/pf/ApplicationTests.java test
+      - name: Run UnitTests
+        run: mvn -Dtest=com/pbuczek/pf/UnitTests.java test
 
       # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
       - name: Update dependency graph

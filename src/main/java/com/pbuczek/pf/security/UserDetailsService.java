@@ -1,5 +1,6 @@
 package com.pbuczek.pf.security;
 
+import com.pbuczek.pf.apikey.ApiKey;
 import com.pbuczek.pf.apikey.ApiKeyRepository;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserRepository;
@@ -20,8 +21,8 @@ import java.util.List;
 @Component
 public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
 
-    UserRepository userRepo;
-    ApiKeyRepository apiKeyRepo;
+    private final UserRepository userRepo;
+    private final ApiKeyRepository apiKeyRepo;
 
     @Autowired
     public UserDetailsService(UserRepository userRepo, ApiKeyRepository apiKeyRepo) {
@@ -37,14 +38,15 @@ public class UserDetailsService implements org.springframework.security.core.use
     }
 
     public UserDetails loadUserByApiKey(String apiKey) {
-        LocalDate validTillDate = apiKeyRepo.getValidTillDateByIdentifier(apiKey.trim().substring(0, 35)).orElseThrow(() ->
+        LocalDate validTillDate = apiKeyRepo.getValidTillDateByIdentifier(
+                apiKey.trim().substring(0, ApiKey.IDENTIFIER_LENGTH)).orElseThrow(() ->
                 new AuthenticationServiceException("API Key with provided value not found"));
 
         if (validTillDate.isBefore(LocalDate.now())) {
             throw new AuthenticationServiceException("API Key has expired. Please generate new one.");
         }
 
-        return apiKeyRepo.getUserIdByApiKeyIdentifier(apiKey.trim().substring(0, 35))
+        return apiKeyRepo.getUserIdByApiKeyIdentifier(apiKey.trim().substring(0, ApiKey.IDENTIFIER_LENGTH))
                 .map(this::loadUserByUserId)
                 .orElseThrow(() -> new UsernameNotFoundException("No user found for provided API Key"));
     }
@@ -61,7 +63,6 @@ public class UserDetailsService implements org.springframework.security.core.use
         private Integer userName;
         private String password;
         private List<GrantedAuthority> authorities;
-        // yes, this is getting updated for every request
         private Boolean locked;
         private Boolean enabled;
 

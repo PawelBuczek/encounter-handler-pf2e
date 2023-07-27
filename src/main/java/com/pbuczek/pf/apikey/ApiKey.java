@@ -34,12 +34,13 @@ public class ApiKey {
     }
 
     private String createUniqueIdentifier() {
-        String uniqueString = RandomStringUtils.random(6, true, false) +
-                LocalDateTime.now(ZoneOffset.UTC);
+        String uniqueString = (RandomStringUtils.random(6, true, false) +
+                LocalDateTime.now(ZoneOffset.UTC));
 
         StringBuilder uniqueIdWithRandomCapitalization = new StringBuilder(
                 uniqueString.chars()
                         .mapToObj(ApiKey::intToRandomCapitalizationLetter)
+                        .map(s -> s.replaceAll("[-:.]",RandomStringUtils.randomNumeric(1)))
                         .collect(Collectors.joining())
         );
 

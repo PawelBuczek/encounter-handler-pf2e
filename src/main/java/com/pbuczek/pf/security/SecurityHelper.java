@@ -21,8 +21,8 @@ import java.util.stream.Stream;
 @Service
 public class SecurityHelper {
 
-    UserRepository userRepo;
-    ApiKeyRepository apiKeyRepo;
+    private final UserRepository userRepo;
+    private final ApiKeyRepository apiKeyRepo;
 
     @Autowired
     public SecurityHelper(UserRepository userRepo, ApiKeyRepository apiKeyRepo) {

@@ -19,8 +19,7 @@ import static com.pbuczek.pf.security.SecurityHelper.passwordEncoder;
 @Table(name = "user")
 public class User {
 
-    public User(UserType type, String username, String email, String password) {
-        this.type = type;
+    public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = passwordEncoder.encode(password);
@@ -29,7 +28,7 @@ public class User {
     }
 
     public User(UserDto userDto) {
-        this(UserType.STANDARD, userDto.getUsername(), userDto.getEmail(), userDto.getPassword());
+        this(userDto.getUsername(), userDto.getEmail(), userDto.getPassword());
     }
 
     @Id

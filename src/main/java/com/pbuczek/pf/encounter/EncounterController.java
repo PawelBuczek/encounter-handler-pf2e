@@ -25,9 +25,9 @@ public class EncounterController {
             PaymentPlan.ADVENTURER, 100,
             PaymentPlan.HERO, 1000);
 
-    EncounterRepository encounterRepo;
-    UserRepository userRepo;
-    SecurityHelper securityHelper;
+    private final EncounterRepository encounterRepo;
+    private final UserRepository userRepo;
+    private final SecurityHelper securityHelper;
 
     @Autowired
     public EncounterController(EncounterRepository encounterRepo, UserRepository userRepo, SecurityHelper securityHelper) {
@@ -48,6 +48,12 @@ public class EncounterController {
         if(!user.getType().equals(UserType.ADMIN) && encounterRepo.getCountOfEncountersByUserId(user.getId()) >= limit) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("Cannot create. Reached limit of Encounters: %d", limit));
+        }
+
+        encounterDto.setDescription(encounterDto.getDescription().trim());
+        if (encounterDto.getDescription().length() > Encounter.MAX_DESCRIPTION_LENGTH) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("description too long. Max '%d' signs allowed.", Encounter.MAX_DESCRIPTION_LENGTH));
         }
 
         return encounterRepo.save(new Encounter(encounterDto));

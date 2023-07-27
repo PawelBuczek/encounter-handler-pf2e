@@ -19,6 +19,10 @@ public class Encounter {
     public static final Integer MAX_DESCRIPTION_LENGTH = 3000;
 
     public Encounter(String name, Integer userId, String description) {
+        if (description.length() > MAX_DESCRIPTION_LENGTH) {
+            throw new IllegalArgumentException(
+                    String.format("Description is too long. Max length: %d", MAX_DESCRIPTION_LENGTH));
+        }
         this.name = name;
         this.userId = userId;
         this.description = description;
