@@ -11,9 +11,7 @@ class ApiKeyTest {
 
     @Test
     void apiKeyIsGeneratedCorrectly() {
-        ApiKey apiKey = new ApiKey(UUID.randomUUID().toString(),1);
-
-        System.out.println(apiKey);
+        ApiKey apiKey = new ApiKey(UUID.randomUUID().toString(), 1);
 
         assertThat(apiKey.getUserId()).isEqualTo(1);
         assertThat(apiKey.getIdentifier()).isNotEmpty().isAlphanumeric().hasSize(35)
