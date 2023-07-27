@@ -25,9 +25,9 @@ public class EncounterController {
             PaymentPlan.ADVENTURER, 100,
             PaymentPlan.HERO, 1000);
 
-    EncounterRepository encounterRepo;
-    UserRepository userRepo;
-    SecurityHelper securityHelper;
+    private final EncounterRepository encounterRepo;
+    private final UserRepository userRepo;
+    private final SecurityHelper securityHelper;
 
     @Autowired
     public EncounterController(EncounterRepository encounterRepo, UserRepository userRepo, SecurityHelper securityHelper) {

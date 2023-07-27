@@ -21,8 +21,8 @@ import java.util.List;
 @Component
 public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
 
-    UserRepository userRepo;
-    ApiKeyRepository apiKeyRepo;
+    private final UserRepository userRepo;
+    private final ApiKeyRepository apiKeyRepo;
 
     @Autowired
     public UserDetailsService(UserRepository userRepo, ApiKeyRepository apiKeyRepo) {

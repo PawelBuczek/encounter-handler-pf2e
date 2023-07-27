@@ -10,7 +10,8 @@
 output="$(docker images -q mariadb 2>&1)"
 
 if [[ $output == *"error during connect"* ]]; then
-  echo "You need to run your docker daemon/manager/desktop first. Full error below:"
+  echo "You need to run your docker daemon/manager/desktop first (or just wait a minute until it finishes startup)."
+  echo "Full error below:"
   echo "$output"
   exit 0
 fi
