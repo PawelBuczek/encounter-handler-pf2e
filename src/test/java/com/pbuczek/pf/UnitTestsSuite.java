@@ -10,6 +10,6 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 @IncludeTags("UnitTest")
 @Suite
 @SuiteDisplayName("UnitTests")
-public class UnitTests {
+public class UnitTestsSuite {
 
 }
