@@ -50,6 +50,12 @@ public class EncounterController {
                     String.format("Cannot create. Reached limit of Encounters: %d", limit));
         }
 
+        encounterDto.setDescription(encounterDto.getDescription().trim());
+        if (encounterDto.getDescription().length() > Encounter.MAX_DESCRIPTION_LENGTH) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("description too long. Max '%d' signs allowed.", Encounter.MAX_DESCRIPTION_LENGTH));
+        }
+
         return encounterRepo.save(new Encounter(encounterDto));
     }
 

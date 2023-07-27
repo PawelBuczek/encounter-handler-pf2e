@@ -63,7 +63,6 @@ public class UserDetailsService implements org.springframework.security.core.use
         private Integer userName;
         private String password;
         private List<GrantedAuthority> authorities;
-        // yes, this is getting updated for every request
         private Boolean locked;
         private Boolean enabled;
 
