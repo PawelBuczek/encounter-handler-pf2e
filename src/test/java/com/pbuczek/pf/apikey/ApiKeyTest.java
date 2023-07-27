@@ -1,5 +1,6 @@
 package com.pbuczek.pf.apikey;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -7,6 +8,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Tag("UnitTest")
 class ApiKeyTest {
 
     @Test
