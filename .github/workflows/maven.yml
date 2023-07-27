@@ -42,7 +42,7 @@ jobs:
       - name: Run ApplicationTests
         run: mvn -Dtest=com/pbuczek/pf/ApplicationTests.java test
       - name: Run UnitTests
-        run: mvn -Dtest=com/pbuczek/pf/UnitTests.java test
+        run: mvn -Dtest=com/pbuczek/UnitTests.java test
 
       # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
       - name: Update dependency graph
