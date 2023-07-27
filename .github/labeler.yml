@@ -1,0 +1,12 @@
+core: src/main/java/**
+resources: src/main/resources/**
+test: src/test/**
+
+apikey: src/main/java/com/pbuczek/pf/apikey/**
+encounter: src/main/java/com/pbuczek/pf/encounter/**
+security: src/main/java/com/pbuczek/pf/security/**
+user: src/main/java/com/pbuczek/pf/user/**
+
+bash: '**/*.sh'
+pom: 'pom.xml'
+anyChange: '**'
