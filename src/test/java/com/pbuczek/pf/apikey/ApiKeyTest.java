@@ -22,4 +22,12 @@ class ApiKeyTest {
         assertThat(apiKey.getApiKeyValue()).hasSize(60)
                 .doesNotContainAnyWhitespaces().hasLineCount(1);
     }
+
+    @Test
+    void apiKeysHaveUniqueIdentifiers() {
+        ApiKey firstKey = new ApiKey("test", 1);
+        ApiKey secondKey = new ApiKey("test", 1);
+
+        assertThat(firstKey.getIdentifier()).isNotEqualTo(secondKey.getIdentifier());
+    }
 }
