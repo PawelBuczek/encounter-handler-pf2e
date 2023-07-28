@@ -1,13 +1,11 @@
 package com.pbuczek;
 
-import org.junit.platform.suite.api.IncludeTags;
-import org.junit.platform.suite.api.SelectPackages;
-import org.junit.platform.suite.api.Suite;
-import org.junit.platform.suite.api.SuiteDisplayName;
+import org.junit.platform.suite.api.*;
 
-@SelectPackages("com.pbuczek.pf.it")
+@SelectPackages("com.pbuczek.pf")
 
 @IncludeTags("IntegrationTest")
+@IncludeClassNamePatterns({"(?i)^.*IT$"})
 @Suite
 @SuiteDisplayName("IntegrationTests")
 public class IntegrationTests {
