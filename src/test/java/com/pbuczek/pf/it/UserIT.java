@@ -88,11 +88,7 @@ class UserIT {
 
         Optional<User> optionalUser = userRepo.findById(createdUser.getId());
         assertThat(optionalUser).isPresent();
-        User retrievedUser = optionalUser.get();
-        //for some reason nanoseconds get cut off when retrieving from database.
-        assertThat(retrievedUser.getTimeCreated()).isEqualToIgnoringNanos(createdUser.getTimeCreated());
-        retrievedUser.setTimeCreated(createdUser.getTimeCreated());
-        retrievedUser.setPassword("[hidden for security reasons]");
-        assertThat(createdUser).isEqualTo(retrievedUser);
+        assertThat(optionalUser.get()).usingRecursiveComparison()
+                .ignoringFields("password").isEqualTo(createdUser);
     }
 }
