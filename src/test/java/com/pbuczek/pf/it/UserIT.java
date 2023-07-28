@@ -78,8 +78,8 @@ class UserIT {
 
         assertThat(createdUser.getUsername()).isEqualTo(userDto.getUsername());
         assertThat(createdUser.getEmail()).isEqualTo(userDto.getEmail());
-        assertThat(createdUser.getLocked()).isEqualTo(false);
-        assertThat(createdUser.getEnabled()).isEqualTo(false);
+        assertThat(createdUser.getLocked()).isFalse();
+        assertThat(createdUser.getEnabled()).isFalse();
         assertThat(createdUser.getTimeCreated()).isBeforeOrEqualTo(LocalDateTime.now());
         assertThat(createdUser.getPasswordLastUpdatedDate()).isBeforeOrEqualTo(LocalDate.now());
         assertThat(createdUser.getPaymentPlan()).isEqualTo(PaymentPlan.FREE);

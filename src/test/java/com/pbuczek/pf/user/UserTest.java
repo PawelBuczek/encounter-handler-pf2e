@@ -24,8 +24,8 @@ class UserTest {
         assertThat(user.getId()).isEqualTo(newUser.getId()).isNull();
         assertThat(user.getUsername()).isEqualTo(newUser.getUsername()).isEqualTo("johndoe");
         assertThat(user.getEmail()).isEqualTo(newUser.getEmail()).isEqualTo("johndoe@example.com");
-        assertThat(user.getLocked()).isEqualTo(newUser.getLocked()).isEqualTo(false);
-        assertThat(user.getEnabled()).isEqualTo(newUser.getEnabled()).isEqualTo(false);
+        assertThat(user.getLocked()).isEqualTo(newUser.getLocked()).isFalse();
+        assertThat(user.getEnabled()).isEqualTo(newUser.getEnabled()).isFalse();
         assertThat(user.getTimeCreated())
                 .isBeforeOrEqualTo(newUser.getTimeCreated()).isBeforeOrEqualTo(LocalDateTime.now());
         assertThat(user.getPasswordLastUpdatedDate())
