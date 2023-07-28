@@ -12,7 +12,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import static com.pbuczek.pf.security.SecurityHelper.passwordEncoder;
@@ -40,11 +39,10 @@ public class ApiKey {
         StringBuilder uniqueIdWithRandomCapitalization = new StringBuilder(
                 uniqueString.chars()
                         .mapToObj(ApiKey::intToRandomCapitalizationLetter)
-                        .map(s -> s.replaceAll("[-:.]",RandomStringUtils.randomNumeric(1)))
+                        .map(s -> s.replaceAll("[-:.]", RandomStringUtils.randomNumeric(1)))
                         .collect(Collectors.joining())
         );
 
-        Random random = new Random();
         while (uniqueIdWithRandomCapitalization.length() < IDENTIFIER_LENGTH) {
             uniqueIdWithRandomCapitalization.append(RandomStringUtils.randomAlphabetic(1));
         }
