@@ -19,7 +19,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="description" type="VARCHAR(3000)"/>
-            <column name="time_created" type="TIMESTAMP">
+            <column name="time_created" type="TIMESTAMP(0)">
                 <constraints nullable="false"/>
             </column>
         </createTable>

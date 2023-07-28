@@ -21,7 +21,7 @@
             <column name="email" type="VARCHAR(255)">
                 <constraints nullable="false" unique="true"/>
             </column>
-            <column name="time_created" type="TIMESTAMP">
+            <column name="time_created" type="TIMESTAMP(0)">
                 <constraints nullable="false"/>
             </column>
             <column name="password" type="CHAR(60)">
