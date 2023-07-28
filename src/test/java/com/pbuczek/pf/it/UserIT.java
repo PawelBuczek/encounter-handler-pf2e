@@ -28,7 +28,7 @@ class UserIT {
     private final List<Integer> createdUserIds = new ArrayList<>();
     private static final String ADMIN_PASSWORD = "exPass@1" + RandomStringUtils.random(40);
     private static final String ADMIN_USERNAME = "integrationTestAdmin";
-    private static final String ADMIN_EMAIL = "integrationTestAdmin@example.com";
+    private static final String ADMIN_EMAIL = "integrationTestAdmin@test.com";
 
     @Autowired
     TestRestTemplate restTemplate;
@@ -55,8 +55,8 @@ class UserIT {
     @Test
     void userIsCreatedCorrectly() {
         UserDto userDto = new UserDto();
-        userDto.setUsername("costam");
-        userDto.setEmail("costam@example.com");
+        userDto.setUsername("userIsCreatedCorrectly");
+        userDto.setEmail("userIsCreatedCorrectly@test.com");
         userDto.setPassword("exPass@1" + RandomStringUtils.random(40));
 
         RequestEntity<UserDto> request = RequestEntity
