@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 
 @ResponseBody
 @Data
@@ -26,7 +27,7 @@ public class Encounter {
         this.name = name;
         this.userId = userId;
         this.description = description;
-        this.timeCreated = LocalDateTime.now(ZoneOffset.UTC);
+        this.timeCreated = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
     }
 
     public Encounter(EncounterDto encounterDto) {
