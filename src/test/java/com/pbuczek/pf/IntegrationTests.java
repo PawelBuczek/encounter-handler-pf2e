@@ -1,4 +1,4 @@
-package com.pbuczek;
+package com.pbuczek.pf;
 
 import org.junit.platform.suite.api.*;
 
