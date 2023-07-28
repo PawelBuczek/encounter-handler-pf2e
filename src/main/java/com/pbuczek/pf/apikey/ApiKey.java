@@ -46,8 +46,7 @@ public class ApiKey {
 
         Random random = new Random();
         while (uniqueIdWithRandomCapitalization.length() < IDENTIFIER_LENGTH) {
-            char randomChar = (char) (random.nextInt(25) + 'A');
-            uniqueIdWithRandomCapitalization.append(randomChar);
+            uniqueIdWithRandomCapitalization.append(RandomStringUtils.randomAlphabetic(1));
         }
 
         return uniqueIdWithRandomCapitalization.toString();
