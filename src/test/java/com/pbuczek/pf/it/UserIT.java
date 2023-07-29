@@ -57,17 +57,7 @@ class UserIT implements TestUserDetails {
 
     @Test
     void userIsCreatedCorrectly() {
-        UserDto userDto = new UserDto(TEST_USERNAME_2, TEST_EMAIL_2, TEST_PASSWORD);
-
-        System.out.println(userDto);
-        RequestEntity<UserDto> request = RequestEntity
-                .post("/user")
-//                .header("Authorization", "...")  // Not required for this endpoint
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(userDto);
-
-        ResponseEntity<User> response = restTemplate.exchange(request, User.class);
-        System.out.println(response);
+        ResponseEntity<User> response = getResponseForCreatingUser(TEST_USERNAME_2, TEST_EMAIL_2);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -93,5 +83,30 @@ class UserIT implements TestUserDetails {
         assertThat(optionalUser).isPresent();
         assertThat(optionalUser.get()).usingRecursiveComparison()
                 .ignoringFields("password").isEqualTo(createdUser);
+    }
+
+    @Test
+    void duplicateUserWillNotBeCreated() {
+        ResponseEntity<User> response;
+
+        response = getResponseForCreatingUser(TEST_USERNAME_2, TEST_EMAIL_1);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+
+        response = getResponseForCreatingUser(TEST_USERNAME_1, TEST_EMAIL_2);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+
+        response = getResponseForCreatingUser(TEST_USERNAME_1, TEST_EMAIL_1);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    }
+
+    private ResponseEntity<User> getResponseForCreatingUser(String username, String email) {
+        RequestEntity<UserDto> request = RequestEntity
+                .post("/user")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new UserDto(username, email, TestUserDetails.TEST_PASSWORD));
+        return restTemplate.exchange(request, User.class);
     }
 }
