@@ -55,7 +55,7 @@ class UserIT implements TestUserDetails {
 
     @Test
     void userIsCreatedCorrectly() {
-        UserDto userDto = new UserDto(TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD);
+        UserDto userDto = new UserDto("a" + TEST_USERNAME, "a" + TEST_EMAIL, TEST_PASSWORD);
 
         RequestEntity<UserDto> request = RequestEntity
                 .post("/user")
@@ -75,8 +75,8 @@ class UserIT implements TestUserDetails {
         createdUserIds.add(createdUser.getId());
 
         assertAll("Verify createdUser properties",
-                () -> assertThat(createdUser.getUsername()).isEqualTo(TEST_USERNAME),
-                () -> assertThat(createdUser.getEmail()).isEqualTo(TEST_EMAIL),
+                () -> assertThat(createdUser.getUsername()).isEqualTo("a" + TEST_USERNAME),
+                () -> assertThat(createdUser.getEmail()).isEqualTo("a" + TEST_EMAIL),
                 () -> assertThat(createdUser.getLocked()).isFalse(),
                 () -> assertThat(createdUser.getEnabled()).isFalse(),
                 () -> assertThat(createdUser.getTimeCreated()).isBeforeOrEqualTo(LocalDateTime.now()),
