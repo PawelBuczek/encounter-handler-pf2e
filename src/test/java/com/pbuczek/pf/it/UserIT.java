@@ -59,6 +59,7 @@ class UserIT implements TestUserDetails {
     void userIsCreatedCorrectly() {
         UserDto userDto = new UserDto(TEST_USERNAME_2, TEST_EMAIL_2, TEST_PASSWORD);
 
+        System.out.println(userDto);
         RequestEntity<UserDto> request = RequestEntity
                 .post("/user")
 //                .header("Authorization", "...")  // Not required for this endpoint
@@ -66,6 +67,7 @@ class UserIT implements TestUserDetails {
                 .body(userDto);
 
         ResponseEntity<User> response = restTemplate.exchange(request, User.class);
+        System.out.println(response);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);

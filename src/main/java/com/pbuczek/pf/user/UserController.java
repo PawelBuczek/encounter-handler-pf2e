@@ -11,9 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
 @RestController
@@ -22,7 +19,7 @@ public class UserController {
 
     private final static String PASSWORD_REGEX = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9]).{8,50}$";
     // below regex constant needs to match with sql rule created in the file 'src/main/resources/db/sql-files/add-user-email-validation-constraint.sql'
-    private static String EMAIL_REGEX;
+    private final static String EMAIL_REGEX = "^[a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]*?[a-zA-Z0-9._-]?@[a-zA-Z0-9][a-zA-Z0-9._-]*?[a-zA-Z0-9]?\\.[a-zA-Z]{2,63}$";
 
     private final PasswordEncoder passwordEncoder = SecurityHelper.passwordEncoder;
 
@@ -30,10 +27,9 @@ public class UserController {
     private final SecurityHelper securityHelper;
 
     @Autowired
-    public UserController(UserRepository userRepo, SecurityHelper securityHelper) throws IOException {
+    public UserController(UserRepository userRepo, SecurityHelper securityHelper) {
         this.userRepo = userRepo;
         this.securityHelper = securityHelper;
-        EMAIL_REGEX = Files.readString(Path.of("com/pbuczek/pf/user/emailRegex"));
     }
 
     @PostMapping
