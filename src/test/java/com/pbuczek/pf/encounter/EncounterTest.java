@@ -17,12 +17,7 @@ class EncounterTest {
     void encounterIsGeneratedCorrectly() {
         Encounter enc = new Encounter("enc", 1,
                 RandomStringUtils.random(Encounter.MAX_DESCRIPTION_LENGTH, true, true));
-
-        EncounterDto newEncDto = new EncounterDto();
-        newEncDto.setName("enc");
-        newEncDto.setUserId(1);
-        newEncDto.setDescription(enc.getDescription());
-        Encounter newEnc = new Encounter(newEncDto);
+        Encounter newEnc = new Encounter(new EncounterDto("enc", 1, enc.getDescription()));
 
         assertAll("Verify encounters properties",
                 () -> assertThat(enc.getId()).isEqualTo(newEnc.getId()).isNull(),
