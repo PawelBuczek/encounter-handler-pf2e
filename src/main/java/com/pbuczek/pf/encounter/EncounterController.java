@@ -44,17 +44,10 @@ public class EncounterController {
 
         adminOrSpecificUserId(user.getId());
 
-        Integer limit = ENCOUNTER_LIMITS.get(user.getPaymentPlan());
-        if(!user.getType().equals(UserType.ADMIN) && encounterRepo.getCountOfEncountersByUserId(user.getId()) >= limit) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("Cannot create. Reached limit of Encounters: %d", limit));
-        }
+        checkEncounterLimit(user);
 
         encounterDto.setDescription(encounterDto.getDescription().trim());
-        if (encounterDto.getDescription().length() > Encounter.MAX_DESCRIPTION_LENGTH) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("description too long. Max '%d' signs allowed.", Encounter.MAX_DESCRIPTION_LENGTH));
-        }
+        checkDescription(encounterDto.getDescription());
 
         return encounterRepo.save(new Encounter(encounterDto));
     }
@@ -78,9 +71,7 @@ public class EncounterController {
 
     @GetMapping(value = "/{encounterId}")
     public Encounter readEncounter(@PathVariable Integer encounterId) {
-        Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("encounter with id %d not found", encounterId)));
+        Encounter encounter = getEncounterById(encounterId);
 
         adminOrSpecificUserId(encounter.getUserId());
         return encounter;
@@ -100,17 +91,12 @@ public class EncounterController {
 
     @PatchMapping(value = "/description/{encounterId}")
     public Encounter updateDescription(@PathVariable Integer encounterId, @RequestBody String description) {
-        Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("encounter with id %d not found", encounterId)));
+        Encounter encounter = getEncounterById(encounterId);
 
         adminOrSpecificUserId(encounter.getUserId());
 
         description = description.trim();
-        if (description.length() > Encounter.MAX_DESCRIPTION_LENGTH) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("description too long. Max '%d' signs allowed.", Encounter.MAX_DESCRIPTION_LENGTH));
-        }
+        checkDescription(description);
 
         encounter.setDescription(description);
         return encounterRepo.save(encounter);
@@ -118,9 +104,7 @@ public class EncounterController {
 
     @PatchMapping(value = "/published/{encounterId}")
     public Encounter changePublished(@PathVariable Integer encounterId) {
-        Encounter encounter = encounterRepo.findById(encounterId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("encounter with id %d not found", encounterId)));
+        Encounter encounter = getEncounterById(encounterId);
 
         adminOrSpecificUserId(encounter.getUserId());
 
@@ -131,6 +115,27 @@ public class EncounterController {
     private void adminOrSpecificUserId(Integer userId) {
         if (!securityHelper.isContextAdminOrSpecificUserId(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "not authorized for this resource");
+        }
+    }
+
+    private void checkEncounterLimit(User user) {
+        Integer limit = ENCOUNTER_LIMITS.get(user.getPaymentPlan());
+        if (!user.getType().equals(UserType.ADMIN) && encounterRepo.getCountOfEncountersByUserId(user.getId()) >= limit) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("Cannot create. Reached limit of Encounters: %d", limit));
+        }
+    }
+
+    private Encounter getEncounterById(Integer id) {
+        return encounterRepo.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("encounter with id %d not found", id)));
+    }
+
+    private void checkDescription(String description) {
+        if (description.length() > Encounter.MAX_DESCRIPTION_LENGTH) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("description too long. Max '%d' signs allowed.", Encounter.MAX_DESCRIPTION_LENGTH));
         }
     }
 }
