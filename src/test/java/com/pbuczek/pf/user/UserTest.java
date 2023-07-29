@@ -1,5 +1,6 @@
 package com.pbuczek.pf.user;
 
+import com.pbuczek.pf.TestUserDetails;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -10,22 +11,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Tag("UnitTest")
-class UserTest {
+class UserTest implements TestUserDetails {
 
     @Test
     void userIsGeneratedCorrectly() {
-        User user = new User("johndoe", "johndoe@example.com", "exPass@1");
-
-        UserDto newUserDto = new UserDto();
-        newUserDto.setUsername("johndoe");
-        newUserDto.setEmail("johndoe@example.com");
-        newUserDto.setPassword("exPass@1");
-        User newUser = new User(newUserDto);
+        User user = new User(TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD);
+        User newUser = new User(new UserDto(TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD));
 
         assertAll("Verify users properties",
                 () -> assertThat(user.getId()).isEqualTo(newUser.getId()).isNull(),
-                () -> assertThat(user.getUsername()).isEqualTo(newUser.getUsername()).isEqualTo("johndoe"),
-                () -> assertThat(user.getEmail()).isEqualTo(newUser.getEmail()).isEqualTo("johndoe@example.com"),
+                () -> assertThat(user.getUsername()).isEqualTo(newUser.getUsername()).isEqualTo(TEST_USERNAME),
+                () -> assertThat(user.getEmail()).isEqualTo(newUser.getEmail()).isEqualTo(TEST_EMAIL),
                 () -> assertThat(user.getLocked()).isEqualTo(newUser.getLocked()).isFalse(),
                 () -> assertThat(user.getEnabled()).isEqualTo(newUser.getEnabled()).isFalse(),
                 () -> assertThat(user.getPaymentPlan()).isEqualTo(newUser.getPaymentPlan()).isEqualTo(PaymentPlan.FREE),
@@ -42,7 +38,7 @@ class UserTest {
 
     @Test
     void refreshPasswordLastUpdatedDate() {
-        User user = new User("johndoe", "johndoe@example.com", "exPass@1");
+        User user = new User(TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD);
 
         user.setPasswordLastUpdatedDate(LocalDate.of(2020, 1, 1));
         user.refreshPasswordLastUpdatedDate();

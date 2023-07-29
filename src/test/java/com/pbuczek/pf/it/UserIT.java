@@ -1,7 +1,7 @@
 package com.pbuczek.pf.it;
 
+import com.pbuczek.pf.TestUserDetails;
 import com.pbuczek.pf.user.*;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -27,12 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 @Tag("IntegrationTest")
 @AutoConfigureObservability
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class UserIT {
+class UserIT implements TestUserDetails {
 
     private final List<Integer> createdUserIds = new ArrayList<>();
-    private static final String ADMIN_PASSWORD = "exPass@1" + RandomStringUtils.random(40);
-    private static final String ADMIN_USERNAME = "integrationTestAdmin";
-    private static final String ADMIN_EMAIL = "integrationTestAdmin@test.com";
 
     @Autowired
     TestRestTemplate restTemplate;
@@ -42,11 +39,11 @@ class UserIT {
 
     @BeforeEach
     void setUp() {
-        Integer potentialId = userRepo.getIdByUsername(ADMIN_USERNAME);
+        Integer potentialId = userRepo.getIdByUsername(TEST_USERNAME);
         if (potentialId != null) {
             userRepo.deleteUserByUserId(potentialId);
         }
-        User user = new User(ADMIN_USERNAME, ADMIN_EMAIL, ADMIN_PASSWORD);
+        User user = new User(TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD);
         userRepo.save(user);
         createdUserIds.add(user.getId());
     }
@@ -58,10 +55,7 @@ class UserIT {
 
     @Test
     void userIsCreatedCorrectly() {
-        UserDto userDto = new UserDto();
-        userDto.setUsername("userIsCreatedCorrectly");
-        userDto.setEmail("userIsCreatedCorrectly@test.com");
-        userDto.setPassword("exPass@1" + RandomStringUtils.random(40));
+        UserDto userDto = new UserDto(TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD);
 
         RequestEntity<UserDto> request = RequestEntity
                 .post("/user")
@@ -81,8 +75,8 @@ class UserIT {
         createdUserIds.add(createdUser.getId());
 
         assertAll("Verify createdUser properties",
-                () -> assertThat(createdUser.getUsername()).isEqualTo(userDto.getUsername()),
-                () -> assertThat(createdUser.getEmail()).isEqualTo(userDto.getEmail()),
+                () -> assertThat(createdUser.getUsername()).isEqualTo(TEST_USERNAME),
+                () -> assertThat(createdUser.getEmail()).isEqualTo(TEST_EMAIL),
                 () -> assertThat(createdUser.getLocked()).isFalse(),
                 () -> assertThat(createdUser.getEnabled()).isFalse(),
                 () -> assertThat(createdUser.getTimeCreated()).isBeforeOrEqualTo(LocalDateTime.now()),
