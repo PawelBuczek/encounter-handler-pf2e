@@ -1,6 +1,6 @@
 package com.pbuczek.pf.it;
 
-import com.pbuczek.pf.user.TestUserDetails;
+import com.pbuczek.pf.TestUserDetails;
 import com.pbuczek.pf.user.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,13 +39,15 @@ class UserIT implements TestUserDetails {
 
     @BeforeEach
     void setUp() {
-        Integer potentialId = userRepo.getIdByUsername(TEST_USERNAME);
+        Integer potentialId = userRepo.getIdByUsername(TEST_USERNAME_1);
         if (potentialId != null) {
             userRepo.deleteUserByUserId(potentialId);
         }
-        User user = new User(TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD);
-        userRepo.save(user);
-        createdUserIds.add(user.getId());
+        User admin = new User(TEST_USERNAME_1, TEST_EMAIL_1, TEST_PASSWORD);
+        admin.setType(UserType.ADMIN);
+        admin.setEnabled(true);
+        userRepo.save(admin);
+        createdUserIds.add(admin.getId());
     }
 
     @AfterEach
@@ -55,7 +57,7 @@ class UserIT implements TestUserDetails {
 
     @Test
     void userIsCreatedCorrectly() {
-        UserDto userDto = new UserDto("a" + TEST_USERNAME, "a" + TEST_EMAIL, TEST_PASSWORD);
+        UserDto userDto = new UserDto(TEST_USERNAME_2, TEST_EMAIL_2, TEST_PASSWORD);
 
         RequestEntity<UserDto> request = RequestEntity
                 .post("/user")
@@ -75,8 +77,8 @@ class UserIT implements TestUserDetails {
         createdUserIds.add(createdUser.getId());
 
         assertAll("Verify createdUser properties",
-                () -> assertThat(createdUser.getUsername()).isEqualTo("a" + TEST_USERNAME),
-                () -> assertThat(createdUser.getEmail()).isEqualTo("a" + TEST_EMAIL),
+                () -> assertThat(createdUser.getUsername()).isEqualTo(TEST_USERNAME_2),
+                () -> assertThat(createdUser.getEmail()).isEqualTo(TEST_EMAIL_2),
                 () -> assertThat(createdUser.getLocked()).isFalse(),
                 () -> assertThat(createdUser.getEnabled()).isFalse(),
                 () -> assertThat(createdUser.getTimeCreated()).isBeforeOrEqualTo(LocalDateTime.now()),

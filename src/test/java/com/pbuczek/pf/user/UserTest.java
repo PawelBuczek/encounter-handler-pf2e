@@ -1,5 +1,6 @@
 package com.pbuczek.pf.user;
 
+import com.pbuczek.pf.TestUserDetails;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -14,13 +15,13 @@ class UserTest implements TestUserDetails {
 
     @Test
     void userIsGeneratedCorrectly() {
-        User user = new User(TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD);
-        User newUser = new User(new UserDto(TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD));
+        User user = new User(TEST_USERNAME_1, TEST_EMAIL_1, TEST_PASSWORD);
+        User newUser = new User(new UserDto(TEST_USERNAME_1, TEST_EMAIL_1, TEST_PASSWORD));
 
         assertAll("Verify users properties",
                 () -> assertThat(user.getId()).isEqualTo(newUser.getId()).isNull(),
-                () -> assertThat(user.getUsername()).isEqualTo(newUser.getUsername()).isEqualTo(TEST_USERNAME),
-                () -> assertThat(user.getEmail()).isEqualTo(newUser.getEmail()).isEqualTo(TEST_EMAIL),
+                () -> assertThat(user.getUsername()).isEqualTo(newUser.getUsername()).isEqualTo(TEST_USERNAME_1),
+                () -> assertThat(user.getEmail()).isEqualTo(newUser.getEmail()).isEqualTo(TEST_EMAIL_1),
                 () -> assertThat(user.getLocked()).isEqualTo(newUser.getLocked()).isFalse(),
                 () -> assertThat(user.getEnabled()).isEqualTo(newUser.getEnabled()).isFalse(),
                 () -> assertThat(user.getPaymentPlan()).isEqualTo(newUser.getPaymentPlan()).isEqualTo(PaymentPlan.FREE),
@@ -37,7 +38,7 @@ class UserTest implements TestUserDetails {
 
     @Test
     void refreshPasswordLastUpdatedDate() {
-        User user = new User(TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD);
+        User user = new User(TEST_USERNAME_1, TEST_EMAIL_1, TEST_PASSWORD);
 
         user.setPasswordLastUpdatedDate(LocalDate.of(2020, 1, 1));
         user.refreshPasswordLastUpdatedDate();

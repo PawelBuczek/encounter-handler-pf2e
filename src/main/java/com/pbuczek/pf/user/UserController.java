@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/user")
-public class UserController implements TestUserDetails {
+public class UserController {
 
     private final static String PASSWORD_REGEX = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9]).{8,50}$";
     // below regex constant needs to match with sql rule created in the file 'src/main/resources/db/sql-files/add-user-email-validation-constraint.sql'
@@ -199,10 +199,6 @@ public class UserController implements TestUserDetails {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "provided username is empty.");
         }
-        if (username.contains(TEST_USERNAME)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    "provided username contains forbidden phrase, please try a different one.");
-        }
     }
 
     private void checkEmail(String email) {
@@ -213,10 +209,6 @@ public class UserController implements TestUserDetails {
         if (!email.matches(EMAIL_REGEX)) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     String.format("provided user email '%s' is not valid.", email));
-        }
-        if (email.contains(TEST_EMAIL)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    "provided email contains forbidden phrase, please try a different one.");
         }
     }
 
