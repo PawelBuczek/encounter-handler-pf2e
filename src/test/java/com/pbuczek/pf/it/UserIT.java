@@ -1,6 +1,6 @@
 package com.pbuczek.pf.it;
 
-import com.pbuczek.pf.TestUserDetails;
+import com.pbuczek.pf.user.TestUserDetails;
 import com.pbuczek.pf.user.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,6 +1,5 @@
 package com.pbuczek.pf.user;
 
-import com.pbuczek.pf.TestUserDetails;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
