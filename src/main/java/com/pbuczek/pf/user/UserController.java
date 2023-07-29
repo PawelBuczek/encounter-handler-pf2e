@@ -48,7 +48,7 @@ public class UserController {
     @DeleteMapping(path = "/{userId}")
     @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public int deleteUser(@PathVariable Integer userId) {
-        return userRepo.deleteUserByUserId(userId);
+        return userRepo.deleteUser(userId);
     }
 
     @GetMapping

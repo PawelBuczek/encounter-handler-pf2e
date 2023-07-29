@@ -22,7 +22,7 @@ public class EncounterController {
 
     private final static Map<PaymentPlan, Integer> ENCOUNTER_LIMITS = Map.of(
             PaymentPlan.FREE, 30,
-            PaymentPlan.ADVENTURER, 100,
+            PaymentPlan.ADVENTURER, 200,
             PaymentPlan.HERO, 1000);
 
     private final EncounterRepository encounterRepo;

@@ -41,7 +41,7 @@ class UserIT implements TestUserDetails {
     void setUp() {
         Integer potentialId = userRepo.getIdByUsername(TEST_USERNAME_1);
         if (potentialId != null) {
-            userRepo.deleteUserByUserId(potentialId);
+            userRepo.deleteUser(potentialId);
         }
         User admin = new User(TEST_USERNAME_1, TEST_EMAIL_1, TEST_PASSWORD);
         admin.setType(UserType.ADMIN);
@@ -52,7 +52,7 @@ class UserIT implements TestUserDetails {
 
     @AfterEach
     void tearDown() {
-        createdUserIds.forEach(id -> userRepo.deleteUserByUserId(id));
+        createdUserIds.forEach(id -> userRepo.deleteUser(id));
     }
 
     @Test
@@ -60,13 +60,13 @@ class UserIT implements TestUserDetails {
         ResponseEntity<User> response = getResponseForCreatingUser(TEST_USERNAME_2, TEST_EMAIL_2);
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getHeaders().getContentDisposition().isInline()).isFalse();
-
         User createdUser = response.getBody();
         assert createdUser != null;
         assertThat(createdUser.getId()).isNotNull();
         createdUserIds.add(createdUser.getId());
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getHeaders().getContentDisposition().isInline()).isFalse();
 
         assertAll("Verify createdUser properties",
                 () -> assertThat(createdUser.getUsername()).isEqualTo(TEST_USERNAME_2),
