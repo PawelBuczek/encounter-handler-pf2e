@@ -2,7 +2,10 @@ package com.pbuczek.pf.it;
 
 import com.pbuczek.pf.user.*;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Tag("IntegrationTest")
 @AutoConfigureObservability
@@ -76,15 +80,16 @@ class UserIT {
         assertThat(createdUser.getId()).isNotNull();
         createdUserIds.add(createdUser.getId());
 
-        assertThat(createdUser.getUsername()).isEqualTo(userDto.getUsername());
-        assertThat(createdUser.getEmail()).isEqualTo(userDto.getEmail());
-        assertThat(createdUser.getLocked()).isFalse();
-        assertThat(createdUser.getEnabled()).isFalse();
-        assertThat(createdUser.getTimeCreated()).isBeforeOrEqualTo(LocalDateTime.now());
-        assertThat(createdUser.getPasswordLastUpdatedDate()).isBeforeOrEqualTo(LocalDate.now());
-        assertThat(createdUser.getPaymentPlan()).isEqualTo(PaymentPlan.FREE);
-        assertThat(createdUser.getType()).isEqualTo(UserType.STANDARD);
-        assertThat(createdUser.getPassword()).isEqualTo("[hidden for security reasons]");
+        assertAll("Verify createdUser properties",
+                () -> assertThat(createdUser.getUsername()).isEqualTo(userDto.getUsername()),
+                () -> assertThat(createdUser.getEmail()).isEqualTo(userDto.getEmail()),
+                () -> assertThat(createdUser.getLocked()).isFalse(),
+                () -> assertThat(createdUser.getEnabled()).isFalse(),
+                () -> assertThat(createdUser.getTimeCreated()).isBeforeOrEqualTo(LocalDateTime.now()),
+                () -> assertThat(createdUser.getPasswordLastUpdatedDate()).isBeforeOrEqualTo(LocalDate.now()),
+                () -> assertThat(createdUser.getPaymentPlan()).isEqualTo(PaymentPlan.FREE),
+                () -> assertThat(createdUser.getType()).isEqualTo(UserType.STANDARD),
+                () -> assertThat(createdUser.getPassword()).isEqualTo("[hidden for security reasons]"));
 
         Optional<User> optionalUser = userRepo.findById(createdUser.getId());
         assertThat(optionalUser).isPresent();

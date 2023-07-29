@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Tag("UnitTest")
 class UserTest {
@@ -21,21 +22,22 @@ class UserTest {
         newUserDto.setPassword("exPass@1");
         User newUser = new User(newUserDto);
 
-        assertThat(user.getId()).isEqualTo(newUser.getId()).isNull();
-        assertThat(user.getUsername()).isEqualTo(newUser.getUsername()).isEqualTo("johndoe");
-        assertThat(user.getEmail()).isEqualTo(newUser.getEmail()).isEqualTo("johndoe@example.com");
-        assertThat(user.getLocked()).isEqualTo(newUser.getLocked()).isFalse();
-        assertThat(user.getEnabled()).isEqualTo(newUser.getEnabled()).isFalse();
-        assertThat(user.getTimeCreated())
-                .isBeforeOrEqualTo(newUser.getTimeCreated()).isBeforeOrEqualTo(LocalDateTime.now());
-        assertThat(user.getPasswordLastUpdatedDate())
-                .isBeforeOrEqualTo(newUser.getPasswordLastUpdatedDate()).isBeforeOrEqualTo(LocalDate.now());
-        assertThat(user.getPaymentPlan()).isEqualTo(newUser.getPaymentPlan()).isEqualTo(PaymentPlan.FREE);
-        assertThat(user.getType()).isEqualTo(newUser.getType()).isEqualTo(UserType.STANDARD);
-        assertThat(user.getPassword()).hasSize(60)
-                .doesNotContainAnyWhitespaces().hasLineCount(1);
-        assertThat(newUser.getPassword()).hasSize(60)
-                .doesNotContainAnyWhitespaces().hasLineCount(1);
+        assertAll("Verify users properties",
+                () -> assertThat(user.getId()).isEqualTo(newUser.getId()).isNull(),
+                () -> assertThat(user.getUsername()).isEqualTo(newUser.getUsername()).isEqualTo("johndoe"),
+                () -> assertThat(user.getEmail()).isEqualTo(newUser.getEmail()).isEqualTo("johndoe@example.com"),
+                () -> assertThat(user.getLocked()).isEqualTo(newUser.getLocked()).isFalse(),
+                () -> assertThat(user.getEnabled()).isEqualTo(newUser.getEnabled()).isFalse(),
+                () -> assertThat(user.getPaymentPlan()).isEqualTo(newUser.getPaymentPlan()).isEqualTo(PaymentPlan.FREE),
+                () -> assertThat(user.getType()).isEqualTo(newUser.getType()).isEqualTo(UserType.STANDARD),
+                () -> assertThat(user.getTimeCreated())
+                        .isBeforeOrEqualTo(newUser.getTimeCreated()).isBeforeOrEqualTo(LocalDateTime.now()),
+                () -> assertThat(user.getPasswordLastUpdatedDate())
+                        .isBeforeOrEqualTo(newUser.getPasswordLastUpdatedDate()).isBeforeOrEqualTo(LocalDate.now()),
+                () -> assertThat(user.getPassword()).hasSize(60)
+                        .doesNotContainAnyWhitespaces().hasLineCount(1),
+                () -> assertThat(newUser.getPassword()).hasSize(60)
+                        .doesNotContainAnyWhitespaces().hasLineCount(1));
     }
 
     @Test

@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Tag("UnitTest")
 class ApiKeyTest {
@@ -15,12 +16,13 @@ class ApiKeyTest {
     void apiKeyIsGeneratedCorrectly() {
         ApiKey apiKey = new ApiKey(UUID.randomUUID().toString(), 1);
 
-        assertThat(apiKey.getUserId()).isEqualTo(1);
-        assertThat(apiKey.getIdentifier()).isNotEmpty().isAlphanumeric().hasSize(35)
-                .doesNotContainAnyWhitespaces().hasLineCount(1);
-        assertThat(apiKey.getValidTillDate()).isBeforeOrEqualTo(LocalDate.now().plusYears(1));
-        assertThat(apiKey.getApiKeyValue()).hasSize(60)
-                .doesNotContainAnyWhitespaces().hasLineCount(1);
+        assertAll("Verify encounters properties",
+                () -> assertThat(apiKey.getUserId()).isEqualTo(1),
+                () -> assertThat(apiKey.getValidTillDate()).isBeforeOrEqualTo(LocalDate.now().plusYears(1)),
+                () -> assertThat(apiKey.getIdentifier()).isNotEmpty().isAlphanumeric().hasSize(35)
+                        .doesNotContainAnyWhitespaces().hasLineCount(1),
+                () -> assertThat(apiKey.getApiKeyValue()).hasSize(60)
+                        .doesNotContainAnyWhitespaces().hasLineCount(1));
     }
 
     @Test
