@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/user")
-public class UserController {
+public class UserController implements TestUserDetails {
 
     private final static String PASSWORD_REGEX = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9]).{8,50}$";
     // below regex constant needs to match with sql rule created in the file 'src/main/resources/db/sql-files/add-user-email-validation-constraint.sql'
@@ -35,19 +35,10 @@ public class UserController {
     @PostMapping
     public User createStandardUser(@RequestBody UserDto userDto) {
         userDto.setEmail(userDto.getEmail().trim());
-        if (userRepo.findByEmail(userDto.getEmail()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    String.format("email '%s' is already being used by another user.", userDto.getEmail()));
-        }
+        checkEmail(userDto.getEmail());
+
         userDto.setUsername(userDto.getUsername().trim());
-        if (userRepo.findByUsername(userDto.getUsername()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    String.format("username '%s' is already being used by another user.", userDto.getUsername()));
-        }
-        if (!userDto.getEmail().matches(EMAIL_REGEX)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    String.format("provided user email '%s' is not valid.", userDto.getEmail()));
-        }
+        checkUsername(userDto.getUsername());
 
         checkPasswordRegex(userDto.getPassword());
 
@@ -69,10 +60,7 @@ public class UserController {
     @GetMapping(path = "/by-userid/{userId}")
     @PreAuthorize("@securityHelper.hasContextAnyAuthorities()")
     public User readUser(@PathVariable Integer userId) {
-        return secureUser(userRepo.findById(userId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("user with id '%d' not found", userId))
-        ));
+        return secureUser(getUserById(userId));
     }
 
     @GetMapping(path = "/by-username/{username}")
@@ -87,18 +75,13 @@ public class UserController {
     @PatchMapping(path = "/email/{userId}/{email}")
     @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public User updateEmail(@PathVariable Integer userId, @PathVariable String email) {
-        User user = userRepo.findById(userId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("username '%d' not found", userId)));
+        User user = getUserById(userId);
 
+        email = email.trim();
         if (user.getEmail().equals(email)) {
             return secureUser(user);
         }
-
-        if (userRepo.findByEmail(email).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    String.format("email '%s' is already being used by another user.", email));
-        }
+        checkEmail(email);
 
         user.setEmail(email);
         return secureUser(userRepo.save(user));
@@ -128,9 +111,7 @@ public class UserController {
     @PatchMapping(path = "/paymentplan/{userId}/{paymentPlan}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public User updatePaymentPlan(@PathVariable Integer userId, @PathVariable PaymentPlan paymentPlan) {
-        User user = userRepo.findById(userId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("username '%d' not found", userId)));
+        User user = getUserById(userId);
 
         if (user.getPaymentPlan().equals(paymentPlan)) {
             return secureUser(user);
@@ -143,19 +124,13 @@ public class UserController {
     @PatchMapping(path = "/username/{userId}/{newUsername}")
     @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public User updateUsername(@PathVariable Integer userId, @PathVariable String newUsername) {
-        User user = userRepo.findById(userId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("user with id '%d' not found", userId)));
-        newUsername = newUsername.trim();
+        User user = getUserById(userId);
 
+        newUsername = newUsername.trim();
         if (user.getUsername().equals(newUsername)) {
             return secureUser(user);
         }
-
-        if (userRepo.findByUsername(newUsername).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    String.format("username '%s' is already in use.", newUsername));
-        }
+        checkUsername(newUsername);
 
         user.setUsername(newUsername);
         return secureUser(userRepo.save(user));
@@ -164,9 +139,7 @@ public class UserController {
     @PatchMapping(path = "/enable/{userId}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public User enableUser(@PathVariable Integer userId) {
-        User user = userRepo.findById(userId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("user with id '%d' not found", userId)));
+        User user = getUserById(userId);
 
         if (user.getEnabled()) {
             return secureUser(user);
@@ -179,9 +152,7 @@ public class UserController {
     @PatchMapping(path = "/usertype/{userId}/{userType}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public User updateUserType(@PathVariable Integer userId, @PathVariable UserType userType) {
-        User user = userRepo.findById(userId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("username '%d' not found", userId)));
+        User user = getUserById(userId);
 
         if (user.getType().equals(userType)) {
             return secureUser(user);
@@ -194,9 +165,7 @@ public class UserController {
     @PatchMapping(path = "/refresh-password-last-updated-date/{userId}")
     @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public User refreshPasswordLastUpdatedDate(@PathVariable Integer userId) {
-        User user = userRepo.findById(userId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("user with id '%d' not found", userId)));
+        User user = getUserById(userId);
         user.refreshPasswordLastUpdatedDate();
         return secureUser(userRepo.save(user));
     }
@@ -221,6 +190,42 @@ public class UserController {
         if (!password.matches(PASSWORD_REGEX)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "new password doesn't satisfy requirement");
         }
+    }
+
+    private void checkUsername(String username) {
+        if (userRepo.findByUsername(username).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    String.format("username '%s' is already being used by another user.", username));
+        }
+        if (username.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "provided username is empty.");
+        }
+        if (username.contains(TEST_USERNAME)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "provided username contains forbidden phrase, please try a different one.");
+        }
+    }
+
+    private void checkEmail(String email) {
+        if (userRepo.findByEmail(email).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    String.format("email '%s' is already being used by another user.", email));
+        }
+        if (!email.matches(EMAIL_REGEX)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    String.format("provided user email '%s' is not valid.", email));
+        }
+        if (email.contains(TEST_EMAIL)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "provided email contains forbidden phrase, please try a different one.");
+        }
+    }
+
+    private User getUserById(Integer id) {
+        return userRepo.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("user with id '%d' not found", id)));
     }
 
     @Data
