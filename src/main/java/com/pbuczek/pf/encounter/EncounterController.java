@@ -46,7 +46,7 @@ public class EncounterController {
 
         checkEncounterLimit(user);
 
-        encounterDto.setDescription(encounterDto.getDescription().trim());
+        encounterDto.setDescription(encounterDto.getDescription());
         checkDescription(encounterDto.getDescription());
 
         return encounterRepo.save(new Encounter(encounterDto));
@@ -92,10 +92,8 @@ public class EncounterController {
     @PatchMapping(value = "/description/{encounterId}")
     public Encounter updateDescription(@PathVariable Integer encounterId, @RequestBody String description) {
         Encounter encounter = getEncounterById(encounterId);
-
         adminOrSpecificUserId(encounter.getUserId());
 
-        description = description.trim();
         checkDescription(description);
 
         encounter.setDescription(description);

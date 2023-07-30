@@ -34,10 +34,10 @@ public class UserController {
 
     @PostMapping
     public User createStandardUser(@RequestBody UserDto userDto) {
-        userDto.setEmail(userDto.getEmail().trim());
+        userDto.setEmail(userDto.getEmail());
         checkEmail(userDto.getEmail());
 
-        userDto.setUsername(userDto.getUsername().trim());
+        userDto.setUsername(userDto.getUsername());
         checkUsername(userDto.getUsername());
 
         checkPasswordRegex(userDto.getPassword());
@@ -77,7 +77,6 @@ public class UserController {
     public User updateEmail(@PathVariable Integer userId, @PathVariable String email) {
         User user = getUserById(userId);
 
-        email = email.trim();
         if (user.getEmail().equals(email)) {
             return secureUser(user);
         }
@@ -126,7 +125,6 @@ public class UserController {
     public User updateUsername(@PathVariable Integer userId, @PathVariable String newUsername) {
         User user = getUserById(userId);
 
-        newUsername = newUsername.trim();
         if (user.getUsername().equals(newUsername)) {
             return secureUser(user);
         }

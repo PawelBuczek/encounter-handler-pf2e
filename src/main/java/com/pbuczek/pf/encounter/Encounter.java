@@ -24,9 +24,9 @@ public class Encounter {
             throw new IllegalArgumentException(
                     String.format("Description is too long. Max length: %d", MAX_DESCRIPTION_LENGTH));
         }
-        this.name = name;
+        this.name = name.trim();
         this.userId = userId;
-        this.description = description;
+        this.description = description.trim();
         this.timeCreated = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
     }
 
@@ -47,6 +47,13 @@ public class Encounter {
     @Nonnull
     private LocalDateTime timeCreated;
 
+    public void setDescription(String description) {
+        this.description = description.trim();
+    }
+
+    public void setName(String name) {
+        this.name = name.trim();
+    }
 }
 
 
