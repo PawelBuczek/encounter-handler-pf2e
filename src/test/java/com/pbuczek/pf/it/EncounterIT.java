@@ -81,7 +81,7 @@ class EncounterIT implements TestUserDetails {
         assertThat(createdEncounter.getId()).isNotNull();
         createdEncounterIds.add(createdEncounter.getId());
 
-        assertAll("Verify createdUser properties",
+        assertAll("Verify createdEncounter properties",
                 () -> assertThat(createdEncounter.getName()).isEqualTo("test"),
                 () -> assertThat(createdEncounter.getUserId()).isEqualTo(userId),
                 () -> assertThat(createdEncounter.getDescription()).isEqualTo("test"),
@@ -98,7 +98,7 @@ class EncounterIT implements TestUserDetails {
         int userId = createUserAndGetId(TEST_USERNAME_2, TEST_EMAIL_2);
         ResponseEntity<Encounter> response = getResponseForCreatingEncounter("test", userId,
                 RandomStringUtils.random(3001, true, true));
-
+        System.out.println(response);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
