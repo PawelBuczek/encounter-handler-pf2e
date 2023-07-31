@@ -1,11 +1,11 @@
-package com.pbuczek;
+package com.pbuczek.pf;
 
 import org.junit.platform.suite.api.*;
 
 @SelectPackages("com.pbuczek.pf")
-@ExcludePackages("com.pbuczek.pf.it")
 
 @IncludeTags("UnitTest")
+@IncludeClassNamePatterns({"(?i)^.*TEST$"})
 @Suite
 @SuiteDisplayName("UnitTests")
 public class UnitTests {

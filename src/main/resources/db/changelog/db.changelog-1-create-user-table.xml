@@ -15,13 +15,13 @@
             <column name="payment_plan" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="username" type="VARCHAR(255)">
+            <column name="username" type="VARCHAR(40)">
                 <constraints nullable="false" unique="true"/>
             </column>
             <column name="email" type="VARCHAR(255)">
                 <constraints nullable="false" unique="true"/>
             </column>
-            <column name="time_created" type="TIMESTAMP">
+            <column name="time_created" type="TIMESTAMP(0)">
                 <constraints nullable="false"/>
             </column>
             <column name="password" type="CHAR(60)">
@@ -38,6 +38,7 @@
             </column>
         </createTable>
         <sql>ALTER TABLE user ADD CONSTRAINT check_type CHECK (type IN ("STANDARD", "ADMIN"))</sql>
+        <sql>ALTER TABLE user ADD CONSTRAINT username_length CHECK (CHAR_LENGTH(username) > 2)</sql>
         <sqlFile path="db/sql-files/add-user-email-validation-constraint.sql" dbms="mariadb"/>
     </changeSet>
 </databaseChangeLog>

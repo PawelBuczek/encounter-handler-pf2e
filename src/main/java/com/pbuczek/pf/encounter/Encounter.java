@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 
 @ResponseBody
 @Data
@@ -19,14 +20,10 @@ public class Encounter {
     public static final Integer MAX_DESCRIPTION_LENGTH = 3000;
 
     public Encounter(String name, Integer userId, String description) {
-        if (description.length() > MAX_DESCRIPTION_LENGTH) {
-            throw new IllegalArgumentException(
-                    String.format("Description is too long. Max length: %d", MAX_DESCRIPTION_LENGTH));
-        }
-        this.name = name;
+        this.name = name == null ? "" : name.trim();
         this.userId = userId;
-        this.description = description;
-        this.timeCreated = LocalDateTime.now(ZoneOffset.UTC);
+        this.description = description == null ? "" : description.trim();
+        this.timeCreated = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
     }
 
     public Encounter(EncounterDto encounterDto) {
@@ -39,13 +36,20 @@ public class Encounter {
     @Nonnull
     private Integer userId;
     @Nonnull
-    private Boolean published = false; //publicly available
+    private Boolean published = false; //true means publicly available
     @Nonnull
     private String name;
     private String description;
     @Nonnull
     private LocalDateTime timeCreated;
 
+    public void setDescription(String description) {
+        this.description = description == null ? "" : description.trim();
+    }
+
+    public void setName(String name) {
+        this.name = name == null ? "" : name.trim();
+    }
 }
 
 
