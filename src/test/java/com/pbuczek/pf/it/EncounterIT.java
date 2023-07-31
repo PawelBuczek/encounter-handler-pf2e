@@ -103,6 +103,16 @@ class EncounterIT implements TestUserDetails {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
+    @Test
+    void differentUserCannotReadEncounterThatIsNotPublished() {
+
+    }
+
+    @Test
+    void differentUserCanReadEncounterThatIsPublished() {
+
+    }
+
     private int createUserAndGetId(String username, String email) {
         RequestEntity<UserDto> request = RequestEntity
                 .post("/user")

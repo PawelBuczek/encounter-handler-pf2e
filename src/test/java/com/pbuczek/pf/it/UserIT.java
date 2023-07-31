@@ -146,6 +146,12 @@ class UserIT implements TestUserDetails {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
+    @Test
+    void canAuthenticateWithApiKey() {
+
+    }
+
+
     private ResponseEntity<User> getResponseForCreatingUser(String username, String email) {
         RequestEntity<UserDto> request = RequestEntity
                 .post("/user")
