@@ -2,6 +2,7 @@ package com.pbuczek.pf.it;
 
 import com.pbuczek.pf.TestUserDetails;
 import com.pbuczek.pf.user.*;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -100,6 +101,49 @@ class UserIT implements TestUserDetails {
         response = getResponseForCreatingUser(TEST_USERNAME_1, TEST_EMAIL_1);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    }
+
+    @Test
+    void userWithWrongUsernameWillNotBeCreated() {
+        ResponseEntity<User> response;
+
+        response = getResponseForCreatingUser(null, TEST_EMAIL_2);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+
+        response = getResponseForCreatingUser("", TEST_EMAIL_2);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+
+        response = getResponseForCreatingUser("ab", TEST_EMAIL_2);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+
+        response = getResponseForCreatingUser(
+                TEST_USERNAME_2 + RandomStringUtils.random(40, true, true), TEST_EMAIL_2);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @Test
+    void userWithWrongEmailWillNotBeCreated() {
+        ResponseEntity<User> response;
+
+        response = getResponseForCreatingUser(TEST_USERNAME_2, null);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+
+        response = getResponseForCreatingUser(TEST_USERNAME_2, "");
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+
+        response = getResponseForCreatingUser(TEST_USERNAME_2, "test");
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+
+        response = getResponseForCreatingUser(TEST_USERNAME_2, "test@test.");
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
     private ResponseEntity<User> getResponseForCreatingUser(String username, String email) {

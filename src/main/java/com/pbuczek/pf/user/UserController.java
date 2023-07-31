@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -34,10 +35,7 @@ public class UserController {
 
     @PostMapping
     public User createStandardUser(@RequestBody UserDto userDto) {
-        userDto.setEmail(userDto.getEmail());
         checkEmail(userDto.getEmail());
-
-        userDto.setUsername(userDto.getUsername());
         checkUsername(userDto.getUsername());
 
         checkPasswordRegex(userDto.getPassword());
@@ -189,7 +187,7 @@ public class UserController {
     }
 
     private void checkUsername(String username) {
-        if (username.isEmpty()) {
+        if (username == null || username.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "provided username is empty.");
         }
@@ -204,6 +202,10 @@ public class UserController {
     }
 
     private void checkEmail(String email) {
+        if (email == null || email.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "provided email is empty.");
+        }
         if (userRepo.findByEmail(email).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     String.format("email '%s' is already being used by another user.", email));

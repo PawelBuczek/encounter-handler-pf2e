@@ -21,8 +21,8 @@ import static com.pbuczek.pf.security.SecurityHelper.passwordEncoder;
 public class User {
 
     public User(String username, String email, String password) {
-        this.username = username.trim();
-        this.email = email.trim();
+        this.username = username == null ? "" : username.trim();
+        this.email = email == null ? "" : email.trim();
         this.password = passwordEncoder.encode(password);
         this.timeCreated = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
         this.passwordLastUpdatedDate = LocalDate.now(ZoneOffset.UTC);
@@ -61,10 +61,10 @@ public class User {
     }
 
     public void setUsername(String username) {
-        this.username = username.trim();
+        this.username = username == null ? "" : username.trim();
     }
 
     public void setEmail(String email) {
-        this.email = email.trim();
+        this.email = email == null ? "" : email.trim();
     }
 }
