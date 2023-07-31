@@ -189,13 +189,17 @@ public class UserController {
     }
 
     private void checkUsername(String username) {
-        if (userRepo.findByUsername(username).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    String.format("username '%s' is already being used by another user.", username));
-        }
         if (username.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "provided username is empty.");
+        }
+        if (username.trim().length() < 3 || username.trim().length() > 40) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "username needs to be between 3 and 40 characters.");
+        }
+        if (userRepo.findByUsername(username).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    String.format("username '%s' is already being used by another user.", username));
         }
     }
 
