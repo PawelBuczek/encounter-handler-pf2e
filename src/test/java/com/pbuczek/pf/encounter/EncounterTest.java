@@ -31,10 +31,8 @@ class EncounterTest {
 
     @Test
     void encounterCannotBeGeneratedWithDescriptionOverLimit() {
-        assertThrows(IllegalArgumentException.class, () ->
-                        new Encounter("enc",
-                                1,
-                                RandomStringUtils.random(Encounter.MAX_DESCRIPTION_LENGTH + 1, true, true)),
+        String desc = RandomStringUtils.random(Encounter.MAX_DESCRIPTION_LENGTH + 1, true, true);
+        assertThrows(IllegalArgumentException.class, () -> new Encounter("enc", 1, desc),
                 String.format("Description is too long. Max length: %d", Encounter.MAX_DESCRIPTION_LENGTH));
     }
 
