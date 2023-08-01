@@ -42,4 +42,6 @@ jobs:
         run: mvn -Dtest=com/pbuczek/pf/IntegrationTests.java test
       - name: Update dependency graph
         uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
 
