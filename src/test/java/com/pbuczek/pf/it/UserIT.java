@@ -40,11 +40,11 @@ class UserIT implements TestUserDetails {
 
     @BeforeEach
     void setUp() {
-        Integer potentialId = userRepo.getIdByUsername(TEST_USERNAME_1);
+        Integer potentialId = userRepo.getIdByUsername(TEST_USERNAME_ADMIN_1);
         if (potentialId != null) {
             userRepo.deleteUser(potentialId);
         }
-        User admin = new User(TEST_USERNAME_1, TEST_EMAIL_1, TEST_PASSWORD);
+        User admin = new User(TEST_USERNAME_ADMIN_1, TEST_EMAIL_ADMIN_1, TEST_PASSWORD);
         admin.setType(UserType.ADMIN);
         admin.setEnabled(true);
         userRepo.save(admin);
@@ -58,7 +58,7 @@ class UserIT implements TestUserDetails {
 
     @Test
     void userIsCreatedCorrectly() {
-        ResponseEntity<User> response = getResponseForCreatingUser(TEST_USERNAME_2, TEST_EMAIL_2);
+        ResponseEntity<User> response = getResponseForCreatingUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
 
         assertThat(response).isNotNull();
         User createdUser = response.getBody();
@@ -70,8 +70,8 @@ class UserIT implements TestUserDetails {
         assertThat(response.getHeaders().getContentDisposition().isInline()).isFalse();
 
         assertAll("Verify createdUser properties",
-                () -> assertThat(createdUser.getUsername()).isEqualTo(TEST_USERNAME_2),
-                () -> assertThat(createdUser.getEmail()).isEqualTo(TEST_EMAIL_2),
+                () -> assertThat(createdUser.getUsername()).isEqualTo(TEST_USERNAME_STANDARD_1),
+                () -> assertThat(createdUser.getEmail()).isEqualTo(TEST_EMAIL_STANDARD_1),
                 () -> assertThat(createdUser.getLocked()).isFalse(),
                 () -> assertThat(createdUser.getEnabled()).isFalse(),
                 () -> assertThat(createdUser.getTimeCreated()).isBeforeOrEqualTo(LocalDateTime.now()),
@@ -90,15 +90,15 @@ class UserIT implements TestUserDetails {
     void duplicateUserWillNotBeCreated() {
         ResponseEntity<User> response;
 
-        response = getResponseForCreatingUser(TEST_USERNAME_2, TEST_EMAIL_1);
+        response = getResponseForCreatingUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_ADMIN_1);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
-        response = getResponseForCreatingUser(TEST_USERNAME_1, TEST_EMAIL_2);
+        response = getResponseForCreatingUser(TEST_USERNAME_ADMIN_1, TEST_EMAIL_STANDARD_1);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
-        response = getResponseForCreatingUser(TEST_USERNAME_1, TEST_EMAIL_1);
+        response = getResponseForCreatingUser(TEST_USERNAME_ADMIN_1, TEST_EMAIL_ADMIN_1);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     }
@@ -107,20 +107,20 @@ class UserIT implements TestUserDetails {
     void userWithWrongUsernameWillNotBeCreated() {
         ResponseEntity<User> response;
 
-        response = getResponseForCreatingUser(null, TEST_EMAIL_2);
+        response = getResponseForCreatingUser(null, TEST_EMAIL_STANDARD_1);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
 
-        response = getResponseForCreatingUser("", TEST_EMAIL_2);
+        response = getResponseForCreatingUser("", TEST_EMAIL_STANDARD_1);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
 
-        response = getResponseForCreatingUser("ab", TEST_EMAIL_2);
+        response = getResponseForCreatingUser("ab", TEST_EMAIL_STANDARD_1);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
 
         response = getResponseForCreatingUser(
-                TEST_USERNAME_2 + RandomStringUtils.random(40, true, true), TEST_EMAIL_2);
+                TEST_USERNAME_STANDARD_1 + RandomStringUtils.random(40, true, true), TEST_EMAIL_STANDARD_1);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
     }
@@ -129,19 +129,19 @@ class UserIT implements TestUserDetails {
     void userWithWrongEmailWillNotBeCreated() {
         ResponseEntity<User> response;
 
-        response = getResponseForCreatingUser(TEST_USERNAME_2, null);
+        response = getResponseForCreatingUser(TEST_USERNAME_STANDARD_1, null);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
 
-        response = getResponseForCreatingUser(TEST_USERNAME_2, "");
+        response = getResponseForCreatingUser(TEST_USERNAME_STANDARD_1, "");
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
 
-        response = getResponseForCreatingUser(TEST_USERNAME_2, "test");
+        response = getResponseForCreatingUser(TEST_USERNAME_STANDARD_1, "test");
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
 
-        response = getResponseForCreatingUser(TEST_USERNAME_2, "test@test.");
+        response = getResponseForCreatingUser(TEST_USERNAME_STANDARD_1, "test@test.");
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
     }

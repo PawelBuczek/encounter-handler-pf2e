@@ -34,7 +34,7 @@ import static com.pbuczek.pf.encounter.Encounter.MAX_DESCRIPTION_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("IntegrationTest")
@@ -47,6 +47,7 @@ class EncounterIT implements TestUserDetails {
     private final List<Integer> createdEncounterIds = new ArrayList<>();
     private static final ObjectMapper mapper = new ObjectMapper();
     private static ObjectWriter ow;
+    private static final String encName = "testEncounterName";
 
     @Autowired
     private MockMvc mockMvc;
@@ -65,11 +66,11 @@ class EncounterIT implements TestUserDetails {
 
     @BeforeEach
     void setUp() {
-        Integer potentialId = userRepo.getIdByUsername(TEST_USERNAME_1);
+        Integer potentialId = userRepo.getIdByUsername(TEST_USERNAME_ADMIN_1);
         if (potentialId != null) {
             userRepo.deleteUser(potentialId);
         }
-        User admin = new User(TEST_USERNAME_1, TEST_EMAIL_1, TEST_PASSWORD);
+        User admin = new User(TEST_USERNAME_ADMIN_1, TEST_EMAIL_ADMIN_1, TEST_PASSWORD);
         admin.setType(UserType.ADMIN);
         admin.setEnabled(true);
         userRepo.save(admin);
@@ -84,15 +85,15 @@ class EncounterIT implements TestUserDetails {
 
     @Test
     void encounterIsCreatedCorrectly() throws Exception {
-        int userId = createUserAndGetId(TEST_USERNAME_2, TEST_EMAIL_2);
-        ResultActions resultAction = getResultActionsForCreatingEncounter("test", userId, "test");
-        MvcResult result = resultAction.andExpect(status().isOk()).andReturn();
+        int userId = createUserAndGetId(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        MvcResult result = getResultActionsForCreatingEncounter(userId, "test")
+                .andExpect(status().isOk()).andReturn();
 
         Encounter createdEncounter = mapper.readValue(result.getResponse().getContentAsString(), Encounter.class);
         basicEncounterChecks(createdEncounter);
 
         assertAll("Verify Encounter properties",
-                () -> assertThat(createdEncounter.getName()).isEqualTo("test"),
+                () -> assertThat(createdEncounter.getName()).isEqualTo(encName),
                 () -> assertThat(createdEncounter.getUserId()).isEqualTo(userId),
                 () -> assertThat(createdEncounter.getDescription()).isEqualTo("test"),
                 () -> assertThat(createdEncounter.getPublished()).isFalse(),
@@ -105,10 +106,10 @@ class EncounterIT implements TestUserDetails {
 
     @Test
     void cannotCreateEncounterWithDescriptionTooLong() throws Exception {
-        int userId = createUserAndGetId(TEST_USERNAME_2, TEST_EMAIL_2);
-        ResultActions resultAction = getResultActionsForCreatingEncounter("test", userId,
-                RandomStringUtils.random(3001, true, true));
-        MockHttpServletResponse response = resultAction.andExpect(status().isBadRequest()).andReturn().getResponse();
+        int userId = createUserAndGetId(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        MockHttpServletResponse response = getResultActionsForCreatingEncounter(userId,
+                RandomStringUtils.random(3001, true, true))
+                .andExpect(status().isBadRequest()).andReturn().getResponse();
 
         assertThat(response).isNotNull();
         assertThat(response.getErrorMessage()).isEqualTo(
@@ -116,12 +117,33 @@ class EncounterIT implements TestUserDetails {
     }
 
     @Test
-    void differentUserCannotReadEncounterThatIsNotPublished() {
+    void differentStandardUserCannotReadEncounterThatIsNotPublished() throws Exception {
+        int userId = createUserAndGetId(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        MvcResult postResult = getResultActionsForCreatingEncounter(userId, "test")
+                .andExpect(status().isOk()).andReturn();
 
+        Encounter createdEncounter = mapper.readValue(postResult.getResponse().getContentAsString(), Encounter.class);
+        basicEncounterChecks(createdEncounter);
+        Integer createdEncounterId = createdEncounter.getId();
+
+        int secondUserId = createUserAndGetId(TEST_USERNAME_STANDARD_2, TEST_EMAIL_STANDARD_2);
+        enableUserAccount(secondUserId);
+
+        assertThat(this.mockMvc.perform(
+                        get("/encounter/" + createdEncounterId)
+                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_STANDARD_2)))
+                .andExpect(status().isForbidden()).andReturn().getResponse().getErrorMessage())
+                .isEqualTo("not authorized for this resource");
+    }
+
+    private void enableUserAccount(int userId) throws Exception {
+        this.mockMvc.perform(
+                patch("/user/enable/" + userId)
+                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
     }
 
     @Test
-    void differentUserCanReadEncounterThatIsPublished() {
+    void differentStandardUserCanReadEncounterThatIsPublished() {
 
     }
 
@@ -141,12 +163,12 @@ class EncounterIT implements TestUserDetails {
         return user.getId();
     }
 
-    private ResultActions getResultActionsForCreatingEncounter(String name, Integer userId, String description) throws Exception {
+    private ResultActions getResultActionsForCreatingEncounter(Integer userId, String description) throws Exception {
         return this.mockMvc.perform(
                 post("/encounter")
-                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_1, TEST_PASSWORD))
+                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(ow.writeValueAsString(new EncounterDto(name, userId, description))));
+                        .content(ow.writeValueAsString(new EncounterDto(encName, userId, description))));
     }
 
     private void basicEncounterChecks(Encounter createdEncounter) {
@@ -155,8 +177,8 @@ class EncounterIT implements TestUserDetails {
         createdEncounterIds.add(createdEncounter.getId());
     }
 
-    private String getBasicAuthenticationHeader(String username, String password) {
-        String valueToEncode = username + ":" + password;
+    private String getBasicAuthenticationHeader(String username) {
+        String valueToEncode = username + ":" + TestUserDetails.TEST_PASSWORD;
         return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
     }
 }
