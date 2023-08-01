@@ -136,15 +136,29 @@ class EncounterIT implements TestUserDetails {
                 .isEqualTo("not authorized for this resource");
     }
 
-    private void enableUserAccount(int userId) throws Exception {
-        this.mockMvc.perform(
-                patch("/user/enable/" + userId)
-                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
-    }
-
     @Test
-    void differentStandardUserCanReadEncounterThatIsPublished() {
+    void differentStandardUserCanReadEncounterThatIsPublished() throws Exception {
+        int userId = createUserAndGetId(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        MvcResult postResult = getResultActionsForCreatingEncounter(userId, "test")
+                .andExpect(status().isOk()).andReturn();
 
+        Encounter createdEncounter = mapper.readValue(postResult.getResponse().getContentAsString(), Encounter.class);
+        basicEncounterChecks(createdEncounter);
+        Integer createdEncounterId = createdEncounter.getId();
+
+        int secondUserId = createUserAndGetId(TEST_USERNAME_STANDARD_2, TEST_EMAIL_STANDARD_2);
+        enableUserAccount(secondUserId);
+        publishUnpublishEncounter(createdEncounterId);
+
+        MockHttpServletResponse getResponse = this.mockMvc.perform(
+                        get("/encounter/" + createdEncounterId)
+                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_STANDARD_2)))
+                .andExpect(status().isOk()).andReturn().getResponse();
+        Encounter foundEncounter = mapper.readValue(getResponse.getContentAsString(), Encounter.class);
+
+        assertThat(foundEncounter).usingRecursiveComparison()
+                .ignoringFields("published")
+                .isEqualTo(createdEncounter);
     }
 
     private int createUserAndGetId(String username, String email) throws Exception {
@@ -181,4 +195,17 @@ class EncounterIT implements TestUserDetails {
         String valueToEncode = username + ":" + TestUserDetails.TEST_PASSWORD;
         return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
     }
+
+    private void enableUserAccount(int userId) throws Exception {
+        this.mockMvc.perform(
+                patch("/user/enable/" + userId)
+                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
+    }
+
+    private void publishUnpublishEncounter(int encounterId) throws Exception {
+        this.mockMvc.perform(
+                patch("/encounter/published/" + encounterId)
+                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
+    }
+
 }

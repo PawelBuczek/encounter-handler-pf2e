@@ -73,7 +73,9 @@ public class EncounterController {
     public Encounter readEncounter(@PathVariable Integer encounterId) {
         Encounter encounter = getEncounterById(encounterId);
 
-        adminOrSpecificUserId(encounter.getUserId());
+        if (!encounter.getPublished()) {
+            adminOrSpecificUserId(encounter.getUserId());
+        }
         return encounter;
     }
 
