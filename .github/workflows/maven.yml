@@ -14,9 +14,9 @@ jobs:
       DB_DATABASE: pf
       DB_USER: root
       DB_PASSWORD: root
-    strategy:
-      matrix:
-        language: [ 'java' ]
+#    strategy:
+#      matrix:
+#        language: [ 'java' ]
     steps:
       - name: Start MariaDB
         uses: getong/mariadb-action@v1.1
@@ -50,7 +50,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
-          languages: ${{ matrix.language }}
+          languages: [ 'java' ]
       - name: Autobuild codeql
         uses: github/codeql-action/autobuild@v2
       - name: Perform CodeQL Analysis
