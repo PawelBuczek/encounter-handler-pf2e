@@ -18,13 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,14 +30,11 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
+import static com.pbuczek.pf.encounter.Encounter.MAX_DESCRIPTION_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("IntegrationTest")
@@ -55,9 +50,6 @@ class EncounterIT implements TestUserDetails {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private TestRestTemplate restTemplate;
 
     @Autowired
     private UserRepository userRepo;
@@ -93,29 +85,13 @@ class EncounterIT implements TestUserDetails {
     @Test
     void encounterIsCreatedCorrectly() throws Exception {
         int userId = createUserAndGetId(TEST_USERNAME_2, TEST_EMAIL_2);
-        ResponseEntity<Encounter> response = getResponseForCreatingEncounter("test", userId, "test");
+        ResultActions resultAction = getResultActionsForCreatingEncounter("test", userId, "test");
+        MvcResult result = resultAction.andExpect(status().isOk()).andReturn();
 
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getHeaders().getContentDisposition().isInline()).isFalse();
+        Encounter createdEncounter = mapper.readValue(result.getResponse().getContentAsString(), Encounter.class);
+        basicEncounterChecks(createdEncounter);
 
-        Encounter createdEncounter = response.getBody();
-        assert createdEncounter != null;
-        assertThat(createdEncounter.getId()).isNotNull();
-        createdEncounterIds.add(createdEncounter.getId());
-
-        MvcResult result = this.mockMvc.perform(
-                        post("/encounter")
-                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_1, TEST_PASSWORD))
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(ow.writeValueAsString(new EncounterDto("mockmvc", userId, "mockmvc"))))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("mockmvc")))
-                .andReturn();
-        Encounter enc = mapper.readValue(result.getResponse().getContentAsString(), Encounter.class);
-        createdEncounterIds.add(enc.getId());
-
-        assertAll("Verify createdEncounter properties",
+        assertAll("Verify Encounter properties",
                 () -> assertThat(createdEncounter.getName()).isEqualTo("test"),
                 () -> assertThat(createdEncounter.getUserId()).isEqualTo(userId),
                 () -> assertThat(createdEncounter.getDescription()).isEqualTo("test"),
@@ -128,13 +104,15 @@ class EncounterIT implements TestUserDetails {
     }
 
     @Test
-    void cannotCreateEncounterWithDescriptionTooLong() {
+    void cannotCreateEncounterWithDescriptionTooLong() throws Exception {
         int userId = createUserAndGetId(TEST_USERNAME_2, TEST_EMAIL_2);
-        ResponseEntity<Encounter> response = getResponseForCreatingEncounter("test", userId,
+        ResultActions resultAction = getResultActionsForCreatingEncounter("test", userId,
                 RandomStringUtils.random(3001, true, true));
-        System.out.println(response);
+        MockHttpServletResponse response = resultAction.andExpect(status().isBadRequest()).andReturn().getResponse();
+
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getErrorMessage()).isEqualTo(
+                String.format("description too long. Max '%d' signs allowed.", MAX_DESCRIPTION_LENGTH));
     }
 
     @Test
@@ -147,27 +125,34 @@ class EncounterIT implements TestUserDetails {
 
     }
 
-    private int createUserAndGetId(String username, String email) {
-        RequestEntity<UserDto> request = RequestEntity
-                .post("/user")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(new UserDto(username, email, TestUserDetails.TEST_PASSWORD));
-        ResponseEntity<User> response = restTemplate.exchange(request, User.class);
-        if (response != null && response.getBody() != null && response.getBody().getId() != null) {
-            createdUserIds.add(response.getBody().getId());
+    private int createUserAndGetId(String username, String email) throws Exception {
+        MockHttpServletResponse response = this.mockMvc.perform(
+                        post("/user")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(ow.writeValueAsString(
+                                        new UserDto(username, email, TestUserDetails.TEST_PASSWORD))))
+                .andReturn().getResponse();
+        User user = mapper.readValue(response.getContentAsString(), User.class);
+        if (user.getId() != null) {
+            createdUserIds.add(user.getId());
         } else {
             fail("User could not be created correctly");
         }
-        return response.getBody().getId();
+        return user.getId();
     }
 
-    private ResponseEntity<Encounter> getResponseForCreatingEncounter(String name, Integer userId, String description) {
-        RequestEntity<EncounterDto> request = RequestEntity
-                .post("/encounter")
-                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_1, TEST_PASSWORD))
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(new EncounterDto(name, userId, description));
-        return restTemplate.exchange(request, Encounter.class);
+    private ResultActions getResultActionsForCreatingEncounter(String name, Integer userId, String description) throws Exception {
+        return this.mockMvc.perform(
+                post("/encounter")
+                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_1, TEST_PASSWORD))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ow.writeValueAsString(new EncounterDto(name, userId, description))));
+    }
+
+    private void basicEncounterChecks(Encounter createdEncounter) {
+        assert createdEncounter != null;
+        assertThat(createdEncounter.getId()).isNotNull();
+        createdEncounterIds.add(createdEncounter.getId());
     }
 
     private String getBasicAuthenticationHeader(String username, String password) {
