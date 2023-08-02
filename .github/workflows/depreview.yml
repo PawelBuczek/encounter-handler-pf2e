@@ -1,0 +1,13 @@
+name: Maven - build and test
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
