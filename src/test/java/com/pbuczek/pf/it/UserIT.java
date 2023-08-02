@@ -1,5 +1,6 @@
 package com.pbuczek.pf.it;
 
+import com.pbuczek.pf.encounter.Encounter;
 import com.pbuczek.pf.user.PaymentPlan;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserType;
@@ -93,11 +94,6 @@ class UserIT extends _BaseIT {
 
     @SneakyThrows
     private User getUserFromResponse(MockHttpServletResponse response) {
-        User user = mapper.readValue(response.getContentAsString(), User.class);
-        assertThat(user).isNotNull();
-        assertThat(user.getId()).isNotNull();
-        createdUserIds.add(user.getId());
-
-        return user;
+        return getObjectFromResponse(response, User.class, createdUserIds);
     }
 }

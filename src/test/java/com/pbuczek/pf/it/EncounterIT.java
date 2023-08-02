@@ -135,12 +135,7 @@ class EncounterIT extends _BaseIT {
 
     @SneakyThrows
     private Encounter getEncounterFromResponse(MockHttpServletResponse response) {
-        Encounter encounter = mapper.readValue(response.getContentAsString(), Encounter.class);
-        assertThat(encounter).isNotNull();
-        assertThat(encounter.getId()).isNotNull();
-        createdEncounterIds.add(encounter.getId());
-
-        return encounter;
+        return getObjectFromResponse(response, Encounter.class, createdEncounterIds);
     }
 
 }
