@@ -39,7 +39,6 @@ public class ApiKeyIT extends _BaseIT {
 
 
     @Test
-    @SneakyThrows
     void apiKeyIsCreatedCorrectly() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         enableUserAccount(userId);
