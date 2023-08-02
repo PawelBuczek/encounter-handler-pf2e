@@ -9,5 +9,4 @@ import org.junit.platform.suite.api.*;
 @Suite
 @SuiteDisplayName("UnitTests")
 public class UnitTests {
-
 }
