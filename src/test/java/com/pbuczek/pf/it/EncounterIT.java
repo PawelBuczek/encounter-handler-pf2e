@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -83,11 +82,8 @@ class EncounterIT extends _BaseIT {
         int secondUserId = createUser(TEST_USERNAME_STANDARD_2, TEST_EMAIL_STANDARD_2);
         enableUserAccount(secondUserId);
 
-        assertThat(this.mockMvc.perform(
-                        get("/encounter/" + createdEncounterId)
-                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_STANDARD_2)))
-                .andExpect(status().isForbidden()).andReturn().getResponse().getErrorMessage())
-                .isEqualTo("not authorized for this resource");
+        assertThat(getResponseForGetEncounterRequest(createdEncounterId, TEST_USERNAME_STANDARD_2, HttpStatus.FORBIDDEN)
+                .getErrorMessage()).isEqualTo("not authorized for this resource");
     }
 
     @Test
@@ -103,11 +99,9 @@ class EncounterIT extends _BaseIT {
         enableUserAccount(secondUserId);
         publishUnpublishEncounter(createdEncounterId);
 
-        MockHttpServletResponse getResponse = this.mockMvc.perform(
-                        get("/encounter/" + createdEncounterId)
-                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_STANDARD_2)))
-                .andExpect(status().isOk()).andReturn().getResponse();
-        Encounter foundEncounter = mapper.readValue(getResponse.getContentAsString(), Encounter.class);
+        MockHttpServletResponse getResponse =
+                getResponseForGetEncounterRequest(createdEncounterId, TEST_USERNAME_STANDARD_2, HttpStatus.OK);
+        Encounter foundEncounter = getEncounterFromResponse(getResponse);
 
         assertThat(foundEncounter).usingRecursiveComparison()
                 .ignoringFields("published")
@@ -118,18 +112,25 @@ class EncounterIT extends _BaseIT {
     private MockHttpServletResponse getResponseForCreatingEncounter(
             Integer userId, String description, HttpStatus expectedStatus) {
 
-        return this.mockMvc.perform(
-                        post("/encounter")
-                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(ow.writeValueAsString(new EncounterDto(ENC_NAME, userId, description))))
+        return this.mockMvc.perform(post("/encounter")
+                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ow.writeValueAsString(new EncounterDto(ENC_NAME, userId, description))))
+                .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
+    }
+
+    @SneakyThrows
+    private MockHttpServletResponse getResponseForGetEncounterRequest(
+            Integer encounterId, String username, HttpStatus expectedStatus) {
+
+        return this.mockMvc.perform(get("/encounter/" + encounterId)
+                        .header("Authorization", getBasicAuthenticationHeader(username)))
                 .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
     }
 
     private void publishUnpublishEncounter(int encounterId) throws Exception {
-        this.mockMvc.perform(
-                patch("/encounter/published/" + encounterId)
-                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
+        this.mockMvc.perform(patch("/encounter/published/" + encounterId)
+                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
     }
 
     @SneakyThrows

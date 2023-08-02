@@ -76,11 +76,9 @@ class _BaseIT implements TestUserDetails {
 
     @SneakyThrows
     MockHttpServletResponse createUser(String username, String email, HttpStatus expectedStatus) {
-        return this.mockMvc.perform(
-                        post("/user")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(ow.writeValueAsString(
-                                        new UserDto(username, email, TEST_PASSWORD))))
+        return this.mockMvc.perform(post("/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ow.writeValueAsString(new UserDto(username, email, TEST_PASSWORD))))
                 .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
     }
 
@@ -91,16 +89,14 @@ class _BaseIT implements TestUserDetails {
 
     @SneakyThrows
     void enableUserAccount(int userId) {
-        this.mockMvc.perform(
-                patch("/user/enable/" + userId)
-                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
+        this.mockMvc.perform(patch("/user/enable/" + userId)
+                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
     }
 
     @SneakyThrows
     void changeUserPaymentPlan(Integer userid, PaymentPlan plan) {
-        this.mockMvc.perform(
-                patch("/user/paymentplan/" + userid + "/" + plan)
-                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
+        this.mockMvc.perform(patch("/user/paymentplan/" + userid + "/" + plan)
+                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
     }
 
     String getBasicAuthenticationHeader(String username) {
