@@ -37,6 +37,7 @@ class EncounterIT extends _BaseIT {
     @AfterEach
     void tearDown() {
         createdEncounterIds.forEach(id -> encounterRepo.deleteEncounter(id));
+        createdUserIds.forEach(id -> userRepo.deleteUser(id));
     }
 
     @Test

@@ -5,6 +5,7 @@ import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserType;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,12 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Tag("IntegrationTest")
 class UserIT extends _BaseIT {
+
+    @AfterEach
+    void tearDown() {
+        createdUserIds.forEach(id -> userRepo.deleteUser(id));
+    }
+
 
     @Test
     @SneakyThrows

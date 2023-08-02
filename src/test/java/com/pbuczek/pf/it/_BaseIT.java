@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.pbuczek.pf.TestUserDetails;
 import com.pbuczek.pf.user.*;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -33,14 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureObservability
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-class _BaseIT {
-    String TEST_USERNAME_ADMIN_1 = "_Test_" + LocalDate.now() + RandomStringUtils.random(24, true, true);
-    String TEST_EMAIL_ADMIN_1 = TEST_USERNAME_ADMIN_1 + "@test.com";
-    String TEST_USERNAME_STANDARD_1 = "_Test_" + LocalDate.now() + RandomStringUtils.random(24, true, true);
-    String TEST_EMAIL_STANDARD_1 = TEST_USERNAME_STANDARD_1 + "@test.com";
-    String TEST_USERNAME_STANDARD_2 = "_Test_" + LocalDate.now() + RandomStringUtils.random(24, true, true);
-    String TEST_EMAIL_STANDARD_2 = TEST_USERNAME_STANDARD_2 + "@test.com";
-    String TEST_PASSWORD = "aB@1" + RandomStringUtils.random(50);
+class _BaseIT implements TestUserDetails {
 
     final List<Integer> createdUserIds = new ArrayList<>();
     static final ObjectMapper mapper = new ObjectMapper();
@@ -69,11 +61,6 @@ class _BaseIT {
         admin.setEnabled(true);
         userRepo.save(admin);
         createdUserIds.add(admin.getId());
-    }
-
-    @AfterEach
-    void tearDown() {
-        createdUserIds.forEach(id -> userRepo.deleteUser(id));
     }
 
     @SneakyThrows

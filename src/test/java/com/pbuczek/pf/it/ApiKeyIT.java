@@ -31,6 +31,7 @@ public class ApiKeyIT extends _BaseIT {
     @AfterEach
     void tearDown() {
         createdApiKeyIdentifiers.forEach(identifier -> apiRepo.deleteApiKeyByIdentifier(identifier));
+        createdUserIds.forEach(id -> userRepo.deleteUser(id));
     }
 
 
