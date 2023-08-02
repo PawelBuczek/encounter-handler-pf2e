@@ -1,20 +1,21 @@
 package com.pbuczek.pf.it;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pbuczek.pf.TestUserDetails;
 import com.pbuczek.pf.user.*;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,6 +25,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("IntegrationTest")
 @AutoConfigureObservability
@@ -31,12 +34,20 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 class UserIT implements TestUserDetails {
 
     private final List<Integer> createdUserIds = new ArrayList<>();
+    private static final ObjectMapper mapper = new ObjectMapper();
+    private static ObjectWriter ow;
 
     @Autowired
-    TestRestTemplate restTemplate;
-
+    private MockMvc mockMvc;
     @Autowired
     UserRepository userRepo;
+
+    @BeforeAll
+    static void initialize() {
+        mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
+        mapper.registerModule(new JavaTimeModule());
+        ow = mapper.writer().withDefaultPrettyPrinter();
+    }
 
     @BeforeEach
     void setUp() {
@@ -57,19 +68,14 @@ class UserIT implements TestUserDetails {
     }
 
     @Test
+    @SneakyThrows
     void userIsCreatedCorrectly() {
-        ResponseEntity<User> response = getResponseForCreatingUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        MockHttpServletResponse response =
+                createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK);
 
-        assertThat(response).isNotNull();
-        User createdUser = response.getBody();
-        assert createdUser != null;
-        assertThat(createdUser.getId()).isNotNull();
-        createdUserIds.add(createdUser.getId());
+        User createdUser = getUserFromResponse(response);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getHeaders().getContentDisposition().isInline()).isFalse();
-
-        assertAll("Verify createdUser properties",
+        assertAll("Verify User properties",
                 () -> assertThat(createdUser.getUsername()).isEqualTo(TEST_USERNAME_STANDARD_1),
                 () -> assertThat(createdUser.getEmail()).isEqualTo(TEST_EMAIL_STANDARD_1),
                 () -> assertThat(createdUser.getLocked()).isFalse(),
@@ -87,76 +93,78 @@ class UserIT implements TestUserDetails {
     }
 
     @Test
+    @SneakyThrows
     void duplicateUserWillNotBeCreated() {
-        ResponseEntity<User> response;
-
-        response = getResponseForCreatingUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_ADMIN_1);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-
-        response = getResponseForCreatingUser(TEST_USERNAME_ADMIN_1, TEST_EMAIL_STANDARD_1);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-
-        response = getResponseForCreatingUser(TEST_USERNAME_ADMIN_1, TEST_EMAIL_ADMIN_1);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        createUser(TEST_USERNAME_ADMIN_1, TEST_EMAIL_ADMIN_1, HttpStatus.CONFLICT);
+        createUser(TEST_USERNAME_ADMIN_1, TEST_EMAIL_STANDARD_1, HttpStatus.CONFLICT);
+        createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_ADMIN_1, HttpStatus.CONFLICT);
     }
 
     @Test
+    @SneakyThrows
     void userWithWrongUsernameWillNotBeCreated() {
-        ResponseEntity<User> response;
+        createUser(null, TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY);
+        createUser("", TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY);
 
-        response = getResponseForCreatingUser(null, TEST_EMAIL_STANDARD_1);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-
-        response = getResponseForCreatingUser("", TEST_EMAIL_STANDARD_1);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-
-        response = getResponseForCreatingUser("ab", TEST_EMAIL_STANDARD_1);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-
-        response = getResponseForCreatingUser(
-                TEST_USERNAME_STANDARD_1 + RandomStringUtils.random(40, true, true), TEST_EMAIL_STANDARD_1);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        String username;
+        username = RandomStringUtils.random(User.MIN_USERNAME_LENGTH - 1, true, true);
+        createUser(username, TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY);
+        username = RandomStringUtils.random(User.MAX_USERNAME_LENGTH + 1, true, true);
+        createUser(username, TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
     @Test
+    @SneakyThrows
     void userWithWrongEmailWillNotBeCreated() {
-        ResponseEntity<User> response;
+        MockHttpServletResponse response;
 
-        response = getResponseForCreatingUser(TEST_USERNAME_STANDARD_1, null);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        response = createUser(TEST_USERNAME_STANDARD_1, null, HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getErrorMessage()).isEqualTo("costam");
 
-        response = getResponseForCreatingUser(TEST_USERNAME_STANDARD_1, "");
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        response = createUser(TEST_USERNAME_STANDARD_1, "", HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getErrorMessage()).isEqualTo("costam");
 
-        response = getResponseForCreatingUser(TEST_USERNAME_STANDARD_1, "test");
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        response = createUser(TEST_USERNAME_STANDARD_1, "", HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getErrorMessage()).isEqualTo("test");
 
-        response = getResponseForCreatingUser(TEST_USERNAME_STANDARD_1, "test@test.");
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        response = createUser(TEST_USERNAME_STANDARD_1, "", HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getErrorMessage()).isEqualTo("test@test.");
     }
 
     @Test
+    @SneakyThrows
     void canAuthenticateWithApiKey() {
 
     }
 
+    @SneakyThrows
+    private MockHttpServletResponse createUser(
+            String username, String email, HttpStatus expectedStatus) {
 
-    private ResponseEntity<User> getResponseForCreatingUser(String username, String email) {
-        RequestEntity<UserDto> request = RequestEntity
-                .post("/user")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(new UserDto(username, email, TestUserDetails.TEST_PASSWORD));
-        return restTemplate.exchange(request, User.class);
+        return this.mockMvc.perform(
+                        post("/user")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(ow.writeValueAsString(
+                                        new UserDto(username, email, TestUserDetails.TEST_PASSWORD))))
+                .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
+    }
+
+    @SneakyThrows
+    private MockHttpServletResponse createUser(
+            String username, String email, HttpStatus expectedStatus, String expectedErrorMessage) {
+
+        MockHttpServletResponse response = createUser(username, email, expectedStatus);
+        assertThat(response.getErrorMessage()).isEqualTo(expectedErrorMessage);
+        return response;
+    }
+
+    @SneakyThrows
+    private User getUserFromResponse(MockHttpServletResponse response) {
+        User user = mapper.readValue(response.getContentAsString(), User.class);
+        assertThat(user).isNotNull();
+        assertThat(user.getId()).isNotNull();
+        createdUserIds.add(user.getId());
+
+        return user;
     }
 }

@@ -190,9 +190,10 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "provided username is empty.");
         }
-        if (username.trim().length() < 3 || username.trim().length() > 40) {
+        if (username.trim().length() < User.MIN_USERNAME_LENGTH || username.trim().length() > User.MAX_USERNAME_LENGTH) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    "username needs to be between 3 and 40 characters.");
+                    String.format("username needs to be between %d and %d characters.",
+                            User.MIN_USERNAME_LENGTH, User.MAX_USERNAME_LENGTH));
         }
         if (userRepo.findByUsername(username).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,

@@ -12,6 +12,7 @@ import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserDto;
 import com.pbuczek.pf.user.UserRepository;
 import com.pbuczek.pf.user.UserType;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,6 @@ class EncounterIT implements TestUserDetails {
 
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private UserRepository userRepo;
     @Autowired
@@ -84,7 +84,8 @@ class EncounterIT implements TestUserDetails {
     }
 
     @Test
-    void encounterIsCreatedCorrectly() throws Exception {
+    @SneakyThrows
+    void encounterIsCreatedCorrectly() {
         int userId = createUserAndGetId(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         MvcResult result = getResultActionsForCreatingEncounter(userId, "test")
                 .andExpect(status().isOk()).andReturn();
@@ -105,7 +106,8 @@ class EncounterIT implements TestUserDetails {
     }
 
     @Test
-    void cannotCreateEncounterWithDescriptionTooLong() throws Exception {
+    @SneakyThrows
+    void cannotCreateEncounterWithDescriptionTooLong() {
         int userId = createUserAndGetId(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         MockHttpServletResponse response = getResultActionsForCreatingEncounter(userId,
                 RandomStringUtils.random(3001, true, true))
@@ -117,7 +119,8 @@ class EncounterIT implements TestUserDetails {
     }
 
     @Test
-    void differentStandardUserCannotReadEncounterThatIsNotPublished() throws Exception {
+    @SneakyThrows
+    void differentStandardUserCannotReadEncounterThatIsNotPublished() {
         int userId = createUserAndGetId(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         MvcResult postResult = getResultActionsForCreatingEncounter(userId, "test")
                 .andExpect(status().isOk()).andReturn();
@@ -137,7 +140,8 @@ class EncounterIT implements TestUserDetails {
     }
 
     @Test
-    void differentStandardUserCanReadEncounterThatIsPublished() throws Exception {
+    @SneakyThrows
+    void differentStandardUserCanReadEncounterThatIsPublished() {
         int userId = createUserAndGetId(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         MvcResult postResult = getResultActionsForCreatingEncounter(userId, "test")
                 .andExpect(status().isOk()).andReturn();
@@ -177,7 +181,8 @@ class EncounterIT implements TestUserDetails {
         return user.getId();
     }
 
-    private ResultActions getResultActionsForCreatingEncounter(Integer userId, String description) throws Exception {
+    @SneakyThrows
+    private ResultActions getResultActionsForCreatingEncounter(Integer userId, String description) {
         return this.mockMvc.perform(
                 post("/encounter")
                         .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
