@@ -1,13 +1,13 @@
-name: Maven - build and test
+name: Dependency Review
 
-on:
-  push:
-    branches: [ "master" ]
+on: [pull_request_target]
 
 jobs:
 
   build-and-test:
     runs-on: ubuntu-latest
     steps:
+      - name: Create container
+        uses: actions/checkout@v3
       - name: Dependency Review
         uses: actions/dependency-review-action@v3
