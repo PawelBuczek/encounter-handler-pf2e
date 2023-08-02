@@ -16,7 +16,7 @@ class ApiKeyTest {
     void apiKeyIsGeneratedCorrectly() {
         ApiKey apiKey = new ApiKey(UUID.randomUUID().toString(), 1);
 
-        assertAll("Verify encounters properties",
+        assertAll("Verify ApiKey properties",
                 () -> assertThat(apiKey.getUserId()).isEqualTo(1),
                 () -> assertThat(apiKey.getValidTillDate()).isBeforeOrEqualTo(LocalDate.now().plusYears(1)),
                 () -> assertThat(apiKey.getIdentifier()).isNotEmpty().isAlphanumeric().hasSize(35)
