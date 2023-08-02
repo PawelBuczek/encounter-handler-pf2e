@@ -108,6 +108,22 @@ class EncounterIT extends _BaseIT {
                 .isEqualTo(createdEncounter);
     }
 
+    @Test
+    @SneakyThrows
+    void adminCanReadEncounterThatIsNotPublished() {
+        int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        MockHttpServletResponse response = getResponseForCreatingEncounter(userId, "test", HttpStatus.OK);
+
+        Encounter createdEncounter = getEncounterFromResponse(response);
+        Integer createdEncounterId = createdEncounter.getId();
+
+        MockHttpServletResponse getResponse =
+                getResponseForGetEncounterRequest(createdEncounterId, TEST_USERNAME_ADMIN_1, HttpStatus.OK);
+        Encounter foundEncounter = getEncounterFromResponse(getResponse);
+
+        assertThat(foundEncounter).isEqualTo(createdEncounter);
+    }
+
     @SneakyThrows
     private MockHttpServletResponse getResponseForCreatingEncounter(
             Integer userId, String description, HttpStatus expectedStatus) {
