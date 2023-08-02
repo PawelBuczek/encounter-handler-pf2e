@@ -1,5 +1,6 @@
 package com.pbuczek.pf.encounter;
 
+import com.pbuczek.pf.interfaces.JpaEntity;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -15,7 +16,7 @@ import java.time.temporal.ChronoUnit;
 @NoArgsConstructor
 @Entity
 @Table(name = "encounter")
-public class Encounter {
+public class Encounter implements JpaEntity {
 
     public static final Integer MAX_DESCRIPTION_LENGTH = 3000;
 

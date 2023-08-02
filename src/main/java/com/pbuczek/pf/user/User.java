@@ -1,5 +1,6 @@
 package com.pbuczek.pf.user;
 
+import com.pbuczek.pf.interfaces.JpaEntity;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -18,7 +19,7 @@ import static com.pbuczek.pf.security.SecurityHelper.passwordEncoder;
 @NoArgsConstructor
 @Entity
 @Table(name = "user")
-public class User {
+public class User implements JpaEntity {
 
     public static final Integer MAX_USERNAME_LENGTH = 40;
     public static final Integer MIN_USERNAME_LENGTH = 3;
