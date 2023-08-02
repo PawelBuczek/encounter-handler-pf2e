@@ -5,16 +5,14 @@ import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
-@ResponseBody
 @Data
-@NoArgsConstructor
 @Entity
+@NoArgsConstructor
 @Table(name = "encounter")
 public class Encounter implements JpaEntity {
 

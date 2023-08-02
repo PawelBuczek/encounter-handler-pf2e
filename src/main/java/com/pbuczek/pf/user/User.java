@@ -5,7 +5,6 @@ import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,10 +13,9 @@ import java.time.temporal.ChronoUnit;
 
 import static com.pbuczek.pf.security.SecurityHelper.passwordEncoder;
 
-@ResponseBody
 @Data
-@NoArgsConstructor
 @Entity
+@NoArgsConstructor
 @Table(name = "user")
 public class User implements JpaEntity {
 
