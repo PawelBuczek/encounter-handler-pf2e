@@ -1,77 +1,43 @@
 package com.pbuczek.pf.it;
 
-import com.pbuczek.pf.TestUserDetails;
-import com.pbuczek.pf.user.*;
+import com.pbuczek.pf.user.PaymentPlan;
+import com.pbuczek.pf.user.User;
+import com.pbuczek.pf.user.UserType;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Tag("IntegrationTest")
-@AutoConfigureObservability
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class UserIT implements TestUserDetails {
-
-    private final List<Integer> createdUserIds = new ArrayList<>();
-
-    @Autowired
-    TestRestTemplate restTemplate;
-
-    @Autowired
-    UserRepository userRepo;
-
-    @BeforeEach
-    void setUp() {
-        Integer potentialId = userRepo.getIdByUsername(TEST_USERNAME_1);
-        if (potentialId != null) {
-            userRepo.deleteUser(potentialId);
-        }
-        User admin = new User(TEST_USERNAME_1, TEST_EMAIL_1, TEST_PASSWORD);
-        admin.setType(UserType.ADMIN);
-        admin.setEnabled(true);
-        userRepo.save(admin);
-        createdUserIds.add(admin.getId());
-    }
+class UserIT extends _BaseIT {
 
     @AfterEach
     void tearDown() {
         createdUserIds.forEach(id -> userRepo.deleteUser(id));
     }
 
+
     @Test
+    @SneakyThrows
     void userIsCreatedCorrectly() {
-        ResponseEntity<User> response = getResponseForCreatingUser(TEST_USERNAME_2, TEST_EMAIL_2);
+        MockHttpServletResponse response =
+                createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK);
 
-        assertThat(response).isNotNull();
-        User createdUser = response.getBody();
-        assert createdUser != null;
-        assertThat(createdUser.getId()).isNotNull();
-        createdUserIds.add(createdUser.getId());
+        User createdUser = getUserFromResponse(response);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getHeaders().getContentDisposition().isInline()).isFalse();
-
-        assertAll("Verify createdUser properties",
-                () -> assertThat(createdUser.getUsername()).isEqualTo(TEST_USERNAME_2),
-                () -> assertThat(createdUser.getEmail()).isEqualTo(TEST_EMAIL_2),
+        assertAll("Verify User properties",
+                () -> assertThat(createdUser.getUsername()).isEqualTo(TEST_USERNAME_STANDARD_1),
+                () -> assertThat(createdUser.getEmail()).isEqualTo(TEST_EMAIL_STANDARD_1),
                 () -> assertThat(createdUser.getLocked()).isFalse(),
                 () -> assertThat(createdUser.getEnabled()).isFalse(),
                 () -> assertThat(createdUser.getTimeCreated()).isBeforeOrEqualTo(LocalDateTime.now()),
@@ -87,70 +53,51 @@ class UserIT implements TestUserDetails {
     }
 
     @Test
-    void duplicateUserWillNotBeCreated() {
-        ResponseEntity<User> response;
-
-        response = getResponseForCreatingUser(TEST_USERNAME_2, TEST_EMAIL_1);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-
-        response = getResponseForCreatingUser(TEST_USERNAME_1, TEST_EMAIL_2);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-
-        response = getResponseForCreatingUser(TEST_USERNAME_1, TEST_EMAIL_1);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-    }
-
-    @Test
+    @SneakyThrows
     void userWithWrongUsernameWillNotBeCreated() {
-        ResponseEntity<User> response;
+        createUser(null, TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY,
+                "provided username is empty.");
+        createUser("", TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY,
+                "provided username is empty.");
 
-        response = getResponseForCreatingUser(null, TEST_EMAIL_2);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        String username;
+        username = RandomStringUtils.random(User.MIN_USERNAME_LENGTH - 1, true, true);
+        createUser(username, TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY,
+                String.format("username needs to be between %d and %d characters.",
+                        User.MIN_USERNAME_LENGTH, User.MAX_USERNAME_LENGTH));
 
-        response = getResponseForCreatingUser("", TEST_EMAIL_2);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        username = RandomStringUtils.random(User.MAX_USERNAME_LENGTH + 1, true, true);
+        createUser(username, TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY,
+                String.format("username needs to be between %d and %d characters.",
+                        User.MIN_USERNAME_LENGTH, User.MAX_USERNAME_LENGTH));
 
-        response = getResponseForCreatingUser("ab", TEST_EMAIL_2);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-
-        response = getResponseForCreatingUser(
-                TEST_USERNAME_2 + RandomStringUtils.random(40, true, true), TEST_EMAIL_2);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        createUser(TEST_USERNAME_ADMIN_1, TEST_EMAIL_STANDARD_1, HttpStatus.CONFLICT,
+                String.format("username '%s' is already being used by another user.", TEST_USERNAME_ADMIN_1));
     }
 
     @Test
+    @SneakyThrows
     void userWithWrongEmailWillNotBeCreated() {
-        ResponseEntity<User> response;
+        createUser(TEST_USERNAME_STANDARD_1, null, HttpStatus.UNPROCESSABLE_ENTITY,
+                "provided email is empty.");
+        createUser(TEST_USERNAME_STANDARD_1, "", HttpStatus.UNPROCESSABLE_ENTITY,
+                "provided email is empty.");
+        createUser(TEST_USERNAME_STANDARD_1, "test", HttpStatus.UNPROCESSABLE_ENTITY,
+                "provided user email 'test' is not valid.");
+        createUser(TEST_USERNAME_STANDARD_1, "test@test.", HttpStatus.UNPROCESSABLE_ENTITY,
+                "provided user email 'test@test.' is not valid.");
 
-        response = getResponseForCreatingUser(TEST_USERNAME_2, null);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-
-        response = getResponseForCreatingUser(TEST_USERNAME_2, "");
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-
-        response = getResponseForCreatingUser(TEST_USERNAME_2, "test");
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-
-        response = getResponseForCreatingUser(TEST_USERNAME_2, "test@test.");
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_ADMIN_1, HttpStatus.CONFLICT,
+                String.format("email '%s' is already being used by another user.", TEST_EMAIL_ADMIN_1));
     }
 
-    private ResponseEntity<User> getResponseForCreatingUser(String username, String email) {
-        RequestEntity<UserDto> request = RequestEntity
-                .post("/user")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(new UserDto(username, email, TestUserDetails.TEST_PASSWORD));
-        return restTemplate.exchange(request, User.class);
+    @SneakyThrows
+    private User getUserFromResponse(MockHttpServletResponse response) {
+        User user = mapper.readValue(response.getContentAsString(), User.class);
+        assertThat(user).isNotNull();
+        assertThat(user.getId()).isNotNull();
+        createdUserIds.add(user.getId());
+
+        return user;
     }
 }

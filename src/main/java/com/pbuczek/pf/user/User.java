@@ -20,6 +20,9 @@ import static com.pbuczek.pf.security.SecurityHelper.passwordEncoder;
 @Table(name = "user")
 public class User {
 
+    public static final Integer MAX_USERNAME_LENGTH = 40;
+    public static final Integer MIN_USERNAME_LENGTH = 3;
+
     public User(String username, String email, String password) {
         this.username = username == null ? "" : username.trim();
         this.email = email == null ? "" : email.trim();

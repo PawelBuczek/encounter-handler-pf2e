@@ -1,7 +1,4 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
-
-name: Java CI with Maven
+name: Maven - build and test
 
 on:
   push:
@@ -10,8 +7,8 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
 
+  build-and-test:
     runs-on: ubuntu-latest
     env:
       DB_DATABASE: pf
@@ -27,10 +24,10 @@ jobs:
           collation server: 'utf8_general_ci'
           mariadb version: 'latest'
           mysql database: 'pf'
-          mysql root password: root # can also be: ${{ secrets.RootPassword }}
+          mysql root password: root # for now, later will be: ${{ secrets.RootPassword }}
           mysql user: 'root'
-          # mysql password: ${{ secrets.DatabasePassword }} # Required only if "mysql user" exists.
-      - uses: actions/checkout@v3
+      - name: Create container
+        uses: actions/checkout@v3
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -43,7 +40,7 @@ jobs:
         run: mvn -Dtest=com/pbuczek/pf/UnitTests.java test
       - name: Run IntegrationTests
         run: mvn -Dtest=com/pbuczek/pf/IntegrationTests.java test
-
-      # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
       - name: Update dependency graph
         uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
