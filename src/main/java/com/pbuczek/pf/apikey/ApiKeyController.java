@@ -20,7 +20,7 @@ import java.util.UUID;
 @RequestMapping(value = "/apikey")
 public class ApiKeyController {
 
-    private final static Map<PaymentPlan, Integer> API_KEY_LIMITS = Map.of(
+    public final static Map<PaymentPlan, Integer> API_KEY_LIMITS = Map.of(
             PaymentPlan.FREE, 0,
             PaymentPlan.ADVENTURER, 2,
             PaymentPlan.HERO, 5);

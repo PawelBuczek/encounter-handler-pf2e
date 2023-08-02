@@ -3,7 +3,6 @@ package com.pbuczek.pf.it;
 import com.pbuczek.pf.user.PaymentPlan;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserType;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
@@ -28,7 +27,6 @@ class UserIT extends _BaseIT {
 
 
     @Test
-    @SneakyThrows
     void userIsCreatedCorrectly() {
         MockHttpServletResponse response =
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK);
@@ -53,7 +51,6 @@ class UserIT extends _BaseIT {
     }
 
     @Test
-    @SneakyThrows
     void userWithWrongUsernameWillNotBeCreated() {
         createUser(null, TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY,
                 "provided username is empty.");
@@ -76,7 +73,6 @@ class UserIT extends _BaseIT {
     }
 
     @Test
-    @SneakyThrows
     void userWithWrongEmailWillNotBeCreated() {
         createUser(TEST_USERNAME_STANDARD_1, null, HttpStatus.UNPROCESSABLE_ENTITY,
                 "provided email is empty.");
@@ -91,13 +87,7 @@ class UserIT extends _BaseIT {
                 String.format("email '%s' is already being used by another user.", TEST_EMAIL_ADMIN_1));
     }
 
-    @SneakyThrows
     private User getUserFromResponse(MockHttpServletResponse response) {
-        User user = mapper.readValue(response.getContentAsString(), User.class);
-        assertThat(user).isNotNull();
-        assertThat(user.getId()).isNotNull();
-        createdUserIds.add(user.getId());
-
-        return user;
+        return getObjectFromResponse(response, User.class, createdUserIds);
     }
 }

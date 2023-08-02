@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pbuczek.pf.TestUserDetails;
+import com.pbuczek.pf.interfaces.JpaEntity;
 import com.pbuczek.pf.user.*;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeAll;
@@ -102,5 +103,17 @@ class _BaseIT implements TestUserDetails {
     String getBasicAuthenticationHeader(String username) {
         String valueToEncode = username + ":" + TEST_PASSWORD;
         return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+    }
+
+    @SneakyThrows
+    <T extends JpaEntity> T getObjectFromResponse(
+            MockHttpServletResponse response, Class<T> returnedClass, List<Integer> list) {
+
+        T object = mapper.readValue(response.getContentAsString(), returnedClass);
+        assertThat(object).isNotNull();
+        assertThat(object.getId()).isNotNull();
+        list.add(object.getId());
+
+        return object;
     }
 }

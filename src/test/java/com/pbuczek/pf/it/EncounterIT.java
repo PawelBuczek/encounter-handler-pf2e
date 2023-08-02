@@ -40,7 +40,6 @@ class EncounterIT extends _BaseIT {
     }
 
     @Test
-    @SneakyThrows
     void encounterIsCreatedCorrectly() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         MockHttpServletResponse response = getResponseForCreatingEncounter(userId, "test", HttpStatus.OK);
@@ -60,7 +59,6 @@ class EncounterIT extends _BaseIT {
     }
 
     @Test
-    @SneakyThrows
     void cannotCreateEncounterWithDescriptionTooLong() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         String description = RandomStringUtils.random(3001, true, true);
@@ -71,7 +69,6 @@ class EncounterIT extends _BaseIT {
     }
 
     @Test
-    @SneakyThrows
     void differentStandardUserCannotReadEncounterThatIsNotPublished() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         MockHttpServletResponse response = getResponseForCreatingEncounter(userId, "test", HttpStatus.OK);
@@ -87,7 +84,6 @@ class EncounterIT extends _BaseIT {
     }
 
     @Test
-    @SneakyThrows
     void differentStandardUserCanReadEncounterThatIsPublished() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         MockHttpServletResponse postResponse = getResponseForCreatingEncounter(userId, "test", HttpStatus.OK);
@@ -106,6 +102,22 @@ class EncounterIT extends _BaseIT {
         assertThat(foundEncounter).usingRecursiveComparison()
                 .ignoringFields("published")
                 .isEqualTo(createdEncounter);
+    }
+
+    @Test
+    @SneakyThrows
+    void adminCanReadEncounterThatIsNotPublished() {
+        int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        MockHttpServletResponse response = getResponseForCreatingEncounter(userId, "test", HttpStatus.OK);
+
+        Encounter createdEncounter = getEncounterFromResponse(response);
+        Integer createdEncounterId = createdEncounter.getId();
+
+        MockHttpServletResponse getResponse =
+                getResponseForGetEncounterRequest(createdEncounterId, TEST_USERNAME_ADMIN_1, HttpStatus.OK);
+        Encounter foundEncounter = getEncounterFromResponse(getResponse);
+
+        assertThat(foundEncounter).isEqualTo(createdEncounter);
     }
 
     @SneakyThrows
@@ -128,19 +140,15 @@ class EncounterIT extends _BaseIT {
                 .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
     }
 
-    private void publishUnpublishEncounter(int encounterId) throws Exception {
+    @SneakyThrows
+    private void publishUnpublishEncounter(int encounterId) {
         this.mockMvc.perform(patch("/encounter/published/" + encounterId)
                 .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
     }
 
     @SneakyThrows
     private Encounter getEncounterFromResponse(MockHttpServletResponse response) {
-        Encounter encounter = mapper.readValue(response.getContentAsString(), Encounter.class);
-        assertThat(encounter).isNotNull();
-        assertThat(encounter.getId()).isNotNull();
-        createdEncounterIds.add(encounter.getId());
-
-        return encounter;
+        return getObjectFromResponse(response, Encounter.class, createdEncounterIds);
     }
 
 }

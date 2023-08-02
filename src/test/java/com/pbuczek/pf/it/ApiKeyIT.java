@@ -14,9 +14,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import static com.pbuczek.pf.apikey.ApiKeyController.API_KEY_LIMITS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,13 +39,12 @@ public class ApiKeyIT extends _BaseIT {
 
 
     @Test
-    @SneakyThrows
     void apiKeyIsCreatedCorrectly() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         enableUserAccount(userId);
         changeUserPaymentPlan(userId, PaymentPlan.ADVENTURER);
 
-        String apiKeyReceivedPass = createApiKey(HttpStatus.OK, TEST_USERNAME_STANDARD_1);
+        String apiKeyReceivedPass = createApiKey(HttpStatus.OK);
         assertThat(apiKeyReceivedPass).hasSize(71);
 
         ApiKey apiKey = getApiKeyFromRepo(apiKeyReceivedPass);
@@ -56,11 +58,53 @@ public class ApiKeyIT extends _BaseIT {
                         .doesNotContainAnyWhitespaces().hasLineCount(1));
     }
 
+    @Test
+    void apiKeyCanBeDeleted() {
+        int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        enableUserAccount(userId);
+        changeUserPaymentPlan(userId, PaymentPlan.ADVENTURER);
+
+        String apiKeyReceivedPass = createApiKey(HttpStatus.OK);
+
+        deleteApiKey(userId, apiKeyReceivedPass.substring(0, ApiKey.IDENTIFIER_LENGTH));
+
+        Optional<ApiKey> optionalApiKey =
+                apiRepo.findByIdentifier(apiKeyReceivedPass.substring(0, ApiKey.IDENTIFIER_LENGTH));
+        assertThat(optionalApiKey).isEmpty();
+    }
+
+
+    @Test
+    void apiKeysCannotBeCreatedOverLimit() {
+        int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        enableUserAccount(userId);
+
+        API_KEY_LIMITS.forEach((paymentPlan, limit) -> {
+            changeUserPaymentPlan(userId, paymentPlan);
+            for (int i = 0; i < limit; i++) {
+                apiRepo.save(new ApiKey(UUID.randomUUID().toString(), userId));
+            }
+            createApiKey(HttpStatus.BAD_REQUEST);
+
+            List<ApiKey> apiKeysList = apiRepo.findByUserId(userId);
+
+            apiKeysList.forEach(apiKey -> apiRepo.deleteApiKeyByIdentifier(apiKey.getIdentifier()));
+        });
+    }
+
+
     @SneakyThrows
-    private String createApiKey(HttpStatus expectedStatus, String username) {
+    private String createApiKey(HttpStatus expectedStatus) {
         return this.mockMvc.perform(post("/apikey")
-                        .header("Authorization", getBasicAuthenticationHeader(username)))
+                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_STANDARD_1)))
                 .andExpect(status().is(expectedStatus.value())).andReturn().getResponse().getContentAsString();
+    }
+
+    @SneakyThrows
+    private void deleteApiKey(Integer userId, String identifier) {
+        this.mockMvc.perform(delete("/apikey/" + userId + "/" + identifier)
+                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_STANDARD_1)))
+                .andExpect(status().is(HttpStatus.OK.value())).andReturn().getResponse();
     }
 
 
