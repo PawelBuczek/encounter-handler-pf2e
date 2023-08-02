@@ -11,6 +11,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("IntegrationTest")
 @AutoConfigureObservability
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 class UserIT implements TestUserDetails {
 
     private final List<Integer> createdUserIds = new ArrayList<>();
@@ -94,47 +96,41 @@ class UserIT implements TestUserDetails {
 
     @Test
     @SneakyThrows
-    void duplicateUserWillNotBeCreated() {
-        createUser(TEST_USERNAME_ADMIN_1, TEST_EMAIL_ADMIN_1, HttpStatus.CONFLICT);
-        createUser(TEST_USERNAME_ADMIN_1, TEST_EMAIL_STANDARD_1, HttpStatus.CONFLICT);
-        createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_ADMIN_1, HttpStatus.CONFLICT);
-    }
-
-    @Test
-    @SneakyThrows
     void userWithWrongUsernameWillNotBeCreated() {
-        createUser(null, TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY);
-        createUser("", TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY);
+        createUser(null, TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY,
+                "provided username is empty.");
+        createUser("", TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY,
+                "provided username is empty.");
 
         String username;
         username = RandomStringUtils.random(User.MIN_USERNAME_LENGTH - 1, true, true);
-        createUser(username, TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY);
+        createUser(username, TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY,
+                String.format("username needs to be between %d and %d characters.",
+                        User.MIN_USERNAME_LENGTH, User.MAX_USERNAME_LENGTH));
+
         username = RandomStringUtils.random(User.MAX_USERNAME_LENGTH + 1, true, true);
-        createUser(username, TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY);
+        createUser(username, TEST_EMAIL_STANDARD_1, HttpStatus.UNPROCESSABLE_ENTITY,
+                String.format("username needs to be between %d and %d characters.",
+                        User.MIN_USERNAME_LENGTH, User.MAX_USERNAME_LENGTH));
+
+        createUser(TEST_USERNAME_ADMIN_1, TEST_EMAIL_STANDARD_1, HttpStatus.CONFLICT,
+                String.format("username '%s' is already being used by another user.", TEST_USERNAME_ADMIN_1));
     }
 
     @Test
     @SneakyThrows
     void userWithWrongEmailWillNotBeCreated() {
-        MockHttpServletResponse response;
+        createUser(TEST_USERNAME_STANDARD_1, null, HttpStatus.UNPROCESSABLE_ENTITY,
+                "provided email is empty.");
+        createUser(TEST_USERNAME_STANDARD_1, "", HttpStatus.UNPROCESSABLE_ENTITY,
+                "provided email is empty.");
+        createUser(TEST_USERNAME_STANDARD_1, "test", HttpStatus.UNPROCESSABLE_ENTITY,
+                "provided user email 'test' is not valid.");
+        createUser(TEST_USERNAME_STANDARD_1, "test@test.", HttpStatus.UNPROCESSABLE_ENTITY,
+                "provided user email 'test@test.' is not valid.");
 
-        response = createUser(TEST_USERNAME_STANDARD_1, null, HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getErrorMessage()).isEqualTo("costam");
-
-        response = createUser(TEST_USERNAME_STANDARD_1, "", HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getErrorMessage()).isEqualTo("costam");
-
-        response = createUser(TEST_USERNAME_STANDARD_1, "", HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getErrorMessage()).isEqualTo("test");
-
-        response = createUser(TEST_USERNAME_STANDARD_1, "", HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getErrorMessage()).isEqualTo("test@test.");
-    }
-
-    @Test
-    @SneakyThrows
-    void canAuthenticateWithApiKey() {
-
+        createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_ADMIN_1, HttpStatus.CONFLICT,
+                String.format("email '%s' is already being used by another user.", TEST_EMAIL_ADMIN_1));
     }
 
     @SneakyThrows
@@ -150,12 +146,11 @@ class UserIT implements TestUserDetails {
     }
 
     @SneakyThrows
-    private MockHttpServletResponse createUser(
+    private void createUser(
             String username, String email, HttpStatus expectedStatus, String expectedErrorMessage) {
 
         MockHttpServletResponse response = createUser(username, email, expectedStatus);
         assertThat(response.getErrorMessage()).isEqualTo(expectedErrorMessage);
-        return response;
     }
 
     @SneakyThrows

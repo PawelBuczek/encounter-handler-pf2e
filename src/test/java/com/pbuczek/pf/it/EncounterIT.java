@@ -113,7 +113,6 @@ class EncounterIT implements TestUserDetails {
                 RandomStringUtils.random(3001, true, true))
                 .andExpect(status().isBadRequest()).andReturn().getResponse();
 
-        assertThat(response).isNotNull();
         assertThat(response.getErrorMessage()).isEqualTo(
                 String.format("description too long. Max '%d' signs allowed.", MAX_DESCRIPTION_LENGTH));
     }
