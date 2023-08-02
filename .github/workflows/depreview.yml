@@ -10,7 +10,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Create container
-        uses: actions/checkout@v3
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v3
+    - name: Create container
+      uses: actions/checkout@v3
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v3
