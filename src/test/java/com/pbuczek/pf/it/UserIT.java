@@ -1,6 +1,5 @@
 package com.pbuczek.pf.it;
 
-import com.pbuczek.pf.encounter.Encounter;
 import com.pbuczek.pf.user.PaymentPlan;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserType;
