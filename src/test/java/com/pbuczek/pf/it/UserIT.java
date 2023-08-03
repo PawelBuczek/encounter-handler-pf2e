@@ -3,6 +3,7 @@ package com.pbuczek.pf.it;
 import com.pbuczek.pf.user.PaymentPlan;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserType;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
@@ -16,6 +17,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 @Tag("IntegrationTest")
 class UserIT extends _BaseIT {
@@ -44,9 +46,7 @@ class UserIT extends _BaseIT {
                 () -> assertThat(createdUser.getType()).isEqualTo(UserType.STANDARD),
                 () -> assertThat(createdUser.getPassword()).isEqualTo("[hidden for security reasons]"));
 
-        Optional<User> optionalUser = userRepo.findById(createdUser.getId());
-        assertThat(optionalUser).isPresent();
-        assertThat(optionalUser.get()).usingRecursiveComparison()
+        assertThat(getUserFromRepo(createdUser.getId())).usingRecursiveComparison()
                 .ignoringFields("password").isEqualTo(createdUser);
     }
 
@@ -85,6 +85,31 @@ class UserIT extends _BaseIT {
 
         createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_ADMIN_1, HttpStatus.CONFLICT,
                 String.format("email '%s' is already being used by another user.", TEST_EMAIL_ADMIN_1));
+    }
+
+    @Test
+    void userCanBeDeleted() {
+        Integer userId = getUserFromResponse(
+                createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK)).getId();
+
+        getUserFromRepo(userId);
+        assertThat(deleteUser(userId)).isEqualTo(1);
+        assertThat(deleteUser(userId)).isEqualTo(0);
+        Optional<User> optionalUser = userRepo.findById(userId);
+        assertThat(optionalUser).isEmpty();
+    }
+
+
+    @SneakyThrows
+    private int deleteUser(Integer userId) {
+        return Integer.parseInt(this.mockMvc.perform(delete("/user/" + userId)
+                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))).andReturn().getResponse().getContentAsString());
+    }
+
+    private User getUserFromRepo(Integer userId) {
+        Optional<User> optionalUser = userRepo.findById(userId);
+        assertThat(optionalUser).isPresent();
+        return optionalUser.get();
     }
 
     private User getUserFromResponse(MockHttpServletResponse response) {
