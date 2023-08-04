@@ -8,9 +8,11 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,7 +21,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 
 @Tag("IntegrationTest")
 class UserIT extends _BaseIT {
@@ -188,17 +189,21 @@ class UserIT extends _BaseIT {
     }
 
     @SneakyThrows
-    private User sendAdminPatchRequest(String url, String content) {
+    private User sendAdminRequest(HttpMethod requestMethod, String url, String content) {
         return getUserFromResponse(
-                this.mockMvc.perform(patch(url)
+                this.mockMvc.perform(MockMvcRequestBuilders.request(requestMethod, url)
                                 .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(content))
                         .andReturn().getResponse());
     }
 
+    private User sendAdminPatchRequest(String url, String content) {
+        return sendAdminRequest(HttpMethod.PATCH, url, content);
+    }
+
     private User sendAdminPatchRequest(String url) {
-        return sendAdminPatchRequest(url, "");
+        return sendAdminRequest(HttpMethod.PATCH, url, "");
     }
 
     @SneakyThrows
