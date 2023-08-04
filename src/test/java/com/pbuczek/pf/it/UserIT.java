@@ -188,23 +188,23 @@ class UserIT extends _BaseIT {
     }
 
     @SneakyThrows
-    private User sendAdminPatchRequest(String url) {
+    private User sendAdminPatchRequest(String url, String content) {
         return getObjectFromResponse(
                 this.mockMvc.perform(patch(url)
-                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)))
+                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(content))
                         .andReturn().getResponse(),
                 User.class, createdUserIds);
     }
 
+    private User sendAdminPatchRequest(String url) {
+        return sendAdminPatchRequest(url, "");
+    }
+
     @SneakyThrows
     private User updateEmail(Integer userId, String email) {
-        return getObjectFromResponse(
-                this.mockMvc.perform(patch("/user/email/" + userId)
-                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(email))
-                        .andReturn().getResponse(),
-                User.class, createdUserIds);
+        return sendAdminPatchRequest("/user/email/" + userId, email);
     }
 
     @SneakyThrows
