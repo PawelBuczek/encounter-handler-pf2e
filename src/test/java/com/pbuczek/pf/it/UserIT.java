@@ -189,7 +189,7 @@ class UserIT extends _BaseIT {
     }
 
     @SneakyThrows
-    private User sendAdminRequest(HttpMethod requestMethod, String url, String content) {
+    private User sendAdminRequestUser(HttpMethod requestMethod, String url, String content) {
         return getUserFromResponse(
                 this.mockMvc.perform(MockMvcRequestBuilders.request(requestMethod, url)
                                 .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
@@ -199,11 +199,11 @@ class UserIT extends _BaseIT {
     }
 
     private User sendAdminPatchRequest(String url, String content) {
-        return sendAdminRequest(HttpMethod.PATCH, url, content);
+        return sendAdminRequestUser(HttpMethod.PATCH, url, content);
     }
 
     private User sendAdminPatchRequest(String url) {
-        return sendAdminRequest(HttpMethod.PATCH, url, "");
+        return sendAdminRequestUser(HttpMethod.PATCH, url, "");
     }
 
     @SneakyThrows

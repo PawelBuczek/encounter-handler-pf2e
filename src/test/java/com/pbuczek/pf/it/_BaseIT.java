@@ -14,10 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.ArrayList;
 import java.util.Base64;
@@ -25,8 +28,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureObservability
@@ -77,27 +78,31 @@ class _BaseIT implements TestUserDetails {
 
     @SneakyThrows
     MockHttpServletResponse createUser(String username, String email, HttpStatus expectedStatus) {
-        return this.mockMvc.perform(post("/user")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(ow.writeValueAsString(new UserDto(username, email, TEST_PASSWORD))))
-                .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
+        return sendAdminRequest(HttpMethod.POST,
+                "/user",
+                ow.writeValueAsString(new UserDto(username, email, TEST_PASSWORD)))
+                .andExpect(status().is(expectedStatus.value()))
+                .andReturn().getResponse();
     }
 
-    @SneakyThrows
     void createUser(String username, String email, HttpStatus expectedStatus, String expectedErrorMessage) {
         assertThat(createUser(username, email, expectedStatus).getErrorMessage()).isEqualTo(expectedErrorMessage);
     }
 
     @SneakyThrows
-    void enableUserAccount(int userId) {
-        this.mockMvc.perform(patch("/user/enable/" + userId)
-                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
+    ResultActions sendAdminRequest(HttpMethod requestMethod, String url, String content) {
+        return this.mockMvc.perform(MockMvcRequestBuilders.request(requestMethod, url)
+                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content));
     }
 
-    @SneakyThrows
-    void changeUserPaymentPlan(Integer userid, PaymentPlan plan) {
-        this.mockMvc.perform(patch("/user/paymentplan/" + userid + "/" + plan)
-                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
+    void enableUserAccount(int userId) {
+        sendAdminRequest(HttpMethod.PATCH, "/user/enable/" + userId, "");
+    }
+
+    void changeUserPaymentPlan(Integer userId, PaymentPlan plan) {
+        sendAdminRequest(HttpMethod.PATCH, "/user/paymentplan/" + userId + "/" + plan, "");
     }
 
     String getBasicAuthenticationHeader(String username) {
