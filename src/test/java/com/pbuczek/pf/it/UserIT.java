@@ -9,6 +9,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.time.LocalDate;
@@ -124,8 +125,8 @@ class UserIT extends _BaseIT {
                 .isEqualTo(getUserFromRepo(userId).getPasswordLastUpdatedDate())
                 .isAfter(initialUser.getPasswordLastUpdatedDate());
 
-        assertThat(getUserFromRepo(userId)).usingRecursiveComparison()
-                .ignoringFields("passwordLastUpdatedDate").isEqualTo(initialUser);
+        assertThat(initialUser).usingRecursiveComparison()
+                .ignoringFields("passwordLastUpdatedDate").isEqualTo(getUserFromRepo(userId));
     }
 
     @Test
@@ -137,11 +138,11 @@ class UserIT extends _BaseIT {
         assertThat(lockUnlock(userId).getLocked()).isEqualTo(getUserFromRepo(userId).getLocked()).isTrue();
         assertThat(lockUnlock(userId).getLocked()).isEqualTo(getUserFromRepo(userId).getLocked()).isFalse();
 
-        assertThat(getUserFromRepo(userId)).isEqualTo(initialUser);
+        assertThat(initialUser).isEqualTo(getUserFromRepo(userId));
     }
 
     @Test
-    void paymentPlanIsInitiallyFreeAndCanBeUpdated() {
+    void userPaymentPlanIsInitiallyFreeAndCanBeUpdated() {
         Integer userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         User initialUser = getUserFromRepo(userId);
         assertThat(initialUser.getPaymentPlan()).isEqualTo(PaymentPlan.FREE);
@@ -153,7 +154,21 @@ class UserIT extends _BaseIT {
                 .isEqualTo(getUserFromRepo(userId).getPaymentPlan())
                 .isEqualTo(PaymentPlan.FREE);
 
-        assertThat(getUserFromRepo(userId)).isEqualTo(initialUser);
+        assertThat(initialUser).isEqualTo(getUserFromRepo(userId));
+    }
+
+    @Test
+    void userEmailCanBeUpdated() {
+        Integer userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        User initialUser = getUserFromRepo(userId);
+        assertThat(initialUser.getEmail()).isEqualTo(TEST_EMAIL_STANDARD_1);
+
+        assertThat(updateEmail(userId, TEST_EMAIL_STANDARD_2).getEmail())
+                .isEqualTo(getUserFromRepo(userId).getEmail()).isEqualTo(TEST_EMAIL_STANDARD_2);
+        assertThat(updateEmail(userId, TEST_EMAIL_STANDARD_1)
+                .getEmail()).isEqualTo(getUserFromRepo(userId).getEmail()).isEqualTo(TEST_EMAIL_STANDARD_1);
+
+        assertThat(initialUser).isEqualTo(getUserFromRepo(userId));
     }
 
     private User updatePaymentPlan(Integer userId, PaymentPlan paymentPlan) {
@@ -181,6 +196,16 @@ class UserIT extends _BaseIT {
                 User.class, createdUserIds);
     }
 
+    @SneakyThrows
+    private User updateEmail(Integer userId, String email) {
+        return getObjectFromResponse(
+                this.mockMvc.perform(patch("/user/email/" + userId)
+                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(email))
+                        .andReturn().getResponse(),
+                User.class, createdUserIds);
+    }
 
     @SneakyThrows
     private int deleteUser(Integer userId) {
