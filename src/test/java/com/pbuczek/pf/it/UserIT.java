@@ -189,13 +189,12 @@ class UserIT extends _BaseIT {
 
     @SneakyThrows
     private User sendAdminPatchRequest(String url, String content) {
-        return getObjectFromResponse(
+        return getUserFromResponse(
                 this.mockMvc.perform(patch(url)
                                 .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(content))
-                        .andReturn().getResponse(),
-                User.class, createdUserIds);
+                        .andReturn().getResponse());
     }
 
     private User sendAdminPatchRequest(String url) {
