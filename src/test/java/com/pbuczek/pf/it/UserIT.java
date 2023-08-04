@@ -106,8 +106,8 @@ class UserIT extends _BaseIT {
         User initialUser = getUserFromRepo(userId);
 
         assertThat(initialUser.getType()).isEqualTo(UserType.STANDARD);
-        assertThat(updateUserType(userId, UserType.ADMIN)).isEqualTo(UserType.ADMIN);
-        assertThat(updateUserType(userId, UserType.STANDARD)).isEqualTo(UserType.STANDARD);
+        assertThat(updateUserType(userId, UserType.ADMIN).getType()).isEqualTo(UserType.ADMIN);
+        assertThat(updateUserType(userId, UserType.STANDARD).getType()).isEqualTo(UserType.STANDARD);
 
         assertThat(initialUser).isEqualTo(getUserFromRepo(userId));
     }
@@ -120,7 +120,7 @@ class UserIT extends _BaseIT {
         initialUser.setPasswordLastUpdatedDate(LocalDate.now().minusDays(1));
         userRepo.save(initialUser);
 
-        assertThat(refreshPasswordLastUpdatedDate(userId))
+        assertThat(refreshPasswordLastUpdatedDate(userId).getPasswordLastUpdatedDate())
                 .isEqualTo(getUserFromRepo(userId).getPasswordLastUpdatedDate())
                 .isAfter(initialUser.getPasswordLastUpdatedDate());
 
@@ -134,8 +134,8 @@ class UserIT extends _BaseIT {
         User initialUser = getUserFromRepo(userId);
         assertThat(initialUser.getLocked()).isFalse();
 
-        assertThat(lockUnlock(userId)).isEqualTo(getUserFromRepo(userId).getLocked()).isTrue();
-        assertThat(lockUnlock(userId)).isEqualTo(getUserFromRepo(userId).getLocked()).isFalse();
+        assertThat(lockUnlock(userId).getLocked()).isEqualTo(getUserFromRepo(userId).getLocked()).isTrue();
+        assertThat(lockUnlock(userId).getLocked()).isEqualTo(getUserFromRepo(userId).getLocked()).isFalse();
 
         assertThat(getUserFromRepo(userId)).isEqualTo(initialUser);
     }
@@ -146,48 +146,39 @@ class UserIT extends _BaseIT {
         User initialUser = getUserFromRepo(userId);
         assertThat(initialUser.getPaymentPlan()).isEqualTo(PaymentPlan.FREE);
 
-        assertThat(updatePaymentPlan(userId, PaymentPlan.HERO)).isEqualTo(getUserFromRepo(userId).getPaymentPlan())
+        assertThat(updatePaymentPlan(userId, PaymentPlan.HERO).getPaymentPlan())
+                .isEqualTo(getUserFromRepo(userId).getPaymentPlan())
                 .isEqualTo(PaymentPlan.HERO);
-        assertThat(updatePaymentPlan(userId, PaymentPlan.FREE)).isEqualTo(getUserFromRepo(userId).getPaymentPlan())
+        assertThat(updatePaymentPlan(userId, PaymentPlan.FREE).getPaymentPlan())
+                .isEqualTo(getUserFromRepo(userId).getPaymentPlan())
                 .isEqualTo(PaymentPlan.FREE);
 
         assertThat(getUserFromRepo(userId)).isEqualTo(initialUser);
     }
 
-    @SneakyThrows
-    private PaymentPlan updatePaymentPlan(Integer userId, PaymentPlan paymentPlan) {
-        return getObjectFromResponse(
-                this.mockMvc.perform(patch("/user/paymentplan/" + userId + "/" + paymentPlan)
-                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)))
-                        .andReturn().getResponse(),
-                User.class, createdUserIds).getPaymentPlan();
+    private User updatePaymentPlan(Integer userId, PaymentPlan paymentPlan) {
+        return sendAdminPatchRequest("/user/paymentplan/" + userId + "/" + paymentPlan);
+    }
+
+    private User lockUnlock(Integer userId) {
+        return sendAdminPatchRequest("/user/lock-unlock/" + userId);
+    }
+
+    private User refreshPasswordLastUpdatedDate(Integer userId) {
+        return sendAdminPatchRequest("/user/refresh-password-last-updated-date/" + userId);
+    }
+
+    private User updateUserType(Integer userId, UserType userType) {
+        return sendAdminPatchRequest("/user/usertype/" + userId + "/" + userType);
     }
 
     @SneakyThrows
-    private Boolean lockUnlock(Integer userId) {
+    private User sendAdminPatchRequest(String url) {
         return getObjectFromResponse(
-                this.mockMvc.perform(patch("/user/lock-unlock/" + userId)
+                this.mockMvc.perform(patch(url)
                                 .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)))
                         .andReturn().getResponse(),
-                User.class, createdUserIds).getLocked();
-    }
-
-    @SneakyThrows
-    private LocalDate refreshPasswordLastUpdatedDate(Integer userId) {
-        return getObjectFromResponse(
-                this.mockMvc.perform(patch("/user/refresh-password-last-updated-date/" + userId)
-                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)))
-                        .andReturn().getResponse(),
-                User.class, createdUserIds).getPasswordLastUpdatedDate();
-    }
-
-    @SneakyThrows
-    private UserType updateUserType(Integer userId, UserType userType) {
-        return getObjectFromResponse(
-                this.mockMvc.perform(patch("/user/usertype/" + userId + "/" + userType)
-                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)))
-                        .andReturn().getResponse(),
-                User.class, createdUserIds).getType();
+                User.class, createdUserIds);
     }
 
 
