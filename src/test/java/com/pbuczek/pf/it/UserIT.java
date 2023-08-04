@@ -18,6 +18,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 
 @Tag("IntegrationTest")
 class UserIT extends _BaseIT {
@@ -97,6 +98,96 @@ class UserIT extends _BaseIT {
         assertThat(deleteUser(userId)).isEqualTo(0);
         Optional<User> optionalUser = userRepo.findById(userId);
         assertThat(optionalUser).isEmpty();
+    }
+
+    @Test
+    void userTypeIsInitiallyStandardAndCanBeUpdated() {
+        Integer userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        User initialUser = getUserFromRepo(userId);
+
+        assertThat(initialUser.getType()).isEqualTo(UserType.STANDARD);
+        assertThat(updateUserType(userId, UserType.ADMIN)).isEqualTo(UserType.ADMIN);
+        assertThat(updateUserType(userId, UserType.STANDARD)).isEqualTo(UserType.STANDARD);
+
+        assertThat(initialUser).isEqualTo(getUserFromRepo(userId));
+    }
+
+    @Test
+    void userPasswordLastUpdatedDateCanBeRefreshed() {
+        Integer userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        User initialUser = getUserFromRepo(userId);
+        assertThat(initialUser.getPasswordLastUpdatedDate()).isBeforeOrEqualTo(LocalDate.now());
+        initialUser.setPasswordLastUpdatedDate(LocalDate.now().minusDays(1));
+        userRepo.save(initialUser);
+
+        assertThat(refreshPasswordLastUpdatedDate(userId))
+                .isEqualTo(getUserFromRepo(userId).getPasswordLastUpdatedDate())
+                .isAfter(initialUser.getPasswordLastUpdatedDate());
+
+        assertThat(getUserFromRepo(userId)).usingRecursiveComparison()
+                .ignoringFields("passwordLastUpdatedDate").isEqualTo(initialUser);
+    }
+
+    @Test
+    void userIsInitiallyUnlockedAndCanBeLockedAndUnlocked() {
+        Integer userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        User initialUser = getUserFromRepo(userId);
+        assertThat(initialUser.getLocked()).isFalse();
+
+        assertThat(lockUnlock(userId)).isEqualTo(getUserFromRepo(userId).getLocked()).isTrue();
+        assertThat(lockUnlock(userId)).isEqualTo(getUserFromRepo(userId).getLocked()).isFalse();
+
+        assertThat(getUserFromRepo(userId)).isEqualTo(initialUser);
+    }
+
+    @Test
+    void paymentPlanIsInitiallyFreeAndCanBeUpdated() {
+        Integer userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        User initialUser = getUserFromRepo(userId);
+        assertThat(initialUser.getPaymentPlan()).isEqualTo(PaymentPlan.FREE);
+
+        assertThat(updatePaymentPlan(userId, PaymentPlan.HERO)).isEqualTo(getUserFromRepo(userId).getPaymentPlan())
+                .isEqualTo(PaymentPlan.HERO);
+        assertThat(updatePaymentPlan(userId, PaymentPlan.FREE)).isEqualTo(getUserFromRepo(userId).getPaymentPlan())
+                .isEqualTo(PaymentPlan.FREE);
+
+        assertThat(getUserFromRepo(userId)).isEqualTo(initialUser);
+    }
+
+    @SneakyThrows
+    private PaymentPlan updatePaymentPlan(Integer userId, PaymentPlan paymentPlan) {
+        return getObjectFromResponse(
+                this.mockMvc.perform(patch("/user/paymentplan/" + userId + "/" + paymentPlan)
+                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)))
+                        .andReturn().getResponse(),
+                User.class, createdUserIds).getPaymentPlan();
+    }
+
+    @SneakyThrows
+    private Boolean lockUnlock(Integer userId) {
+        return getObjectFromResponse(
+                this.mockMvc.perform(patch("/user/lock-unlock/" + userId)
+                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)))
+                        .andReturn().getResponse(),
+                User.class, createdUserIds).getLocked();
+    }
+
+    @SneakyThrows
+    private LocalDate refreshPasswordLastUpdatedDate(Integer userId) {
+        return getObjectFromResponse(
+                this.mockMvc.perform(patch("/user/refresh-password-last-updated-date/" + userId)
+                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)))
+                        .andReturn().getResponse(),
+                User.class, createdUserIds).getPasswordLastUpdatedDate();
+    }
+
+    @SneakyThrows
+    private UserType updateUserType(Integer userId, UserType userType) {
+        return getObjectFromResponse(
+                this.mockMvc.perform(patch("/user/usertype/" + userId + "/" + userType)
+                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)))
+                        .andReturn().getResponse(),
+                User.class, createdUserIds).getType();
     }
 
 
