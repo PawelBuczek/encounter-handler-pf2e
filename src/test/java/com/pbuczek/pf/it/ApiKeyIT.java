@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static com.pbuczek.pf.apikey.ApiKeyController.API_KEY_LIMITS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("IntegrationTest")
 public class ApiKeyIT extends _BaseIT {
 
-    private final List<String> createdApiKeyIdentifiers = new ArrayList<>();
+    private final Set<String> createdApiKeyIdentifiers = new HashSet<>();
 
     @Autowired
     private ApiKeyRepository apiRepo;

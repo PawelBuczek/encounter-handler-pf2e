@@ -14,27 +14,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SuppressWarnings("SameParameterValue")
 @AutoConfigureObservability
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 class _BaseIT implements TestUserDetails {
 
-    final List<Integer> createdUserIds = new ArrayList<>();
+    final Set<Integer> createdUserIds = new HashSet<>();
     static final ObjectMapper mapper = new ObjectMapper();
     static ObjectWriter ow;
 
@@ -63,41 +65,62 @@ class _BaseIT implements TestUserDetails {
         createdUserIds.add(admin.getId());
     }
 
-    @SneakyThrows
     int createUser(String username, String email) {
-        MockHttpServletResponse response = createUser(username, email, HttpStatus.OK);
-        User user = mapper.readValue(response.getContentAsString(), User.class);
-        if (user.getId() != null) {
-            createdUserIds.add(user.getId());
-        } else {
-            fail("User could not be created correctly");
-        }
-        return user.getId();
+        return getObjectFromResponse(createUser(username, email, HttpStatus.OK), User.class).getId();
     }
 
-    @SneakyThrows
-    MockHttpServletResponse createUser(String username, String email, HttpStatus expectedStatus) {
-        return this.mockMvc.perform(post("/user")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(ow.writeValueAsString(new UserDto(username, email, TEST_PASSWORD))))
-                .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
-    }
-
-    @SneakyThrows
     void createUser(String username, String email, HttpStatus expectedStatus, String expectedErrorMessage) {
         assertThat(createUser(username, email, expectedStatus).getErrorMessage()).isEqualTo(expectedErrorMessage);
     }
 
     @SneakyThrows
-    void enableUserAccount(int userId) {
-        this.mockMvc.perform(patch("/user/enable/" + userId)
-                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
+    MockHttpServletResponse createUser(String username, String email, HttpStatus expectedStatus) {
+        MockHttpServletResponse response = sendAdminPostRequest(expectedStatus, "/user",
+                ow.writeValueAsString(new UserDto(username, email, TEST_PASSWORD)));
+        try {
+            User user = mapper.readValue(response.getContentAsString(), User.class);
+            if (user.getId() != null) {
+                createdUserIds.add(user.getId());
+            }
+        } catch (Exception ignored) {
+        }
+
+        return response;
     }
 
     @SneakyThrows
-    void changeUserPaymentPlan(Integer userid, PaymentPlan plan) {
-        this.mockMvc.perform(patch("/user/paymentplan/" + userid + "/" + plan)
-                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
+    MockHttpServletResponse sendRequest(HttpMethod requestMethod, HttpStatus expectedStatus,
+                                        String username, String url, String content) {
+        return this.mockMvc.perform(MockMvcRequestBuilders.request(requestMethod, url)
+                        .header("Authorization", getBasicAuthenticationHeader(username))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
+    }
+
+    MockHttpServletResponse sendAdminPatchRequest(HttpStatus expectedStatus, String url, String content) {
+        return sendRequest(HttpMethod.PATCH, expectedStatus, TEST_USERNAME_ADMIN_1, url, content);
+    }
+
+    MockHttpServletResponse sendAdminPostRequest(HttpStatus expectedStatus, String url, String content) {
+        return sendRequest(HttpMethod.POST, expectedStatus, TEST_USERNAME_ADMIN_1, url, content);
+    }
+
+    MockHttpServletResponse sendAdminGetRequest(HttpStatus expectedStatus, String url, String content) {
+        return sendRequest(HttpMethod.GET, expectedStatus, TEST_USERNAME_ADMIN_1, url, content);
+    }
+
+    MockHttpServletResponse sendAdminDeleteRequest(HttpStatus expectedStatus, String url, String content) {
+        return sendRequest(HttpMethod.DELETE, expectedStatus, TEST_USERNAME_ADMIN_1, url, content);
+    }
+
+
+    void enableUserAccount(int userId) {
+        sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/user/enable/" + userId, "");
+    }
+
+    void changeUserPaymentPlan(Integer userId, PaymentPlan plan) {
+        sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/user/paymentplan/" + userId + "/" + plan, "");
     }
 
     String getBasicAuthenticationHeader(String username) {
@@ -105,14 +128,27 @@ class _BaseIT implements TestUserDetails {
         return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
     }
 
-    @SneakyThrows
-    <T extends JpaEntity> T getObjectFromResponse(
-            MockHttpServletResponse response, Class<T> returnedClass, List<Integer> list) {
+    <T, U extends JpaRepository<T, Integer>> T getObjectFromJpaRepo(Integer objectId, U repo) {
+        Optional<T> optionalObject = repo.findById(objectId);
+        assertThat(optionalObject).isPresent();
+        return optionalObject.get();
+    }
 
+    <T extends JpaEntity> T getObjectFromResponse(
+            MockHttpServletResponse response, Class<T> returnedClass, Set<Integer> set) {
+        T object = getObjectFromResponse(response, returnedClass);
+        assertThat(object.getId()).isNotNull();
+        if (set != null) {
+            set.add(object.getId());
+        }
+
+        return object;
+    }
+
+    @SneakyThrows
+    <T> T getObjectFromResponse(MockHttpServletResponse response, Class<T> returnedClass) {
         T object = mapper.readValue(response.getContentAsString(), returnedClass);
         assertThat(object).isNotNull();
-        assertThat(object.getId()).isNotNull();
-        list.add(object.getId());
 
         return object;
     }

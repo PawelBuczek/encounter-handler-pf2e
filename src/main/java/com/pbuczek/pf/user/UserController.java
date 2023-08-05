@@ -69,9 +69,9 @@ public class UserController {
         ));
     }
 
-    @PatchMapping(path = "/email/{userId}/{email}")
+    @PatchMapping(path = "/email/{userId}")
     @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
-    public User updateEmail(@PathVariable Integer userId, @PathVariable String email) {
+    public User updateEmail(@PathVariable Integer userId, @RequestBody String email) {
         User user = getUserById(userId);
 
         if (user.getEmail().equals(email)) {

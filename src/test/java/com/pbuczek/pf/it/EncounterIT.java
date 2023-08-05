@@ -14,9 +14,9 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.pbuczek.pf.encounter.Encounter.MAX_DESCRIPTION_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("IntegrationTest")
 class EncounterIT extends _BaseIT {
 
-    private final List<Integer> createdEncounterIds = new ArrayList<>();
+    private final Set<Integer> createdEncounterIds = new HashSet<>();
     private static final String ENC_NAME = "testEncounterName";
 
     @Autowired
@@ -42,7 +42,7 @@ class EncounterIT extends _BaseIT {
     @Test
     void encounterIsCreatedCorrectly() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
-        MockHttpServletResponse response = getResponseForCreatingEncounter(userId, "test", HttpStatus.OK);
+        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
 
         Encounter createdEncounter = getEncounterFromResponse(response);
 
@@ -62,7 +62,7 @@ class EncounterIT extends _BaseIT {
     void cannotCreateEncounterWithDescriptionTooLong() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         String description = RandomStringUtils.random(3001, true, true);
-        MockHttpServletResponse response = getResponseForCreatingEncounter(userId, description, HttpStatus.BAD_REQUEST);
+        MockHttpServletResponse response = createEncounter(userId, description, HttpStatus.BAD_REQUEST);
 
         assertThat(response.getErrorMessage()).isEqualTo(
                 String.format("description too long. Max '%d' signs allowed.", MAX_DESCRIPTION_LENGTH));
@@ -71,7 +71,7 @@ class EncounterIT extends _BaseIT {
     @Test
     void differentStandardUserCannotReadEncounterThatIsNotPublished() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
-        MockHttpServletResponse response = getResponseForCreatingEncounter(userId, "test", HttpStatus.OK);
+        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
 
         Encounter createdEncounter = getEncounterFromResponse(response);
         Integer createdEncounterId = createdEncounter.getId();
@@ -86,7 +86,7 @@ class EncounterIT extends _BaseIT {
     @Test
     void differentStandardUserCanReadEncounterThatIsPublished() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
-        MockHttpServletResponse postResponse = getResponseForCreatingEncounter(userId, "test", HttpStatus.OK);
+        MockHttpServletResponse postResponse = createEncounter(userId, "test", HttpStatus.OK);
 
         Encounter createdEncounter = getEncounterFromResponse(postResponse);
         Integer createdEncounterId = createdEncounter.getId();
@@ -108,7 +108,7 @@ class EncounterIT extends _BaseIT {
     @SneakyThrows
     void adminCanReadEncounterThatIsNotPublished() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
-        MockHttpServletResponse response = getResponseForCreatingEncounter(userId, "test", HttpStatus.OK);
+        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
 
         Encounter createdEncounter = getEncounterFromResponse(response);
         Integer createdEncounterId = createdEncounter.getId();
@@ -121,7 +121,7 @@ class EncounterIT extends _BaseIT {
     }
 
     @SneakyThrows
-    private MockHttpServletResponse getResponseForCreatingEncounter(
+    private MockHttpServletResponse createEncounter(
             Integer userId, String description, HttpStatus expectedStatus) {
 
         return this.mockMvc.perform(post("/encounter")
