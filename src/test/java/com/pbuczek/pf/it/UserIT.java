@@ -10,9 +10,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -119,7 +117,7 @@ class UserIT extends _BaseIT {
         Integer userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         User initialUser = getUserFromRepo(userId);
         assertThat(initialUser.getPasswordLastUpdatedDate()).isBeforeOrEqualTo(LocalDate.now());
-        initialUser.setPasswordLastUpdatedDate(LocalDate.now().minusDays(1));
+        initialUser.setPasswordLastUpdatedDate(LocalDate.now().minusDays(2));
         userRepo.save(initialUser);
 
         assertThat(refreshPasswordLastUpdatedDate(userId).getPasswordLastUpdatedDate())
@@ -172,58 +170,45 @@ class UserIT extends _BaseIT {
         assertThat(initialUser).isEqualTo(getUserFromRepo(userId));
     }
 
+    private User updateEmail(Integer userId, String email) {
+        return sendAdminPatchRequest("/user/email/" + userId, email);
+    }
+
     private User updatePaymentPlan(Integer userId, PaymentPlan paymentPlan) {
-        return sendAdminPatchRequest("/user/paymentplan/" + userId + "/" + paymentPlan);
+        return sendAdminPatchRequest("/user/paymentplan/" + userId + "/" + paymentPlan, "");
     }
 
     private User lockUnlock(Integer userId) {
-        return sendAdminPatchRequest("/user/lock-unlock/" + userId);
+        return sendAdminPatchRequest("/user/lock-unlock/" + userId, "");
     }
 
     private User refreshPasswordLastUpdatedDate(Integer userId) {
-        return sendAdminPatchRequest("/user/refresh-password-last-updated-date/" + userId);
+        return sendAdminPatchRequest("/user/refresh-password-last-updated-date/" + userId, "");
     }
 
     private User updateUserType(Integer userId, UserType userType) {
-        return sendAdminPatchRequest("/user/usertype/" + userId + "/" + userType);
-    }
-
-    @SneakyThrows
-    private User sendAdminRequestUser(HttpMethod requestMethod, String url, String content) {
-        return getUserFromResponse(
-                this.mockMvc.perform(MockMvcRequestBuilders.request(requestMethod, url)
-                                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(content))
-                        .andReturn().getResponse());
+        return sendAdminPatchRequest("/user/usertype/" + userId + "/" + userType, "");
     }
 
     private User sendAdminPatchRequest(String url, String content) {
-        return sendAdminRequestUser(HttpMethod.PATCH, url, content);
+        return sendAdminPatchRequest(HttpStatus.OK, url, content);
     }
 
-    private User sendAdminPatchRequest(String url) {
-        return sendAdminRequestUser(HttpMethod.PATCH, url, "");
+    private User sendAdminPatchRequest(HttpStatus expectedStatus, String url, String content) {
+        return getUserFromResponse(sendAdminRequest(HttpMethod.PATCH, expectedStatus, url, content));
     }
 
-    @SneakyThrows
-    private User updateEmail(Integer userId, String email) {
-        return sendAdminPatchRequest("/user/email/" + userId, email);
+    private User getUserFromResponse(MockHttpServletResponse response) {
+        return getObjectFromResponse(response, User.class, createdUserIds);
+    }
+
+    private User getUserFromRepo(Integer userId) {
+        return getObjectFromJpaRepo(userId, userRepo);
     }
 
     @SneakyThrows
     private int deleteUser(Integer userId) {
         return Integer.parseInt(this.mockMvc.perform(delete("/user/" + userId)
                 .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))).andReturn().getResponse().getContentAsString());
-    }
-
-    private User getUserFromRepo(Integer userId) {
-        Optional<User> optionalUser = userRepo.findById(userId);
-        assertThat(optionalUser).isPresent();
-        return optionalUser.get();
-    }
-
-    private User getUserFromResponse(MockHttpServletResponse response) {
-        return getObjectFromResponse(response, User.class, createdUserIds);
     }
 }

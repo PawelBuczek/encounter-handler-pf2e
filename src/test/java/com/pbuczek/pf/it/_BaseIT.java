@@ -14,17 +14,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -78,11 +79,8 @@ class _BaseIT implements TestUserDetails {
 
     @SneakyThrows
     MockHttpServletResponse createUser(String username, String email, HttpStatus expectedStatus) {
-        return sendAdminRequest(HttpMethod.POST,
-                "/user",
-                ow.writeValueAsString(new UserDto(username, email, TEST_PASSWORD)))
-                .andExpect(status().is(expectedStatus.value()))
-                .andReturn().getResponse();
+        return sendAdminRequest(HttpMethod.POST, expectedStatus, "/user",
+                ow.writeValueAsString(new UserDto(username, email, TEST_PASSWORD)));
     }
 
     void createUser(String username, String email, HttpStatus expectedStatus, String expectedErrorMessage) {
@@ -90,24 +88,32 @@ class _BaseIT implements TestUserDetails {
     }
 
     @SneakyThrows
-    ResultActions sendAdminRequest(HttpMethod requestMethod, String url, String content) {
+    MockHttpServletResponse sendAdminRequest(HttpMethod requestMethod,
+                                             HttpStatus expectedStatus, String url, String content) {
         return this.mockMvc.perform(MockMvcRequestBuilders.request(requestMethod, url)
                         .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(content));
+                        .content(content))
+                .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
     }
 
     void enableUserAccount(int userId) {
-        sendAdminRequest(HttpMethod.PATCH, "/user/enable/" + userId, "");
+        sendAdminRequest(HttpMethod.PATCH, HttpStatus.OK, "/user/enable/" + userId, "");
     }
 
     void changeUserPaymentPlan(Integer userId, PaymentPlan plan) {
-        sendAdminRequest(HttpMethod.PATCH, "/user/paymentplan/" + userId + "/" + plan, "");
+        sendAdminRequest(HttpMethod.PATCH, HttpStatus.OK, "/user/paymentplan/" + userId + "/" + plan, "");
     }
 
     String getBasicAuthenticationHeader(String username) {
         String valueToEncode = username + ":" + TEST_PASSWORD;
         return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+    }
+
+    <T, U extends JpaRepository<T, Integer>> T getObjectFromJpaRepo(Integer objectId, U repo) {
+        Optional<T> optionalObject = repo.findById(objectId);
+        assertThat(optionalObject).isPresent();
+        return optionalObject.get();
     }
 
     @SneakyThrows
