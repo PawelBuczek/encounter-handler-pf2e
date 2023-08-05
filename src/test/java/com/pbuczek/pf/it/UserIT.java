@@ -8,11 +8,13 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -199,7 +201,17 @@ class UserIT extends _BaseIT {
                         HttpStatus.OK, "/user/by-username/" + initialUser.getUsername(), "")));
     }
 
+    @Test
+    void allUsersCanBeFoundByAdminOnly() {
+        enableUserAccount(createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1));
 
+        @SuppressWarnings("unchecked")
+        List<User> list = (List<User>)
+                getObjectFromResponse(sendAdminGetRequest(HttpStatus.OK, "/user", ""), List.class);
+        assertThat(list).hasSize(2);
+
+        sendRequest(HttpMethod.GET, HttpStatus.FORBIDDEN, TEST_USERNAME_STANDARD_1, "/user", "");
+    }
 
 
     private User updatePaymentPlan(Integer userId, PaymentPlan paymentPlan) {

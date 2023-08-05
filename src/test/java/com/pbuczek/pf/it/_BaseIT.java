@@ -22,13 +22,12 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SuppressWarnings("SameParameterValue")
@@ -37,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class _BaseIT implements TestUserDetails {
 
-    final List<Integer> createdUserIds = new ArrayList<>();
+    final Set<Integer> createdUserIds = new HashSet<>();
     static final ObjectMapper mapper = new ObjectMapper();
     static ObjectWriter ow;
 
@@ -66,22 +65,8 @@ class _BaseIT implements TestUserDetails {
         createdUserIds.add(admin.getId());
     }
 
-    @SneakyThrows
     int createUser(String username, String email) {
-        MockHttpServletResponse response = createUser(username, email, HttpStatus.OK);
-        User user = mapper.readValue(response.getContentAsString(), User.class);
-        if (user.getId() != null) {
-            createdUserIds.add(user.getId());
-        } else {
-            fail("User could not be created correctly");
-        }
-        return user.getId();
-    }
-
-    @SneakyThrows
-    MockHttpServletResponse createUser(String username, String email, HttpStatus expectedStatus) {
-        return sendAdminPostRequest(expectedStatus, "/user",
-                ow.writeValueAsString(new UserDto(username, email, TEST_PASSWORD)));
+        return getObjectFromResponse(createUser(username, email, HttpStatus.OK), User.class).getId();
     }
 
     void createUser(String username, String email, HttpStatus expectedStatus, String expectedErrorMessage) {
@@ -89,38 +74,53 @@ class _BaseIT implements TestUserDetails {
     }
 
     @SneakyThrows
-    private MockHttpServletResponse sendAdminRequest(HttpMethod requestMethod,
-                                             HttpStatus expectedStatus, String url, String content) {
+    MockHttpServletResponse createUser(String username, String email, HttpStatus expectedStatus) {
+        MockHttpServletResponse response = sendAdminPostRequest(expectedStatus, "/user",
+                ow.writeValueAsString(new UserDto(username, email, TEST_PASSWORD)));
+        try {
+            User user = mapper.readValue(response.getContentAsString(), User.class);
+            if (user.getId() != null) {
+                createdUserIds.add(user.getId());
+            }
+        } catch (Exception ignored) {
+        }
+
+        return response;
+    }
+
+    @SneakyThrows
+    MockHttpServletResponse sendRequest(HttpMethod requestMethod, HttpStatus expectedStatus,
+                                        String username, String url, String content) {
         return this.mockMvc.perform(MockMvcRequestBuilders.request(requestMethod, url)
-                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
+                        .header("Authorization", getBasicAuthenticationHeader(username))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
                 .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
     }
 
     MockHttpServletResponse sendAdminPatchRequest(HttpStatus expectedStatus, String url, String content) {
-        return sendAdminRequest(HttpMethod.PATCH, expectedStatus, url, content);
+        return sendRequest(HttpMethod.PATCH, expectedStatus, TEST_USERNAME_ADMIN_1, url, content);
     }
 
     MockHttpServletResponse sendAdminPostRequest(HttpStatus expectedStatus, String url, String content) {
-        return sendAdminRequest(HttpMethod.POST, expectedStatus, url, content);
+        return sendRequest(HttpMethod.POST, expectedStatus, TEST_USERNAME_ADMIN_1, url, content);
     }
 
     MockHttpServletResponse sendAdminGetRequest(HttpStatus expectedStatus, String url, String content) {
-        return sendAdminRequest(HttpMethod.GET, expectedStatus, url, content);
+        return sendRequest(HttpMethod.GET, expectedStatus, TEST_USERNAME_ADMIN_1, url, content);
     }
 
     MockHttpServletResponse sendAdminDeleteRequest(HttpStatus expectedStatus, String url, String content) {
-        return sendAdminRequest(HttpMethod.DELETE, expectedStatus, url, content);
+        return sendRequest(HttpMethod.DELETE, expectedStatus, TEST_USERNAME_ADMIN_1, url, content);
     }
 
 
     void enableUserAccount(int userId) {
-        sendAdminRequest(HttpMethod.PATCH, HttpStatus.OK, "/user/enable/" + userId, "");
+        sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/user/enable/" + userId, "");
     }
 
     void changeUserPaymentPlan(Integer userId, PaymentPlan plan) {
-        sendAdminRequest(HttpMethod.PATCH, HttpStatus.OK, "/user/paymentplan/" + userId + "/" + plan, "");
+        sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/user/paymentplan/" + userId + "/" + plan, "");
     }
 
     String getBasicAuthenticationHeader(String username) {
@@ -134,14 +134,21 @@ class _BaseIT implements TestUserDetails {
         return optionalObject.get();
     }
 
-    @SneakyThrows
     <T extends JpaEntity> T getObjectFromResponse(
-            MockHttpServletResponse response, Class<T> returnedClass, List<Integer> list) {
+            MockHttpServletResponse response, Class<T> returnedClass, Set<Integer> set) {
+        T object = getObjectFromResponse(response, returnedClass);
+        assertThat(object.getId()).isNotNull();
+        if (set != null) {
+            set.add(object.getId());
+        }
 
+        return object;
+    }
+
+    @SneakyThrows
+    <T> T getObjectFromResponse(MockHttpServletResponse response, Class<T> returnedClass) {
         T object = mapper.readValue(response.getContentAsString(), returnedClass);
         assertThat(object).isNotNull();
-        assertThat(object.getId()).isNotNull();
-        list.add(object.getId());
 
         return object;
     }
