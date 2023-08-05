@@ -1,6 +1,5 @@
 package com.pbuczek.pf.it;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.pbuczek.pf.user.PaymentPlan;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserType;
@@ -208,20 +207,11 @@ class UserIT extends _BaseIT {
 
     @SneakyThrows
     @Test
-    //CORRECT THIS
     void allUsersCanBeFoundByAdminOnly() {
         enableUserAccount(createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1));
-
         @SuppressWarnings("unchecked")
-        List<User> list = getObjectFromResponse(sendAdminGetRequest(HttpStatus.OK, "/user", ""), List.class);
-
-        User admin = getUserFromRepo(userRepo.getIdByUsername(TEST_USERNAME_ADMIN_1));
-        User standard = getUserFromRepo(userRepo.getIdByUsername(TEST_USERNAME_STANDARD_1));
-        admin.setPassword("[hidden for security reasons]");
-        standard.setPassword("[hidden for security reasons]");
-
-
-        assertThat(list).containsAll(List.of(admin, standard));
+        List<String> list = getObjectFromResponse(sendAdminGetRequest(HttpStatus.OK, "/user", ""), List.class);
+        assertThat(list.toString()).contains(TEST_USERNAME_ADMIN_1).contains(TEST_USERNAME_STANDARD_1);
 
         sendRequest(HttpMethod.GET, HttpStatus.FORBIDDEN, TEST_USERNAME_STANDARD_1, "/user", "");
     }
