@@ -150,6 +150,12 @@ class _BaseIT {
         sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/user/paymentplan/" + userId + "/" + plan, "");
     }
 
+    @SneakyThrows
+    int deleteUser(Integer userId) {
+        return Integer.parseInt(
+                sendAdminDeleteRequest(HttpStatus.OK, "/user/" + userId, "").getContentAsString());
+    }
+
     String getBasicAuthenticationHeader(String username) {
         String valueToEncode = username + ":" + TEST_PASSWORD;
         return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());

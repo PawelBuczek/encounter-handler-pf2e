@@ -122,6 +122,15 @@ public class ApiKeyIT extends _BaseIT {
         assertThat(response.getErrorMessage()).isEqualTo("Forbidden. Cannot use API Key for this action.");
     }
 
+    @Test
+    void userWithApiKeysCanBeDeletedAndKeysGetDeletedWithHim() {
+        Integer userId = getObjectFromResponse(
+                createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
+
+        //ToDo
+        assertThat(deleteUser(userId)).isEqualTo(1);
+    }
+
 
     @SneakyThrows
     private String createApiKey(HttpStatus expectedStatus) {

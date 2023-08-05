@@ -3,6 +3,7 @@ package com.pbuczek.pf.it;
 import com.pbuczek.pf.encounter.Encounter;
 import com.pbuczek.pf.encounter.EncounterDto;
 import com.pbuczek.pf.encounter.EncounterRepository;
+import com.pbuczek.pf.user.User;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -137,6 +138,15 @@ class EncounterIT extends _BaseIT {
         }
 
         return response;
+    }
+
+    @Test
+    void userWithEncountersCanBeDeleted() {
+        Integer userId = getObjectFromResponse(
+                createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
+
+        //ToDo
+        assertThat(deleteUser(userId)).isEqualTo(1);
     }
 
     @SneakyThrows
