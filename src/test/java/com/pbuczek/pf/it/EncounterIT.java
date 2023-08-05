@@ -9,8 +9,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.time.LocalDateTime;
@@ -21,7 +21,8 @@ import java.util.Set;
 import static com.pbuczek.pf.encounter.Encounter.MAX_DESCRIPTION_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("IntegrationTest")
@@ -124,11 +125,18 @@ class EncounterIT extends _BaseIT {
     private MockHttpServletResponse createEncounter(
             Integer userId, String description, HttpStatus expectedStatus) {
 
-        return this.mockMvc.perform(post("/encounter")
-                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(ow.writeValueAsString(new EncounterDto(ENC_NAME, userId, description))))
-                .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
+        MockHttpServletResponse response = sendRequest(HttpMethod.POST, expectedStatus, TEST_USERNAME_ADMIN_1,
+                "/encounter", ow.writeValueAsString(new EncounterDto(ENC_NAME, userId, description)));
+
+        try {
+            Encounter encounter = mapper.readValue(response.getContentAsString(), Encounter.class);
+            if (encounter.getId() != null) {
+                createdEncounterIds.add(encounter.getId());
+            }
+        } catch (Exception ignored) {
+        }
+
+        return response;
     }
 
     @SneakyThrows
@@ -148,7 +156,7 @@ class EncounterIT extends _BaseIT {
 
     @SneakyThrows
     private Encounter getEncounterFromResponse(MockHttpServletResponse response) {
-        return getObjectFromResponse(response, Encounter.class, createdEncounterIds);
+        return getObjectFromResponse(response, Encounter.class);
     }
 
 }

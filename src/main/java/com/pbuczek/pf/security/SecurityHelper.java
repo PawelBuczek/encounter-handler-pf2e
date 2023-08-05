@@ -78,4 +78,9 @@ public class SecurityHelper {
         return getContextCurrentUser().getId().equals(userId);
     }
 
+    public boolean isContextApiKey() {
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                .contains(new SimpleGrantedAuthority("ADMIN"));
+    }
+
 }

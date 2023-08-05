@@ -282,7 +282,7 @@ class UserIT extends _BaseIT {
     }
 
     private User getUserFromResponse(MockHttpServletResponse response) {
-        return getObjectFromResponse(response, User.class, createdUserIds);
+        return getObjectFromResponse(response, User.class);
     }
 
     private User getUserFromRepo(Integer userId) {

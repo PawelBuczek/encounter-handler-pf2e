@@ -162,22 +162,10 @@ class _BaseIT {
         return optionalObject.get();
     }
 
-    <T extends JpaEntity> T getObjectFromResponse(
-            MockHttpServletResponse response, Class<T> returnedClass, Set<Integer> set) {
-        T object = getObjectFromResponse(response, returnedClass);
-        assertThat(object.getId()).isNotNull();
-        if (set != null) {
-            set.add(object.getId());
-        }
-
-        return object;
-    }
-
     @SneakyThrows
     <T> T getObjectFromResponse(MockHttpServletResponse response, Class<T> returnedClass) {
         T object = mapper.readValue(response.getContentAsString(), returnedClass);
         assertThat(object).isNotNull();
-
         return object;
     }
 }

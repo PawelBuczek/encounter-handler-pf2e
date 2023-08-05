@@ -3,12 +3,17 @@ package com.pbuczek.pf.it;
 import com.pbuczek.pf.apikey.ApiKey;
 import com.pbuczek.pf.apikey.ApiKeyRepository;
 import com.pbuczek.pf.user.PaymentPlan;
+import com.pbuczek.pf.user.User;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -87,6 +92,20 @@ public class ApiKeyIT extends _BaseIT {
 
             apiKeysList.forEach(apiKey -> apiRepo.deleteApiKeyByIdentifier(apiKey.getIdentifier()));
         });
+    }
+
+    @SneakyThrows
+    @Test
+    void apiKeyCanBeUsedToAuthorizeGetUserRequest() {
+        int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        enableUserAccount(userId);
+        changeUserPaymentPlan(userId, PaymentPlan.ADVENTURER);
+        String apiKey = createApiKey(HttpStatus.OK);
+        MockHttpServletResponse response = this.mockMvc.perform(MockMvcRequestBuilders
+                        .request(HttpMethod.GET, "/user/by-userid/" + userId)
+                        .header("X-API-KEY", apiKey))
+                .andExpect(status().is(HttpStatus.OK.value())).andReturn().getResponse();
+        getObjectFromResponse(response, User.class);
     }
 
 
