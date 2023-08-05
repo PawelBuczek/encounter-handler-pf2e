@@ -78,9 +78,11 @@ public class SecurityHelper {
         return getContextCurrentUser().getId().equals(userId);
     }
 
-    public boolean isContextApiKey() {
-        return SecurityContextHolder.getContext().getAuthentication().getAuthorities()
-                .contains(new SimpleGrantedAuthority("ADMIN"));
+    public void ensureRequestIsNotByApiKey() {
+        Object credentials = SecurityContextHolder.getContext().getAuthentication().getCredentials();
+        if (credentials != null && SecurityContextHolder.getContext().getAuthentication().getCredentials().equals("apiKey")) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden. Cannot use API Key for this action.");
+        }
     }
 
 }
