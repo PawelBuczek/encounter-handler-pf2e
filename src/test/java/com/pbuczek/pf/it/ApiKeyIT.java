@@ -3,12 +3,16 @@ package com.pbuczek.pf.it;
 import com.pbuczek.pf.apikey.ApiKey;
 import com.pbuczek.pf.apikey.ApiKeyRepository;
 import com.pbuczek.pf.user.PaymentPlan;
+import com.pbuczek.pf.user.User;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -17,7 +21,6 @@ import static com.pbuczek.pf.apikey.ApiKeyController.API_KEY_LIMITS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("IntegrationTest")
@@ -89,12 +92,51 @@ public class ApiKeyIT extends _BaseIT {
         });
     }
 
+    @SneakyThrows
+    @Test
+    void apiKeyCanBeUsedToAuthorizeGetUserRequest() {
+        int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        enableUserAccount(userId);
+        changeUserPaymentPlan(userId, PaymentPlan.ADVENTURER);
+        String apiKey = createApiKey(HttpStatus.OK);
+
+        MockHttpServletResponse response = this.mockMvc.perform(MockMvcRequestBuilders
+                        .request(HttpMethod.GET, "/user/by-userid/" + userId)
+                        .header("X-API-KEY", apiKey))
+                .andExpect(status().is(HttpStatus.OK.value())).andReturn().getResponse();
+        assertThat(getObjectFromResponse(response, User.class).getId()).isEqualTo(userId);
+    }
+
+    @SneakyThrows
+    @Test
+    void apiKeyCannotBeUsedToAuthorizeChangeUsername() {
+        int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        enableUserAccount(userId);
+        changeUserPaymentPlan(userId, PaymentPlan.ADVENTURER);
+        String apiKey = createApiKey(HttpStatus.OK);
+
+        MockHttpServletResponse response = this.mockMvc.perform(MockMvcRequestBuilders
+                        .request(HttpMethod.PATCH, "/user/username/" + userId + "/" + TEST_USERNAME_STANDARD_2)
+                        .header("X-API-KEY", apiKey))
+                .andExpect(status().is(HttpStatus.FORBIDDEN.value())).andReturn().getResponse();
+        assertThat(response.getErrorMessage()).isEqualTo("Forbidden. Cannot use API Key for this action.");
+    }
+
 
     @SneakyThrows
     private String createApiKey(HttpStatus expectedStatus) {
-        return this.mockMvc.perform(post("/apikey")
-                        .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_STANDARD_1)))
-                .andExpect(status().is(expectedStatus.value())).andReturn().getResponse().getContentAsString();
+        MockHttpServletResponse response = sendRequest(HttpMethod.POST, expectedStatus, TEST_USERNAME_STANDARD_1,
+                "/apikey", "");
+
+        String apiKeyReceivedPass = response.getContentAsString();
+        try {
+            if (!apiKeyReceivedPass.isBlank()) {
+                createdApiKeyIdentifiers.add(apiKeyReceivedPass.substring(0, ApiKey.IDENTIFIER_LENGTH));
+            }
+        } catch (Exception ignored) {
+        }
+
+        return apiKeyReceivedPass;
     }
 
     @SneakyThrows
@@ -110,14 +152,8 @@ public class ApiKeyIT extends _BaseIT {
                 apiRepo.findByIdentifier(apiKeyReceivedPass.substring(0, ApiKey.IDENTIFIER_LENGTH));
         assertThat(optionalApiKey).isPresent();
         ApiKey apiKey = optionalApiKey.get();
-        basicApiKeyChecks(apiKey);
-        return apiKey;
-    }
-
-    private void basicApiKeyChecks(ApiKey apiKey) {
-        assert apiKey != null;
         assertThat(apiKey.getIdentifier()).isNotNull();
-        createdApiKeyIdentifiers.add(apiKey.getIdentifier());
+        return apiKey;
     }
 
 }

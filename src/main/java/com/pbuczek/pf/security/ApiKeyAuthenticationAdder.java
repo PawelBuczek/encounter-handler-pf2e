@@ -63,7 +63,7 @@ public class ApiKeyAuthenticationAdder extends OncePerRequestFilter {
 
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
                 apiKey,
-                null,
+                "apiKey",
                 userDetails.getAuthorities()));
 
         filterChain.doFilter(request, response);

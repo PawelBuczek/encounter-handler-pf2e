@@ -39,6 +39,7 @@ public class ApiKeyController {
     @PostMapping
     @PreAuthorize("@securityHelper.hasContextAnyAuthorities()")
     public String createAPIKey() {
+        securityHelper.ensureRequestIsNotByApiKey();
         User user = securityHelper.getContextCurrentUser();
         Integer limit = API_KEY_LIMITS.get(user.getPaymentPlan());
         if(!user.getType().equals(UserType.ADMIN) && apiKeyRepo.getCountOfApiKeysByUserId(user.getId()) >= limit) {

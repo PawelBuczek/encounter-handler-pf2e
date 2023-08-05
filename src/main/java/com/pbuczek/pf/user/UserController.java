@@ -45,6 +45,7 @@ public class UserController {
     @DeleteMapping(path = "/{userId}")
     @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public int deleteUser(@PathVariable Integer userId) {
+        securityHelper.ensureRequestIsNotByApiKey();
         return userRepo.deleteUser(userId);
     }
 
@@ -77,6 +78,8 @@ public class UserController {
         if (user.getEmail().equals(email)) {
             return secureUser(user);
         }
+
+        securityHelper.ensureRequestIsNotByApiKey();
         checkEmail(email);
 
         user.setEmail(email);
@@ -87,6 +90,7 @@ public class UserController {
     public User updateOwnPassword(@RequestBody PasswordDto passwordDto) {
         User user = securityHelper.getContextCurrentUser();
 
+        securityHelper.ensureRequestIsNotByApiKey();
         if (!BCrypt.checkpw(passwordDto.getCurrentPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "provided current password is not correct");
         }
@@ -113,6 +117,7 @@ public class UserController {
             return secureUser(user);
         }
 
+        securityHelper.ensureRequestIsNotByApiKey();
         user.setPaymentPlan(paymentPlan);
         return secureUser(userRepo.save(user));
     }
@@ -125,6 +130,8 @@ public class UserController {
         if (user.getUsername().equals(newUsername)) {
             return secureUser(user);
         }
+
+        securityHelper.ensureRequestIsNotByApiKey();
         checkUsername(newUsername);
 
         user.setUsername(newUsername);
