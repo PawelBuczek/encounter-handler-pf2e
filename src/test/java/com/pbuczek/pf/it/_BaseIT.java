@@ -67,7 +67,9 @@ class _BaseIT {
 
     @BeforeEach
     void setUp() {
-        createRandomUsernames();
+        TEST_USERNAME_ADMIN_1 = generateRandomUsername();
+        TEST_USERNAME_STANDARD_1 = generateRandomUsername();
+        TEST_USERNAME_STANDARD_2 = generateRandomUsername();
         TEST_EMAIL_ADMIN_1 = TEST_USERNAME_ADMIN_1 + "@test.com";
         TEST_EMAIL_STANDARD_1 = TEST_USERNAME_STANDARD_1 + "@test.com";
         TEST_EMAIL_STANDARD_2 = TEST_USERNAME_STANDARD_2 + "@test.com";
@@ -79,29 +81,16 @@ class _BaseIT {
         createdUserIds.add(admin.getId());
     }
 
-    private void createRandomUsernames() {
-        // Java immutable Strings :/ will check later
+    private String generateRandomUsername() {
+        String username = "";
         for (int i = 0; i < 100; i++) {
-            TEST_USERNAME_ADMIN_1 = getRandomUsername();
-            if (userRepo.findByUsername(TEST_USERNAME_ADMIN_1).isEmpty()) {
+            username = "_Test_" + LocalDate.now() + RandomStringUtils.random(24, true, true);
+            if (userRepo.findByUsername(username).isEmpty()) {
                 break;
             }
             logger.log(new LogRecord(Level.WARNING, "username taken, retrying"));
         }
-        for (int i = 0; i < 100; i++) {
-            TEST_USERNAME_STANDARD_1 = getRandomUsername();
-            if (userRepo.findByUsername(TEST_USERNAME_STANDARD_1).isEmpty()) {
-                break;
-            }
-            logger.log(new LogRecord(Level.WARNING, "username taken, retrying"));
-        }
-        for (int i = 0; i < 100; i++) {
-            TEST_USERNAME_STANDARD_2 = getRandomUsername();
-            if (userRepo.findByUsername(TEST_USERNAME_STANDARD_2).isEmpty()) {
-                break;
-            }
-            logger.log(new LogRecord(Level.WARNING, "username taken, retrying"));
-        }
+        return username;
     }
 
     int createUser(String username, String email) {
@@ -190,9 +179,5 @@ class _BaseIT {
         assertThat(object).isNotNull();
 
         return object;
-    }
-
-    String getRandomUsername() {
-        return "_Test_" + LocalDate.now() + RandomStringUtils.random(24, true, true);
     }
 }
