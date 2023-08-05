@@ -1,6 +1,7 @@
 core: src/main/java/**
 resources: src/main/resources/**
 test: src/test/**
+testResources: src/test/resources/**
 
 apikey: src/main/java/com/pbuczek/pf/apikey/**
 encounter: src/main/java/com/pbuczek/pf/encounter/**

@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.pbuczek.pf.TestUserDetails;
 import com.pbuczek.pf.interfaces.JpaEntity;
 import com.pbuczek.pf.user.*;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +22,14 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.time.LocalDate;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -34,11 +38,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureObservability
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-class _BaseIT implements TestUserDetails {
+class _BaseIT {
 
     final Set<Integer> createdUserIds = new HashSet<>();
     static final ObjectMapper mapper = new ObjectMapper();
     static ObjectWriter ow;
+    static final Logger logger = Logger.getLogger("_BaseIT");
+
+    String TEST_USERNAME_ADMIN_1 = "";
+    String TEST_EMAIL_ADMIN_1 = "";
+    String TEST_USERNAME_STANDARD_1 = "";
+    String TEST_EMAIL_STANDARD_1 = "";
+    String TEST_USERNAME_STANDARD_2 = "";
+    String TEST_EMAIL_STANDARD_2 = "";
+    String TEST_PASSWORD = "aB@1" + RandomStringUtils.random(50);
 
     @Autowired
     MockMvc mockMvc;
@@ -54,15 +67,41 @@ class _BaseIT implements TestUserDetails {
 
     @BeforeEach
     void setUp() {
-        Integer potentialId = userRepo.getIdByUsername(TEST_USERNAME_ADMIN_1);
-        if (potentialId != null) {
-            userRepo.deleteUser(potentialId);
-        }
+        createRandomUsernames();
+        TEST_EMAIL_ADMIN_1 = TEST_USERNAME_ADMIN_1 + "@test.com";
+        TEST_EMAIL_STANDARD_1 = TEST_USERNAME_STANDARD_1 + "@test.com";
+        TEST_EMAIL_STANDARD_2 = TEST_USERNAME_STANDARD_2 + "@test.com";
+
         User admin = new User(TEST_USERNAME_ADMIN_1, TEST_EMAIL_ADMIN_1, TEST_PASSWORD);
         admin.setType(UserType.ADMIN);
         admin.setEnabled(true);
         userRepo.save(admin);
         createdUserIds.add(admin.getId());
+    }
+
+    private void createRandomUsernames() {
+        // Java immutable Strings :/ will check later
+        for (int i = 0; i < 100; i++) {
+            TEST_USERNAME_ADMIN_1 = getRandomUsername();
+            if (userRepo.findByUsername(TEST_USERNAME_ADMIN_1).isEmpty()) {
+                break;
+            }
+            logger.log(new LogRecord(Level.WARNING, "username taken, retrying"));
+        }
+        for (int i = 0; i < 100; i++) {
+            TEST_USERNAME_STANDARD_1 = getRandomUsername();
+            if (userRepo.findByUsername(TEST_USERNAME_STANDARD_1).isEmpty()) {
+                break;
+            }
+            logger.log(new LogRecord(Level.WARNING, "username taken, retrying"));
+        }
+        for (int i = 0; i < 100; i++) {
+            TEST_USERNAME_STANDARD_2 = getRandomUsername();
+            if (userRepo.findByUsername(TEST_USERNAME_STANDARD_2).isEmpty()) {
+                break;
+            }
+            logger.log(new LogRecord(Level.WARNING, "username taken, retrying"));
+        }
     }
 
     int createUser(String username, String email) {
@@ -151,5 +190,9 @@ class _BaseIT implements TestUserDetails {
         assertThat(object).isNotNull();
 
         return object;
+    }
+
+    String getRandomUsername() {
+        return "_Test_" + LocalDate.now() + RandomStringUtils.random(24, true, true);
     }
 }

@@ -1,6 +1,7 @@
 package com.pbuczek.pf.user;
 
 import com.pbuczek.pf.TestUserDetails;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -12,6 +13,10 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Tag("UnitTest")
 class UserTest implements TestUserDetails {
+
+    private final String TEST_USERNAME_ADMIN_1 = "_Test_" + LocalDate.now() + RandomStringUtils.random(24, true, true);
+    private final String TEST_EMAIL_ADMIN_1 = TEST_USERNAME_ADMIN_1 + "@test.com";
+    private final String TEST_PASSWORD = "aB@1" + RandomStringUtils.random(50);
 
     @Test
     void userIsGeneratedCorrectly() {
