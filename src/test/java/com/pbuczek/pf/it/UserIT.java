@@ -213,6 +213,20 @@ class UserIT extends _BaseIT {
         sendRequest(HttpMethod.GET, HttpStatus.FORBIDDEN, TEST_USERNAME_STANDARD_1, "/user", "");
     }
 
+    @Test
+    void userPasswordIsNotReturned() {
+        User user = getUserFromResponse(createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK));
+
+        assertThat(user.getPassword()).isEqualTo("[hidden for security reasons]");
+    }
+
+    @Test
+    void userCanUpdateHisOwnPassword() {
+
+    }
+
+    //updateOwnPassword + czy password jest secured
+
 
     private User updatePaymentPlan(Integer userId, PaymentPlan paymentPlan) {
         return getUserFromResponse(sendAdminPatchRequest(
