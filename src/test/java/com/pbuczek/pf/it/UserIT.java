@@ -1,24 +1,29 @@
 package com.pbuczek.pf.it;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.pbuczek.pf.user.PaymentPlan;
 import com.pbuczek.pf.user.User;
 import com.pbuczek.pf.user.UserType;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("IntegrationTest")
 class UserIT extends _BaseIT {
@@ -201,14 +206,22 @@ class UserIT extends _BaseIT {
                         HttpStatus.OK, "/user/by-username/" + initialUser.getUsername(), "")));
     }
 
+    @SneakyThrows
     @Test
+    //CORRECT THIS
     void allUsersCanBeFoundByAdminOnly() {
         enableUserAccount(createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1));
 
         @SuppressWarnings("unchecked")
-        List<User> list = (List<User>)
-                getObjectFromResponse(sendAdminGetRequest(HttpStatus.OK, "/user", ""), List.class);
-        assertThat(list).hasSize(2);
+        List<User> list = getObjectFromResponse(sendAdminGetRequest(HttpStatus.OK, "/user", ""), List.class);
+
+        User admin = getUserFromRepo(userRepo.getIdByUsername(TEST_USERNAME_ADMIN_1));
+        User standard = getUserFromRepo(userRepo.getIdByUsername(TEST_USERNAME_STANDARD_1));
+        admin.setPassword("[hidden for security reasons]");
+        standard.setPassword("[hidden for security reasons]");
+
+
+        assertThat(list).containsAll(List.of(admin, standard));
 
         sendRequest(HttpMethod.GET, HttpStatus.FORBIDDEN, TEST_USERNAME_STANDARD_1, "/user", "");
     }
@@ -220,12 +233,32 @@ class UserIT extends _BaseIT {
         assertThat(user.getPassword()).isEqualTo("[hidden for security reasons]");
     }
 
+    @SneakyThrows
     @Test
     void userCanUpdateHisOwnPassword() {
+        User initialUser =
+                getUserFromResponse(createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK));
+        enableUserAccount(initialUser.getId());
+        initialUser.setEnabled(true);
 
+        String newPassword = "aB@1" + RandomStringUtils.random(49);
+        JSONObject passwordDto = new JSONObject();
+        passwordDto.put("currentPassword", TEST_PASSWORD);
+        passwordDto.put("newPassword", newPassword);
+
+        sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_STANDARD_1, "/user/password", passwordDto.toString());
+
+        String valueToEncode = TEST_USERNAME_STANDARD_1 + ":" + newPassword;
+        String authorizationHeader = "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+
+        MockHttpServletResponse response = this.mockMvc.perform(MockMvcRequestBuilders.request(
+                                HttpMethod.GET, "/user/by-userid/" + initialUser.getId())
+                        .header("Authorization", authorizationHeader))
+                .andExpect(status().isOk()).andReturn().getResponse();
+
+        assertThat(getUserFromResponse(response)).isEqualTo(initialUser).usingRecursiveComparison()
+                .ignoringFields("password").isEqualTo(getUserFromRepo(initialUser.getId()));
     }
-
-    //updateOwnPassword + czy password jest secured
 
 
     private User updatePaymentPlan(Integer userId, PaymentPlan paymentPlan) {
