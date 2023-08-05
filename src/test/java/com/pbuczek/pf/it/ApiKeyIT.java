@@ -99,11 +99,27 @@ public class ApiKeyIT extends _BaseIT {
         enableUserAccount(userId);
         changeUserPaymentPlan(userId, PaymentPlan.ADVENTURER);
         String apiKey = createApiKey(HttpStatus.OK);
+
         MockHttpServletResponse response = this.mockMvc.perform(MockMvcRequestBuilders
                         .request(HttpMethod.GET, "/user/by-userid/" + userId)
                         .header("X-API-KEY", apiKey))
                 .andExpect(status().is(HttpStatus.OK.value())).andReturn().getResponse();
         assertThat(getObjectFromResponse(response, User.class).getId()).isEqualTo(userId);
+    }
+
+    @SneakyThrows
+    @Test
+    void apiKeyCannotBeUsedToAuthorizeChangeUsername() {
+        int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        enableUserAccount(userId);
+        changeUserPaymentPlan(userId, PaymentPlan.ADVENTURER);
+        String apiKey = createApiKey(HttpStatus.OK);
+
+        MockHttpServletResponse response = this.mockMvc.perform(MockMvcRequestBuilders
+                        .request(HttpMethod.PATCH, "/user/username/" + userId + "/" + TEST_USERNAME_STANDARD_2)
+                        .header("X-API-KEY", apiKey))
+                .andExpect(status().is(HttpStatus.FORBIDDEN.value())).andReturn().getResponse();
+        assertThat(response.getErrorMessage()).isEqualTo("Forbidden. Cannot use API Key for this action.");
     }
 
 
