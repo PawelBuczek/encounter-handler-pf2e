@@ -2,6 +2,7 @@ package com.pbuczek.pf.encounter;
 
 import com.pbuczek.pf.interfaces.JpaEntity;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,7 +33,7 @@ public class Encounter implements JpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Nonnull
+    @Nullable
     private Integer userId;
     @Nonnull
     private Boolean published = false; //true means publicly available

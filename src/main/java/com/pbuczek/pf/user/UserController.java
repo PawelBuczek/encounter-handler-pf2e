@@ -1,5 +1,7 @@
 package com.pbuczek.pf.user;
 
+import com.pbuczek.pf.apikey.ApiKeyRepository;
+import com.pbuczek.pf.encounter.EncounterRepository;
 import com.pbuczek.pf.security.SecurityHelper;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,12 +26,17 @@ public class UserController {
     private final PasswordEncoder passwordEncoder = SecurityHelper.passwordEncoder;
 
     private final UserRepository userRepo;
+    private final ApiKeyRepository apiKeyRepo;
+    private final EncounterRepository encounterRepo;
     private final SecurityHelper securityHelper;
 
     @Autowired
-    public UserController(UserRepository userRepo, SecurityHelper securityHelper) {
+    public UserController(UserRepository userRepo, ApiKeyRepository apiKeyRepo,
+                          EncounterRepository encounterRepo, SecurityHelper securityHelper) {
         this.userRepo = userRepo;
+        this.apiKeyRepo = apiKeyRepo;
         this.securityHelper = securityHelper;
+        this.encounterRepo = encounterRepo;
     }
 
     @PostMapping
@@ -46,6 +53,9 @@ public class UserController {
     @PreAuthorize("@securityHelper.isContextAdminOrSpecificUserId(#userId)")
     public int deleteUser(@PathVariable Integer userId) {
         securityHelper.ensureRequestIsNotByApiKey();
+        apiKeyRepo.deleteApiKeysByUserId(userId);
+        encounterRepo.findByUserId(userId)
+                .forEach(encounter -> encounter.setUserId(null));
         return userRepo.deleteUser(userId);
     }
 
