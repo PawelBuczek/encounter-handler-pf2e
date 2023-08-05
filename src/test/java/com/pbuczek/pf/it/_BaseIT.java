@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SuppressWarnings("SameParameterValue")
 @AutoConfigureObservability
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -79,7 +80,7 @@ class _BaseIT implements TestUserDetails {
 
     @SneakyThrows
     MockHttpServletResponse createUser(String username, String email, HttpStatus expectedStatus) {
-        return sendAdminRequest(HttpMethod.POST, expectedStatus, "/user",
+        return sendAdminPostRequest(expectedStatus, "/user",
                 ow.writeValueAsString(new UserDto(username, email, TEST_PASSWORD)));
     }
 
@@ -88,7 +89,7 @@ class _BaseIT implements TestUserDetails {
     }
 
     @SneakyThrows
-    MockHttpServletResponse sendAdminRequest(HttpMethod requestMethod,
+    private MockHttpServletResponse sendAdminRequest(HttpMethod requestMethod,
                                              HttpStatus expectedStatus, String url, String content) {
         return this.mockMvc.perform(MockMvcRequestBuilders.request(requestMethod, url)
                         .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))
@@ -96,6 +97,23 @@ class _BaseIT implements TestUserDetails {
                         .content(content))
                 .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
     }
+
+    MockHttpServletResponse sendAdminPatchRequest(HttpStatus expectedStatus, String url, String content) {
+        return sendAdminRequest(HttpMethod.PATCH, expectedStatus, url, content);
+    }
+
+    MockHttpServletResponse sendAdminPostRequest(HttpStatus expectedStatus, String url, String content) {
+        return sendAdminRequest(HttpMethod.POST, expectedStatus, url, content);
+    }
+
+    MockHttpServletResponse sendAdminGetRequest(HttpStatus expectedStatus, String url, String content) {
+        return sendAdminRequest(HttpMethod.GET, expectedStatus, url, content);
+    }
+
+    MockHttpServletResponse sendAdminDeleteRequest(HttpStatus expectedStatus, String url, String content) {
+        return sendAdminRequest(HttpMethod.DELETE, expectedStatus, url, content);
+    }
+
 
     void enableUserAccount(int userId) {
         sendAdminRequest(HttpMethod.PATCH, HttpStatus.OK, "/user/enable/" + userId, "");

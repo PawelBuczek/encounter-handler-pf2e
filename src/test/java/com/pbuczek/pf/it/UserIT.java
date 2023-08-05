@@ -8,7 +8,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 
@@ -18,7 +17,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 @Tag("IntegrationTest")
 class UserIT extends _BaseIT {
@@ -170,32 +168,68 @@ class UserIT extends _BaseIT {
         assertThat(initialUser).isEqualTo(getUserFromRepo(userId));
     }
 
-    private User updateEmail(Integer userId, String email) {
-        return sendAdminPatchRequest("/user/email/" + userId, email);
+    @Test
+    void usernameCanBeUpdated() {
+        Integer userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        User initialUser = getUserFromRepo(userId);
+        assertThat(initialUser.getUsername()).isEqualTo(TEST_USERNAME_STANDARD_1);
+
+        assertThat(updateUsername(userId, TEST_USERNAME_STANDARD_2 + " ").getUsername())
+                .isEqualTo(getUserFromRepo(userId).getUsername())
+                .isEqualTo(TEST_USERNAME_STANDARD_2);
+        assertThat(updateUsername(userId, TEST_USERNAME_STANDARD_1).getUsername())
+                .isEqualTo(getUserFromRepo(userId).getUsername())
+                .isEqualTo(TEST_USERNAME_STANDARD_1);
+
+        assertThat(initialUser).isEqualTo(getUserFromRepo(userId));
     }
+
+    @Test
+    void userCanBeFound() {
+        User initialUser = getUserFromRepo(createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1));
+
+        assertThat(initialUser).usingRecursiveComparison()
+                .ignoringFields("password")
+                .isEqualTo(getUserFromResponse(sendAdminGetRequest(
+                        HttpStatus.OK, "/user/by-userid/" + initialUser.getId(), "")));
+
+        assertThat(initialUser).usingRecursiveComparison()
+                .ignoringFields("password")
+                .isEqualTo(getUserFromResponse(sendAdminGetRequest(
+                        HttpStatus.OK, "/user/by-username/" + initialUser.getUsername(), "")));
+    }
+
+
+
 
     private User updatePaymentPlan(Integer userId, PaymentPlan paymentPlan) {
-        return sendAdminPatchRequest("/user/paymentplan/" + userId + "/" + paymentPlan, "");
-    }
-
-    private User lockUnlock(Integer userId) {
-        return sendAdminPatchRequest("/user/lock-unlock/" + userId, "");
+        return getUserFromResponse(sendAdminPatchRequest(
+                HttpStatus.OK, "/user/paymentplan/" + userId + "/" + paymentPlan, ""));
     }
 
     private User refreshPasswordLastUpdatedDate(Integer userId) {
-        return sendAdminPatchRequest("/user/refresh-password-last-updated-date/" + userId, "");
+        return getUserFromResponse(sendAdminPatchRequest(
+                HttpStatus.OK, "/user/refresh-password-last-updated-date/" + userId, ""));
+    }
+
+    private User lockUnlock(Integer userId) {
+        return getUserFromResponse(sendAdminPatchRequest(
+                HttpStatus.OK, "/user/lock-unlock/" + userId, ""));
     }
 
     private User updateUserType(Integer userId, UserType userType) {
-        return sendAdminPatchRequest("/user/usertype/" + userId + "/" + userType, "");
+        return getUserFromResponse(sendAdminPatchRequest(
+                HttpStatus.OK, "/user/usertype/" + userId + "/" + userType, ""));
     }
 
-    private User sendAdminPatchRequest(String url, String content) {
-        return sendAdminPatchRequest(HttpStatus.OK, url, content);
+    private User updateEmail(Integer userId, String email) {
+        return getUserFromResponse(sendAdminPatchRequest(
+                HttpStatus.OK, "/user/email/" + userId, email));
     }
 
-    private User sendAdminPatchRequest(HttpStatus expectedStatus, String url, String content) {
-        return getUserFromResponse(sendAdminRequest(HttpMethod.PATCH, expectedStatus, url, content));
+    private User updateUsername(Integer userId, String username) {
+        return getUserFromResponse(sendAdminPatchRequest(
+                HttpStatus.OK, "/user/username/" + userId + "/" + username, ""));
     }
 
     private User getUserFromResponse(MockHttpServletResponse response) {
@@ -208,7 +242,7 @@ class UserIT extends _BaseIT {
 
     @SneakyThrows
     private int deleteUser(Integer userId) {
-        return Integer.parseInt(this.mockMvc.perform(delete("/user/" + userId)
-                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1))).andReturn().getResponse().getContentAsString());
+        return Integer.parseInt(
+                sendAdminDeleteRequest(HttpStatus.OK, "/user/" + userId, "").getContentAsString());
     }
 }
