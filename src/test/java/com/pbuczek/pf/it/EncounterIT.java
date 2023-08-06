@@ -122,14 +122,20 @@ class EncounterIT extends _BaseIT {
         assertThat(foundEncounter).isEqualTo(createdEncounter);
     }
 
+    @SneakyThrows
     @Test
     void encounterCanBeDeleted() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
-        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
+        enableUserAccount(userId);
 
-        Encounter createdEncounter = getEncounterFromResponse(response);
-        Integer createdEncounterId = createdEncounter.getId();
-        //ToDo
+        int createdEncounterId =
+                getEncounterFromResponse(createEncounter(userId, "test", HttpStatus.OK)).getId();
+
+        assertThat(sendRequest(HttpMethod.DELETE,
+                HttpStatus.OK, TEST_USERNAME_STANDARD_1, "/encounter/" + createdEncounterId, "")
+                .getContentAsString()).isEqualTo("1");
+
+        assertThat(encounterRepo.findById(createdEncounterId)).isEmpty();
     }
 
     @Test
@@ -187,6 +193,7 @@ class EncounterIT extends _BaseIT {
     @Test
     void encounterDescriptionCanBeUpdated() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        enableUserAccount(userId);
         MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
 
         Encounter createdEncounter = getEncounterFromResponse(response);
