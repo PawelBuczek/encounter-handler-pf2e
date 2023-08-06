@@ -126,9 +126,17 @@ public class ApiKeyIT extends _BaseIT {
     void userWithApiKeysCanBeDeletedAndKeysGetDeletedWithHim() {
         Integer userId = getObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
+        enableUserAccount(userId);
+        changeUserPaymentPlan(userId, PaymentPlan.ADVENTURER);
 
-        //ToDo
+        String apiKeyReceivedPass1 = createApiKey(HttpStatus.OK);
+        String apiKeyReceivedPass2 = createApiKey(HttpStatus.OK);
+
         assertThat(deleteUser(userId)).isEqualTo(1);
+
+        for (String apiKeyPass : List.of(apiKeyReceivedPass1, apiKeyReceivedPass2)) {
+            assertThat(apiRepo.findByIdentifier(apiKeyPass.substring(0, ApiKey.IDENTIFIER_LENGTH))).isEmpty();
+        }
     }
 
 

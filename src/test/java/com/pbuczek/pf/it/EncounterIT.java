@@ -16,6 +16,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -144,9 +145,20 @@ class EncounterIT extends _BaseIT {
     void userWithEncountersCanBeDeleted() {
         Integer userId = getObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
+        enableUserAccount(userId);
 
-        //ToDo
+        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
+        Integer createdEncounterId1 = getEncounterFromResponse(response).getId();
+        response = createEncounter(userId, "test", HttpStatus.OK);
+        Integer createdEncounterId2 = getEncounterFromResponse(response).getId();
+
         assertThat(deleteUser(userId)).isEqualTo(1);
+
+        for (Integer encId : List.of(createdEncounterId1, createdEncounterId2)) {
+            Optional<Encounter> encounter = encounterRepo.findById(encId);
+            assertThat(encounter).isPresent();
+            assertThat(encounter.get().getUserId()).isNull();
+        }
     }
 
     @SneakyThrows

@@ -55,7 +55,10 @@ public class UserController {
         securityHelper.ensureRequestIsNotByApiKey();
         apiKeyRepo.deleteApiKeysByUserId(userId);
         encounterRepo.findByUserId(userId)
-                .forEach(encounter -> encounter.setUserId(null));
+                .forEach(encounter -> {
+                    encounter.setUserId(null);
+                    encounterRepo.save(encounter);
+                });
         return userRepo.deleteUser(userId);
     }
 
