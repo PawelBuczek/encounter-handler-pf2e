@@ -92,6 +92,18 @@ public class ApiKeyIT extends _BaseIT {
         });
     }
 
+    @Test
+    void apiKeysCanBeFoundByUserId() {
+        //ToDo
+        //getApiKeysByUserId
+    }
+
+    @Test
+    void apiKeyValidTillDateCanBeReceived() {
+        //ToDo
+        //getValidTillDate
+    }
+
     @SneakyThrows
     @Test
     void apiKeyCanBeUsedToAuthorizeGetUserRequest() {
