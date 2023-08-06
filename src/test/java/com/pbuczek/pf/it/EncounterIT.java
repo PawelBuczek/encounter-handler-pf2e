@@ -168,6 +168,7 @@ class EncounterIT extends _BaseIT {
                 .contains(createdEncounterId2.toString());
     }
 
+    @SneakyThrows
     @Test
     void encountersCanBeFoundByUserId() {
         Integer userId = getObjectFromResponse(
@@ -178,9 +179,19 @@ class EncounterIT extends _BaseIT {
         Integer createdEncounterId1 = getEncounterFromResponse(response).getId();
         response = createEncounter(userId, "test", HttpStatus.OK);
         Integer createdEncounterId2 = getEncounterFromResponse(response).getId();
-        //ToDo
+
+        response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1,
+                "/encounter/by-userid/" + userId, "");
+
+        @SuppressWarnings("unchecked")
+        List<String> listOfCreatedEncounters = (List<String>) getObjectFromResponse(response, List.class);
+
+        assertThat(listOfCreatedEncounters).hasSize(2);
+        assertThat(response.getContentAsString()).contains(createdEncounterId1.toString())
+                .contains(createdEncounterId2.toString());
     }
 
+    @SneakyThrows
     @Test
     void encountersCanBeFoundByUsername() {
         Integer userId = getObjectFromResponse(
@@ -191,7 +202,16 @@ class EncounterIT extends _BaseIT {
         Integer createdEncounterId1 = getEncounterFromResponse(response).getId();
         response = createEncounter(userId, "test", HttpStatus.OK);
         Integer createdEncounterId2 = getEncounterFromResponse(response).getId();
-        //ToDo
+
+        response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1,
+                "/encounter/by-username/" + TEST_USERNAME_STANDARD_1, "");
+
+        @SuppressWarnings("unchecked")
+        List<String> listOfCreatedEncounters = (List<String>) getObjectFromResponse(response, List.class);
+
+        assertThat(listOfCreatedEncounters).hasSize(2);
+        assertThat(response.getContentAsString()).contains(createdEncounterId1.toString())
+                .contains(createdEncounterId2.toString());
     }
 
     @Test
@@ -202,7 +222,17 @@ class EncounterIT extends _BaseIT {
 
         Encounter createdEncounter = getEncounterFromResponse(response);
         Integer createdEncounterId = createdEncounter.getId();
-        //ToDo
+
+        response = sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_STANDARD_1,
+                "/encounter/description/" + createdEncounterId, "");
+
+        Encounter encounterFromResponse = getEncounterFromResponse(response);
+        Encounter encounterFromRepo = getObjectFromJpaRepo(createdEncounterId, encounterRepo);
+
+        assertThat(encounterFromResponse.getDescription()).isEqualTo("");
+        assertThat(encounterFromResponse).isEqualTo(encounterFromRepo).usingRecursiveComparison()
+                .ignoringFields("description")
+                .isEqualTo(createdEncounter);
     }
 
     @Test
