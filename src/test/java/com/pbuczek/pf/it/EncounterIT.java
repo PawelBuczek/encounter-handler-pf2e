@@ -108,7 +108,6 @@ class EncounterIT extends _BaseIT {
     }
 
     @Test
-    @SneakyThrows
     void adminCanReadEncounterThatIsNotPublished() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
@@ -123,22 +122,76 @@ class EncounterIT extends _BaseIT {
         assertThat(foundEncounter).isEqualTo(createdEncounter);
     }
 
-    @SneakyThrows
-    private MockHttpServletResponse createEncounter(
-            Integer userId, String description, HttpStatus expectedStatus) {
+    @Test
+    void encounterCanBeDeleted() {
+        int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
 
-        MockHttpServletResponse response = sendRequest(HttpMethod.POST, expectedStatus, TEST_USERNAME_ADMIN_1,
-                "/encounter", ow.writeValueAsString(new EncounterDto(ENC_NAME, userId, description)));
+        Encounter createdEncounter = getEncounterFromResponse(response);
+        Integer createdEncounterId = createdEncounter.getId();
+        //ToDo
+    }
 
-        try {
-            Encounter encounter = mapper.readValue(response.getContentAsString(), Encounter.class);
-            if (encounter.getId() != null) {
-                createdEncounterIds.add(encounter.getId());
-            }
-        } catch (Exception ignored) {
-        }
+    @Test
+    void standardUserCannotReadAllEncounters() {
+        Integer userId = getObjectFromResponse(
+                createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
+        enableUserAccount(userId);
 
-        return response;
+        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
+        Integer createdEncounterId1 = getEncounterFromResponse(response).getId();
+        response = createEncounter(userId, "test", HttpStatus.OK);
+        Integer createdEncounterId2 = getEncounterFromResponse(response).getId();
+        //ToDo
+    }
+
+    @Test
+    void adminCanReadAllEncounters() {
+        Integer userId = getObjectFromResponse(
+                createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
+        enableUserAccount(userId);
+
+        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
+        Integer createdEncounterId1 = getEncounterFromResponse(response).getId();
+        response = createEncounter(userId, "test", HttpStatus.OK);
+        Integer createdEncounterId2 = getEncounterFromResponse(response).getId();
+        //ToDo
+    }
+
+    @Test
+    void encountersCanBeFoundByUserId() {
+        Integer userId = getObjectFromResponse(
+                createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
+        enableUserAccount(userId);
+
+        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
+        Integer createdEncounterId1 = getEncounterFromResponse(response).getId();
+        response = createEncounter(userId, "test", HttpStatus.OK);
+        Integer createdEncounterId2 = getEncounterFromResponse(response).getId();
+        //ToDo
+    }
+
+    @Test
+    void encountersCanBeFoundByUsername() {
+        Integer userId = getObjectFromResponse(
+                createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
+        enableUserAccount(userId);
+
+        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
+        Integer createdEncounterId1 = getEncounterFromResponse(response).getId();
+        response = createEncounter(userId, "test", HttpStatus.OK);
+        Integer createdEncounterId2 = getEncounterFromResponse(response).getId();
+        //ToDo
+    }
+
+    @Test
+    void encounterDescriptionCanBeUpdated() {
+        int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
+
+        Encounter createdEncounter = getEncounterFromResponse(response);
+        Integer createdEncounterId = createdEncounter.getId();
+        //ToDo
     }
 
     @Test
@@ -159,6 +212,24 @@ class EncounterIT extends _BaseIT {
             assertThat(encounter).isPresent();
             assertThat(encounter.get().getUserId()).isNull();
         }
+    }
+
+    @SneakyThrows
+    private MockHttpServletResponse createEncounter(
+            Integer userId, String description, HttpStatus expectedStatus) {
+
+        MockHttpServletResponse response = sendRequest(HttpMethod.POST, expectedStatus, TEST_USERNAME_ADMIN_1,
+                "/encounter", ow.writeValueAsString(new EncounterDto(ENC_NAME, userId, description)));
+
+        try {
+            Encounter encounter = mapper.readValue(response.getContentAsString(), Encounter.class);
+            if (encounter.getId() != null) {
+                createdEncounterIds.add(encounter.getId());
+            }
+        } catch (Exception ignored) {
+        }
+
+        return response;
     }
 
     @SneakyThrows
