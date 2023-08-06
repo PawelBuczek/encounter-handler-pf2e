@@ -1,3 +1,5 @@
+github: /.github/**
+
 core: src/main/java/**
 resources: src/main/resources/**
 test: src/test/**
