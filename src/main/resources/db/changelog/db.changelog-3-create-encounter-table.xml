@@ -10,7 +10,7 @@
                 <constraints nullable="false" primaryKey="true" unique="true"/>
             </column>
             <column name="user_id" type="INTEGER">
-                <constraints nullable="false" foreignKeyName="fk_encounter_user" references="user(id)"/>
+                <constraints foreignKeyName="fk_encounter_user" references="user(id)"/>
             </column>
             <column name="name" type="VARCHAR(255)">
                 <constraints nullable="false"/>

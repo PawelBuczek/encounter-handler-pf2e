@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.pbuczek.pf.interfaces.JpaEntity;
 import com.pbuczek.pf.user.*;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -149,6 +148,12 @@ class _BaseIT {
 
     void changeUserPaymentPlan(Integer userId, PaymentPlan plan) {
         sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/user/paymentplan/" + userId + "/" + plan, "");
+    }
+
+    @SneakyThrows
+    int deleteUser(Integer userId) {
+        return Integer.parseInt(
+                sendAdminDeleteRequest(HttpStatus.OK, "/user/" + userId, "").getContentAsString());
     }
 
     String getBasicAuthenticationHeader(String username) {

@@ -97,7 +97,6 @@ class UserIT extends _BaseIT {
         Integer userId = getUserFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK)).getId();
 
-        getUserFromRepo(userId);
         assertThat(deleteUser(userId)).isEqualTo(1);
         assertThat(deleteUser(userId)).isEqualTo(0);
         Optional<User> optionalUser = userRepo.findById(userId);
@@ -287,11 +286,5 @@ class UserIT extends _BaseIT {
 
     private User getUserFromRepo(Integer userId) {
         return getObjectFromJpaRepo(userId, userRepo);
-    }
-
-    @SneakyThrows
-    private int deleteUser(Integer userId) {
-        return Integer.parseInt(
-                sendAdminDeleteRequest(HttpStatus.OK, "/user/" + userId, "").getContentAsString());
     }
 }
