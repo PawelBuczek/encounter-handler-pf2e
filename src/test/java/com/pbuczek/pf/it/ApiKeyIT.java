@@ -92,16 +92,41 @@ public class ApiKeyIT extends _BaseIT {
         });
     }
 
+    @SneakyThrows
     @Test
     void apiKeysCanBeFoundByUserId() {
-        //ToDo
-        //getApiKeysByUserId
+        int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        enableUserAccount(userId);
+        changeUserPaymentPlan(userId, PaymentPlan.ADVENTURER);
+        String apiKeyPass1 = createApiKey(HttpStatus.OK);
+        String apiKeyPass2 = createApiKey(HttpStatus.OK);
+
+        MockHttpServletResponse response =
+                sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1, "/apikey/" + userId, "");
+
+        @SuppressWarnings("unchecked")
+        List<String> apiKeys = (List<String>) getObjectFromResponse(response, List.class);
+
+        assertThat(apiKeys).hasSize(2);
+        assertThat(apiKeys.toString())
+                .contains(apiKeyPass1.substring(0, ApiKey.IDENTIFIER_LENGTH))
+                .contains(apiKeyPass2.substring(0, ApiKey.IDENTIFIER_LENGTH));
     }
 
     @Test
     void apiKeyValidTillDateCanBeReceived() {
-        //ToDo
-        //getValidTillDate
+        int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        enableUserAccount(userId);
+        changeUserPaymentPlan(userId, PaymentPlan.ADVENTURER);
+        String apiKeyPass = createApiKey(HttpStatus.OK);
+        String url = "/apikey/valid-till-date/" + userId + "/" + apiKeyPass.substring(0, ApiKey.IDENTIFIER_LENGTH);
+
+        MockHttpServletResponse response =
+                sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1, url, "");
+
+        LocalDate date = getObjectFromResponse(response, LocalDate.class);
+        assertThat(date).isAfterOrEqualTo(LocalDate.now().plusDays(364))
+                .isBeforeOrEqualTo(LocalDate.now().plusYears(1));
     }
 
     @SneakyThrows
