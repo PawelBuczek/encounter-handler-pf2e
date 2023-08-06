@@ -144,13 +144,13 @@ class EncounterIT extends _BaseIT {
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
-        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
-        Integer createdEncounterId1 = getEncounterFromResponse(response).getId();
-        response = createEncounter(userId, "test", HttpStatus.OK);
-        Integer createdEncounterId2 = getEncounterFromResponse(response).getId();
-        //ToDo
+        createEncounter(userId, "test", HttpStatus.OK);
+        createEncounter(userId, "test", HttpStatus.OK);
+
+        sendRequest(HttpMethod.GET, HttpStatus.FORBIDDEN, TEST_USERNAME_STANDARD_1, "/encounter", "");
     }
 
+    @SneakyThrows
     @Test
     void adminCanReadAllEncounters() {
         Integer userId = getObjectFromResponse(
@@ -161,7 +161,11 @@ class EncounterIT extends _BaseIT {
         Integer createdEncounterId1 = getEncounterFromResponse(response).getId();
         response = createEncounter(userId, "test", HttpStatus.OK);
         Integer createdEncounterId2 = getEncounterFromResponse(response).getId();
-        //ToDo
+
+        response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/encounter", "");
+
+        assertThat(response.getContentAsString()).contains(createdEncounterId1.toString())
+                .contains(createdEncounterId2.toString());
     }
 
     @Test
