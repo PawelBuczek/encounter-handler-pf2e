@@ -74,10 +74,7 @@ class EncounterIT extends _BaseIT {
     @Test
     void differentStandardUserCannotReadEncounterThatIsNotPublished() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
-        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
-
-        Encounter createdEncounter = getEncounterFromResponse(response);
-        Integer createdEncounterId = createdEncounter.getId();
+        int createdEncounterId = createEncounterAndGetIt(userId, "");
 
         int secondUserId = createUser(TEST_USERNAME_STANDARD_2, TEST_EMAIL_STANDARD_2);
         enableUserAccount(secondUserId);
@@ -128,8 +125,7 @@ class EncounterIT extends _BaseIT {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         enableUserAccount(userId);
 
-        int createdEncounterId =
-                getEncounterFromResponse(createEncounter(userId, "test", HttpStatus.OK)).getId();
+        int createdEncounterId = createEncounterAndGetIt(userId, "");
 
         assertThat(sendRequest(HttpMethod.DELETE,
                 HttpStatus.OK, TEST_USERNAME_STANDARD_1, "/encounter/" + createdEncounterId, "")
@@ -157,15 +153,13 @@ class EncounterIT extends _BaseIT {
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
-        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
-        Integer createdEncounterId1 = getEncounterFromResponse(response).getId();
-        response = createEncounter(userId, "test", HttpStatus.OK);
-        Integer createdEncounterId2 = getEncounterFromResponse(response).getId();
+        int createdEncounterId1 = createEncounterAndGetIt(userId, "");
+        int createdEncounterId2 = createEncounterAndGetIt(userId, "");
 
-        response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/encounter", "");
+        MockHttpServletResponse response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/encounter", "");
 
-        assertThat(response.getContentAsString()).contains(createdEncounterId1.toString())
-                .contains(createdEncounterId2.toString());
+        assertThat(response.getContentAsString()).contains(Integer.toString(createdEncounterId1))
+                .contains(Integer.toString(createdEncounterId2));
     }
 
     @SneakyThrows
@@ -175,20 +169,18 @@ class EncounterIT extends _BaseIT {
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
-        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
-        Integer createdEncounterId1 = getEncounterFromResponse(response).getId();
-        response = createEncounter(userId, "test", HttpStatus.OK);
-        Integer createdEncounterId2 = getEncounterFromResponse(response).getId();
+        int createdEncounterId1 = createEncounterAndGetIt(userId, "");
+        int createdEncounterId2 = createEncounterAndGetIt(userId, "");
 
-        response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1,
+        MockHttpServletResponse response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1,
                 "/encounter/by-userid/" + userId, "");
 
         @SuppressWarnings("unchecked")
         List<String> listOfCreatedEncounters = (List<String>) getObjectFromResponse(response, List.class);
 
         assertThat(listOfCreatedEncounters).hasSize(2);
-        assertThat(response.getContentAsString()).contains(createdEncounterId1.toString())
-                .contains(createdEncounterId2.toString());
+        assertThat(response.getContentAsString()).contains(Integer.toString(createdEncounterId1))
+                .contains(Integer.toString(createdEncounterId2));
     }
 
     @SneakyThrows
@@ -198,20 +190,18 @@ class EncounterIT extends _BaseIT {
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
-        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
-        Integer createdEncounterId1 = getEncounterFromResponse(response).getId();
-        response = createEncounter(userId, "test", HttpStatus.OK);
-        Integer createdEncounterId2 = getEncounterFromResponse(response).getId();
+        int createdEncounterId1 = createEncounterAndGetIt(userId, "test");
+        int createdEncounterId2 = createEncounterAndGetIt(userId, "test");
 
-        response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1,
+        MockHttpServletResponse response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1,
                 "/encounter/by-username/" + TEST_USERNAME_STANDARD_1, "");
 
         @SuppressWarnings("unchecked")
         List<String> listOfCreatedEncounters = (List<String>) getObjectFromResponse(response, List.class);
 
         assertThat(listOfCreatedEncounters).hasSize(2);
-        assertThat(response.getContentAsString()).contains(createdEncounterId1.toString())
-                .contains(createdEncounterId2.toString());
+        assertThat(response.getContentAsString()).contains(Integer.toString(createdEncounterId1))
+                .contains(Integer.toString(createdEncounterId2));
     }
 
     @Test
@@ -241,10 +231,8 @@ class EncounterIT extends _BaseIT {
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
-        MockHttpServletResponse response = createEncounter(userId, "test", HttpStatus.OK);
-        Integer createdEncounterId1 = getEncounterFromResponse(response).getId();
-        response = createEncounter(userId, "test", HttpStatus.OK);
-        Integer createdEncounterId2 = getEncounterFromResponse(response).getId();
+        int createdEncounterId1 = createEncounterAndGetIt(userId, "test");
+        int createdEncounterId2 = createEncounterAndGetIt(userId, "test");
 
         assertThat(deleteUser(userId)).isEqualTo(1);
 
@@ -253,6 +241,11 @@ class EncounterIT extends _BaseIT {
             assertThat(encounter).isPresent();
             assertThat(encounter.get().getUserId()).isNull();
         }
+    }
+
+    private int createEncounterAndGetIt(Integer userId, String description) {
+        MockHttpServletResponse response = createEncounter(userId, description, HttpStatus.OK);
+        return getEncounterFromResponse(response).getId();
     }
 
     @SneakyThrows
