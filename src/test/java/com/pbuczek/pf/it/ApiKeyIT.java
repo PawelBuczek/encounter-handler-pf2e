@@ -92,7 +92,6 @@ public class ApiKeyIT extends _BaseIT {
         });
     }
 
-    @SneakyThrows
     @Test
     void apiKeysCanBeFoundByUserId() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
@@ -104,13 +103,12 @@ public class ApiKeyIT extends _BaseIT {
         MockHttpServletResponse response =
                 sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1, "/apikey/" + userId, "");
 
-        @SuppressWarnings("unchecked")
-        List<String> apiKeys = (List<String>) getObjectFromResponse(response, List.class);
+        List<ApiKey> listOfApiKeys = readListFromResponse(response, ApiKey.class);
 
-        assertThat(apiKeys).hasSize(2);
-        assertThat(apiKeys.toString())
-                .contains(apiKeyPass1.substring(0, ApiKey.IDENTIFIER_LENGTH))
-                .contains(apiKeyPass2.substring(0, ApiKey.IDENTIFIER_LENGTH));
+        assertThat(listOfApiKeys).hasSize(2);
+        listOfApiKeys.forEach(apiKey -> assertThat(apiKey.getIdentifier())
+                .containsAnyOf(apiKeyPass1.substring(0, ApiKey.IDENTIFIER_LENGTH),
+                        apiKeyPass2.substring(0, ApiKey.IDENTIFIER_LENGTH)));
     }
 
     @Test
@@ -124,7 +122,7 @@ public class ApiKeyIT extends _BaseIT {
         MockHttpServletResponse response =
                 sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1, url, "");
 
-        LocalDate date = getObjectFromResponse(response, LocalDate.class);
+        LocalDate date = readObjectFromResponse(response, LocalDate.class);
         assertThat(date).isAfterOrEqualTo(LocalDate.now().plusDays(364))
                 .isBeforeOrEqualTo(LocalDate.now().plusYears(1));
     }
@@ -141,7 +139,7 @@ public class ApiKeyIT extends _BaseIT {
                         .request(HttpMethod.GET, "/user/by-userid/" + userId)
                         .header("X-API-KEY", apiKey))
                 .andExpect(status().is(HttpStatus.OK.value())).andReturn().getResponse();
-        assertThat(getObjectFromResponse(response, User.class).getId()).isEqualTo(userId);
+        assertThat(readObjectFromResponse(response, User.class).getId()).isEqualTo(userId);
     }
 
     @SneakyThrows
@@ -161,7 +159,7 @@ public class ApiKeyIT extends _BaseIT {
 
     @Test
     void userWithApiKeysCanBeDeletedAndKeysGetDeletedWithHim() {
-        Integer userId = getObjectFromResponse(
+        Integer userId = readObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
         changeUserPaymentPlan(userId, PaymentPlan.ADVENTURER);

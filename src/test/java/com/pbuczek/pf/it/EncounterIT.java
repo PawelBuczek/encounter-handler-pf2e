@@ -74,7 +74,7 @@ class EncounterIT extends _BaseIT {
     @Test
     void differentStandardUserCannotReadEncounterThatIsNotPublished() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
-        int createdEncounterId = createEncounterAndGetIt(userId, "");
+        int createdEncounterId = createEncounter(userId, "").getId();
 
         int secondUserId = createUser(TEST_USERNAME_STANDARD_2, TEST_EMAIL_STANDARD_2);
         enableUserAccount(secondUserId);
@@ -125,7 +125,7 @@ class EncounterIT extends _BaseIT {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
         enableUserAccount(userId);
 
-        int createdEncounterId = createEncounterAndGetIt(userId, "");
+        int createdEncounterId = createEncounter(userId, "").getId();
 
         assertThat(sendRequest(HttpMethod.DELETE,
                 HttpStatus.OK, TEST_USERNAME_STANDARD_1, "/encounter/" + createdEncounterId, "")
@@ -136,7 +136,7 @@ class EncounterIT extends _BaseIT {
 
     @Test
     void standardUserCannotReadAllEncounters() {
-        Integer userId = getObjectFromResponse(
+        Integer userId = readObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
@@ -146,62 +146,54 @@ class EncounterIT extends _BaseIT {
         sendRequest(HttpMethod.GET, HttpStatus.FORBIDDEN, TEST_USERNAME_STANDARD_1, "/encounter", "");
     }
 
-    @SneakyThrows
     @Test
     void adminCanReadAllEncounters() {
-        Integer userId = getObjectFromResponse(
+        Integer userId = readObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
-        int createdEncounterId1 = createEncounterAndGetIt(userId, "");
-        int createdEncounterId2 = createEncounterAndGetIt(userId, "");
+        Encounter createdEncounter1 = getEncounterFromResponse(createEncounter(userId, "test", HttpStatus.OK));
+        Encounter createdEncounter2 = getEncounterFromResponse(createEncounter(userId, "test", HttpStatus.OK));
 
         MockHttpServletResponse response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/encounter", "");
 
-        assertThat(response.getContentAsString()).contains(Integer.toString(createdEncounterId1))
-                .contains(Integer.toString(createdEncounterId2));
+        List<Encounter> listOfEncounters = readListFromResponse(response, Encounter.class);
+
+        assertThat(listOfEncounters).contains(createdEncounter1, createdEncounter2);
     }
 
-    @SneakyThrows
     @Test
     void encountersCanBeFoundByUserId() {
-        Integer userId = getObjectFromResponse(
+        Integer userId = readObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
-        int createdEncounterId1 = createEncounterAndGetIt(userId, "");
-        int createdEncounterId2 = createEncounterAndGetIt(userId, "");
+        Encounter createdEncounter1 = getEncounterFromResponse(createEncounter(userId, "test", HttpStatus.OK));
+        Encounter createdEncounter2 = getEncounterFromResponse(createEncounter(userId, "test", HttpStatus.OK));
 
         MockHttpServletResponse response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1,
                 "/encounter/by-userid/" + userId, "");
 
-        @SuppressWarnings("unchecked")
-        List<String> listOfCreatedEncounters = (List<String>) getObjectFromResponse(response, List.class);
+        List<Encounter> listOfEncounters = readListFromResponse(response, Encounter.class);
 
-        assertThat(listOfCreatedEncounters).hasSize(2);
-        assertThat(response.getContentAsString()).contains(Integer.toString(createdEncounterId1))
-                .contains(Integer.toString(createdEncounterId2));
+        assertThat(listOfEncounters).containsExactlyInAnyOrder(createdEncounter1, createdEncounter2);
     }
 
-    @SneakyThrows
     @Test
     void encountersCanBeFoundByUsername() {
-        Integer userId = getObjectFromResponse(
+        Integer userId = readObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
-        int createdEncounterId1 = createEncounterAndGetIt(userId, "test");
-        int createdEncounterId2 = createEncounterAndGetIt(userId, "test");
+        Encounter createdEncounter1 = getEncounterFromResponse(createEncounter(userId, "test", HttpStatus.OK));
+        Encounter createdEncounter2 = getEncounterFromResponse(createEncounter(userId, "test", HttpStatus.OK));
 
         MockHttpServletResponse response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1,
                 "/encounter/by-username/" + TEST_USERNAME_STANDARD_1, "");
 
-        @SuppressWarnings("unchecked")
-        List<String> listOfCreatedEncounters = (List<String>) getObjectFromResponse(response, List.class);
+        List<Encounter> listOfEncounters = readListFromResponse(response, Encounter.class);
 
-        assertThat(listOfCreatedEncounters).hasSize(2);
-        assertThat(response.getContentAsString()).contains(Integer.toString(createdEncounterId1))
-                .contains(Integer.toString(createdEncounterId2));
+        assertThat(listOfEncounters).containsExactlyInAnyOrder(createdEncounter1, createdEncounter2);
     }
 
     @Test
@@ -227,12 +219,12 @@ class EncounterIT extends _BaseIT {
 
     @Test
     void userWithEncountersCanBeDeleted() {
-        Integer userId = getObjectFromResponse(
+        Integer userId = readObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
-        int createdEncounterId1 = createEncounterAndGetIt(userId, "test");
-        int createdEncounterId2 = createEncounterAndGetIt(userId, "test");
+        int createdEncounterId1 = createEncounter(userId, "test").getId();
+        int createdEncounterId2 = createEncounter(userId, "test").getId();
 
         assertThat(deleteUser(userId)).isEqualTo(1);
 
@@ -243,9 +235,10 @@ class EncounterIT extends _BaseIT {
         }
     }
 
-    private int createEncounterAndGetIt(Integer userId, String description) {
+
+    private Encounter createEncounter(Integer userId, String description) {
         MockHttpServletResponse response = createEncounter(userId, description, HttpStatus.OK);
-        return getEncounterFromResponse(response).getId();
+        return getEncounterFromResponse(response);
     }
 
     @SneakyThrows
@@ -283,7 +276,7 @@ class EncounterIT extends _BaseIT {
 
     @SneakyThrows
     private Encounter getEncounterFromResponse(MockHttpServletResponse response) {
-        return getObjectFromResponse(response, Encounter.class);
+        return readObjectFromResponse(response, Encounter.class);
     }
 
 }

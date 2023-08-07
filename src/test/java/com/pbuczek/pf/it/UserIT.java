@@ -195,22 +195,31 @@ class UserIT extends _BaseIT {
 
         assertThat(initialUser).usingRecursiveComparison()
                 .ignoringFields("password")
-                .isEqualTo(getUserFromResponse(sendAdminGetRequest(
-                        HttpStatus.OK, "/user/by-userid/" + initialUser.getId(), "")));
+                .isEqualTo(getUserFromResponse(sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_ADMIN_1,
+                        "/user/by-userid/" + initialUser.getId(), "")));
 
         assertThat(initialUser).usingRecursiveComparison()
                 .ignoringFields("password")
-                .isEqualTo(getUserFromResponse(sendAdminGetRequest(
-                        HttpStatus.OK, "/user/by-username/" + initialUser.getUsername(), "")));
+                .isEqualTo(getUserFromResponse(sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_ADMIN_1,
+                        "/user/by-username/" + initialUser.getUsername(), "")));
     }
 
-    @SneakyThrows
     @Test
     void allUsersCanBeFoundByAdminOnly() {
-        enableUserAccount(createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1));
-        @SuppressWarnings("unchecked")
-        List<String> list = getObjectFromResponse(sendAdminGetRequest(HttpStatus.OK, "/user", ""), List.class);
-        assertThat(list.toString()).contains(TEST_USERNAME_ADMIN_1).contains(TEST_USERNAME_STANDARD_1);
+        int adminId = userRepo.getIdByUsername(TEST_USERNAME_ADMIN_1);
+        int createdUserId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        enableUserAccount(createdUserId);
+
+        MockHttpServletResponse response =
+                sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/user", "");
+        List<User> listOfUsers = readListFromResponse(response, User.class);
+
+        User adminUser = getUserFromRepo(adminId);
+        User createdUser = getUserFromRepo(createdUserId);
+        adminUser.setPassword("[hidden for security reasons]");
+        createdUser.setPassword("[hidden for security reasons]");
+
+        assertThat(listOfUsers).contains(adminUser, createdUser);
 
         sendRequest(HttpMethod.GET, HttpStatus.FORBIDDEN, TEST_USERNAME_STANDARD_1, "/user", "");
     }
@@ -251,37 +260,37 @@ class UserIT extends _BaseIT {
 
 
     private User updatePaymentPlan(Integer userId, PaymentPlan paymentPlan) {
-        return getUserFromResponse(sendAdminPatchRequest(
-                HttpStatus.OK, "/user/paymentplan/" + userId + "/" + paymentPlan, ""));
+        return getUserFromResponse(sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_ADMIN_1,
+                "/user/paymentplan/" + userId + "/" + paymentPlan, ""));
     }
 
     private User refreshPasswordLastUpdatedDate(Integer userId) {
-        return getUserFromResponse(sendAdminPatchRequest(
-                HttpStatus.OK, "/user/refresh-password-last-updated-date/" + userId, ""));
+        return getUserFromResponse(sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_ADMIN_1,
+                "/user/refresh-password-last-updated-date/" + userId, ""));
     }
 
     private User lockUnlock(Integer userId) {
-        return getUserFromResponse(sendAdminPatchRequest(
-                HttpStatus.OK, "/user/lock-unlock/" + userId, ""));
+        return getUserFromResponse(sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_ADMIN_1,
+                "/user/lock-unlock/" + userId, ""));
     }
 
     private User updateUserType(Integer userId, UserType userType) {
-        return getUserFromResponse(sendAdminPatchRequest(
-                HttpStatus.OK, "/user/usertype/" + userId + "/" + userType, ""));
+        return getUserFromResponse(sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_ADMIN_1,
+                "/user/usertype/" + userId + "/" + userType, ""));
     }
 
     private User updateEmail(Integer userId, String email) {
-        return getUserFromResponse(sendAdminPatchRequest(
-                HttpStatus.OK, "/user/email/" + userId, email));
+        return getUserFromResponse(sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_ADMIN_1,
+                "/user/email/" + userId, email));
     }
 
     private User updateUsername(Integer userId, String username) {
-        return getUserFromResponse(sendAdminPatchRequest(
-                HttpStatus.OK, "/user/username/" + userId + "/" + username, ""));
+        return getUserFromResponse(sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_ADMIN_1,
+                "/user/username/" + userId + "/" + username, ""));
     }
 
     private User getUserFromResponse(MockHttpServletResponse response) {
-        return getObjectFromResponse(response, User.class);
+        return readObjectFromResponse(response, User.class);
     }
 
     private User getUserFromRepo(Integer userId) {
