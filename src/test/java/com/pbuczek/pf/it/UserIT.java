@@ -209,7 +209,7 @@ class UserIT extends _BaseIT {
     void allUsersCanBeFoundByAdminOnly() {
         enableUserAccount(createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1));
         @SuppressWarnings("unchecked")
-        List<String> list = getObjectFromResponse(sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_ADMIN_1,
+        List<String> list = readObjectFromResponse(sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_ADMIN_1,
                 "/user", ""), List.class);
         assertThat(list.toString()).contains(TEST_USERNAME_ADMIN_1).contains(TEST_USERNAME_STANDARD_1);
 
@@ -282,7 +282,7 @@ class UserIT extends _BaseIT {
     }
 
     private User getUserFromResponse(MockHttpServletResponse response) {
-        return getObjectFromResponse(response, User.class);
+        return readObjectFromResponse(response, User.class);
     }
 
     private User getUserFromRepo(Integer userId) {

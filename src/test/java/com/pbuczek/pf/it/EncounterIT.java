@@ -1,6 +1,5 @@
 package com.pbuczek.pf.it;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.pbuczek.pf.encounter.Encounter;
 import com.pbuczek.pf.encounter.EncounterDto;
 import com.pbuczek.pf.encounter.EncounterRepository;
@@ -137,7 +136,7 @@ class EncounterIT extends _BaseIT {
 
     @Test
     void standardUserCannotReadAllEncounters() {
-        Integer userId = getObjectFromResponse(
+        Integer userId = readObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
@@ -149,7 +148,7 @@ class EncounterIT extends _BaseIT {
 
     @Test
     void adminCanReadAllEncounters() {
-        Integer userId = getObjectFromResponse(
+        Integer userId = readObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
@@ -158,13 +157,14 @@ class EncounterIT extends _BaseIT {
 
         MockHttpServletResponse response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/encounter", "");
 
-        assertThat(getListOfEncountersFromResponse(response))
-                .contains(createdEncounter1, createdEncounter2);
+        List<Encounter> listOfEncounters = readListFromResponse(response, Encounter.class);
+
+        assertThat(listOfEncounters).contains(createdEncounter1, createdEncounter2);
     }
 
     @Test
     void encountersCanBeFoundByUserId() {
-        Integer userId = getObjectFromResponse(
+        Integer userId = readObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
@@ -174,13 +174,14 @@ class EncounterIT extends _BaseIT {
         MockHttpServletResponse response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1,
                 "/encounter/by-userid/" + userId, "");
 
-        assertThat(getListOfEncountersFromResponse(response))
-                .containsExactlyInAnyOrder(createdEncounter1, createdEncounter2);
+        List<Encounter> listOfEncounters = readListFromResponse(response, Encounter.class);
+
+        assertThat(listOfEncounters).containsExactlyInAnyOrder(createdEncounter1, createdEncounter2);
     }
 
     @Test
     void encountersCanBeFoundByUsername() {
-        Integer userId = getObjectFromResponse(
+        Integer userId = readObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
@@ -190,8 +191,9 @@ class EncounterIT extends _BaseIT {
         MockHttpServletResponse response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1,
                 "/encounter/by-username/" + TEST_USERNAME_STANDARD_1, "");
 
-        assertThat(getListOfEncountersFromResponse(response))
-                .containsExactlyInAnyOrder(createdEncounter1, createdEncounter2);
+        List<Encounter> listOfEncounters = readListFromResponse(response, Encounter.class);
+
+        assertThat(listOfEncounters).containsExactlyInAnyOrder(createdEncounter1, createdEncounter2);
     }
 
     @Test
@@ -217,7 +219,7 @@ class EncounterIT extends _BaseIT {
 
     @Test
     void userWithEncountersCanBeDeleted() {
-        Integer userId = getObjectFromResponse(
+        Integer userId = readObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
@@ -274,13 +276,7 @@ class EncounterIT extends _BaseIT {
 
     @SneakyThrows
     private Encounter getEncounterFromResponse(MockHttpServletResponse response) {
-        return getObjectFromResponse(response, Encounter.class);
-    }
-
-    @SneakyThrows
-    private List<Encounter> getListOfEncountersFromResponse(MockHttpServletResponse response) {
-        return mapper.readValue(response.getContentAsString(), new TypeReference<>() {
-        });
+        return readObjectFromResponse(response, Encounter.class);
     }
 
 }

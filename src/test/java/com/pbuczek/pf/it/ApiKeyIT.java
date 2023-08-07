@@ -1,6 +1,5 @@
 package com.pbuczek.pf.it;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.pbuczek.pf.apikey.ApiKey;
 import com.pbuczek.pf.apikey.ApiKeyRepository;
 import com.pbuczek.pf.user.PaymentPlan;
@@ -104,8 +103,7 @@ public class ApiKeyIT extends _BaseIT {
         MockHttpServletResponse response =
                 sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1, "/apikey/" + userId, "");
 
-        List<ApiKey> listOfApiKeys = getListOfObjectsFromResponse(response, new TypeReference<>() {
-        });
+        List<ApiKey> listOfApiKeys = readListFromResponse(response, ApiKey.class);
 
         assertThat(listOfApiKeys).hasSize(2);
         listOfApiKeys.forEach(apiKey -> assertThat(apiKey.getIdentifier())
@@ -124,7 +122,7 @@ public class ApiKeyIT extends _BaseIT {
         MockHttpServletResponse response =
                 sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1, url, "");
 
-        LocalDate date = getObjectFromResponse(response, LocalDate.class);
+        LocalDate date = readObjectFromResponse(response, LocalDate.class);
         assertThat(date).isAfterOrEqualTo(LocalDate.now().plusDays(364))
                 .isBeforeOrEqualTo(LocalDate.now().plusYears(1));
     }
@@ -141,7 +139,7 @@ public class ApiKeyIT extends _BaseIT {
                         .request(HttpMethod.GET, "/user/by-userid/" + userId)
                         .header("X-API-KEY", apiKey))
                 .andExpect(status().is(HttpStatus.OK.value())).andReturn().getResponse();
-        assertThat(getObjectFromResponse(response, User.class).getId()).isEqualTo(userId);
+        assertThat(readObjectFromResponse(response, User.class).getId()).isEqualTo(userId);
     }
 
     @SneakyThrows
@@ -161,7 +159,7 @@ public class ApiKeyIT extends _BaseIT {
 
     @Test
     void userWithApiKeysCanBeDeletedAndKeysGetDeletedWithHim() {
-        Integer userId = getObjectFromResponse(
+        Integer userId = readObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
         changeUserPaymentPlan(userId, PaymentPlan.ADVENTURER);

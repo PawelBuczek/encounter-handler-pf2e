@@ -1,11 +1,9 @@
 package com.pbuczek.pf.it;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.pbuczek.pf.apikey.ApiKey;
 import com.pbuczek.pf.user.*;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -92,7 +90,7 @@ class _BaseIT {
     }
 
     int createUser(String username, String email) {
-        return getObjectFromResponse(createUser(username, email, HttpStatus.OK), User.class).getId();
+        return readObjectFromResponse(createUser(username, email, HttpStatus.OK), User.class).getId();
     }
 
     void createUser(String username, String email, HttpStatus expectedStatus, String expectedErrorMessage) {
@@ -153,14 +151,15 @@ class _BaseIT {
     }
 
     @SneakyThrows
-    <T> T getObjectFromResponse(MockHttpServletResponse response, Class<T> returnedClass) {
+    <T> T readObjectFromResponse(MockHttpServletResponse response, Class<T> returnedClass) {
         T object = mapper.readValue(response.getContentAsString(), returnedClass);
         assertThat(object).isNotNull();
         return object;
     }
 
     @SneakyThrows
-    <T> List<T> getListOfObjectsFromResponse(MockHttpServletResponse response, TypeReference<List<T>> typeReference) {
-        return mapper.readValue(response.getContentAsString(), typeReference);
+    <T> List<T> readListFromResponse(MockHttpServletResponse response, Class<T> elementType) {
+        return mapper.readValue(response.getContentAsString(),
+                mapper.getTypeFactory().constructCollectionType(List.class, elementType));
     }
 }
