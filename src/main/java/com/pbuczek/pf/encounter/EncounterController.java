@@ -92,9 +92,12 @@ public class EncounterController {
     }
 
     @PatchMapping(value = "/description/{encounterId}")
-    public Encounter updateDescription(@PathVariable Integer encounterId, @RequestBody String description) {
+    public Encounter updateDescription(@PathVariable Integer encounterId, @RequestBody(required = false) String description) {
         Encounter encounter = getEncounterById(encounterId);
         adminOrSpecificUserId(encounter.getUserId());
+        if (description == null) {
+            description = "";
+        }
 
         checkDescription(description);
 
