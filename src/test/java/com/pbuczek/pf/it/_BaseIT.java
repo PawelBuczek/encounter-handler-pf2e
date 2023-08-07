@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pbuczek.pf.user.*;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,9 +24,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -34,12 +32,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureObservability
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@Slf4j
 class _BaseIT {
 
     final Set<Integer> createdUserIds = new HashSet<>();
     static final ObjectMapper mapper = new ObjectMapper();
     static ObjectWriter ow;
-    static final Logger logger = Logger.getLogger("_BaseIT");
 
     String TEST_USERNAME_ADMIN_1 = "";
     String TEST_EMAIL_ADMIN_1 = "";
@@ -84,7 +82,7 @@ class _BaseIT {
             if (userRepo.findByUsername(username).isEmpty()) {
                 break;
             }
-            logger.log(new LogRecord(Level.WARNING, "username taken, retrying"));
+            log.debug("username taken, retrying");
         }
         return username;
     }
