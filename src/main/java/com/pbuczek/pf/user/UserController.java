@@ -126,7 +126,7 @@ public class UserController {
     @PatchMapping(path = "/paymentplan/{userId}/{paymentPlan}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public User updatePaymentPlan(@PathVariable Integer userId, @PathVariable PaymentPlan paymentPlan) {
-        log.info("Payment plan updated to: " + paymentPlan + " for user with id:" + userId);
+        log.info("Updating payment plan to: " + paymentPlan + " for user with id:" + userId);
         User user = getUserById(userId);
 
         if (user.getPaymentPlan().equals(paymentPlan)) {
