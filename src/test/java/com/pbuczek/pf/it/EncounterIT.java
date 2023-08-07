@@ -1,5 +1,6 @@
 package com.pbuczek.pf.it;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.pbuczek.pf.encounter.Encounter;
 import com.pbuczek.pf.encounter.EncounterDto;
 import com.pbuczek.pf.encounter.EncounterRepository;
@@ -162,25 +163,19 @@ class EncounterIT extends _BaseIT {
                 .contains(Integer.toString(createdEncounterId2));
     }
 
-    @SneakyThrows
     @Test
     void encountersCanBeFoundByUserId() {
         Integer userId = getObjectFromResponse(
                 createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1, HttpStatus.OK), User.class).getId();
         enableUserAccount(userId);
 
-        int createdEncounterId1 = createEncounterAndGetIt(userId, "");
-        int createdEncounterId2 = createEncounterAndGetIt(userId, "");
+        Encounter createdEncounter1 = getEncounterFromResponse(createEncounter(userId, "test", HttpStatus.OK));
+        Encounter createdEncounter2 = getEncounterFromResponse(createEncounter(userId, "test", HttpStatus.OK));
 
         MockHttpServletResponse response = sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1,
                 "/encounter/by-userid/" + userId, "");
 
-        @SuppressWarnings("unchecked")
-        List<String> listOfCreatedEncounters = (List<String>) getObjectFromResponse(response, List.class);
-
-        assertThat(listOfCreatedEncounters).hasSize(2);
-        assertThat(response.getContentAsString()).contains(Integer.toString(createdEncounterId1))
-                .contains(Integer.toString(createdEncounterId2));
+        assertThat(getListOfEncountersFromResponse(response)).containsExactlyInAnyOrder(createdEncounter1, createdEncounter2);
     }
 
     @SneakyThrows
@@ -284,6 +279,12 @@ class EncounterIT extends _BaseIT {
     @SneakyThrows
     private Encounter getEncounterFromResponse(MockHttpServletResponse response) {
         return getObjectFromResponse(response, Encounter.class);
+    }
+
+    @SneakyThrows
+    private List<Encounter> getListOfEncountersFromResponse(MockHttpServletResponse response) {
+        return mapper.readValue(response.getContentAsString(), new TypeReference<>() {
+        });
     }
 
 }
