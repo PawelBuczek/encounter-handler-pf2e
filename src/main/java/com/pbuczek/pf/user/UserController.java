@@ -5,6 +5,7 @@ import com.pbuczek.pf.encounter.EncounterRepository;
 import com.pbuczek.pf.security.SecurityHelper;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/user")
+@Slf4j
 public class UserController {
 
     private final static String PASSWORD_REGEX = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^A-Za-z0-9]).{8,50}$";
@@ -124,6 +126,7 @@ public class UserController {
     @PatchMapping(path = "/paymentplan/{userId}/{paymentPlan}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public User updatePaymentPlan(@PathVariable Integer userId, @PathVariable PaymentPlan paymentPlan) {
+        log.info("Updating payment plan to: " + paymentPlan + " for user with id:" + userId);
         User user = getUserById(userId);
 
         if (user.getPaymentPlan().equals(paymentPlan)) {
@@ -188,6 +191,7 @@ public class UserController {
     @PatchMapping(path = "/lock-unlock/{userId}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public User lockUnlock(@PathVariable Integer userId) {
+        log.info("User with id:" + userId + " locking/unlocking.");
         User user = getUserById(userId);
 
         user.setLocked(!user.getLocked());
