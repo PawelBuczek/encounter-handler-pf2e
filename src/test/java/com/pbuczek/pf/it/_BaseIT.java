@@ -102,8 +102,9 @@ class _BaseIT {
 
     @SneakyThrows
     MockHttpServletResponse createUser(String username, String email, HttpStatus expectedStatus) {
-        MockHttpServletResponse response = sendAdminPostRequest(expectedStatus, "/user",
-                ow.writeValueAsString(new UserDto(username, email, TEST_PASSWORD)));
+        MockHttpServletResponse response =
+                sendRequest(HttpMethod.POST, expectedStatus, TEST_USERNAME_ADMIN_1, "/user",
+                        ow.writeValueAsString(new UserDto(username, email, TEST_PASSWORD)));
         try {
             User user = mapper.readValue(response.getContentAsString(), User.class);
             if (user.getId() != null) {
@@ -117,28 +118,12 @@ class _BaseIT {
 
     @SneakyThrows
     MockHttpServletResponse sendRequest(HttpMethod requestMethod, HttpStatus expectedStatus,
-                                        String username, String url, String content) {
+                                        String authUsername, String url, String content) {
         return this.mockMvc.perform(MockMvcRequestBuilders.request(requestMethod, url)
-                        .header("Authorization", getBasicAuthenticationHeader(username))
+                        .header("Authorization", getBasicAuthenticationHeader(authUsername))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
                 .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
-    }
-
-    MockHttpServletResponse sendAdminPatchRequest(HttpStatus expectedStatus, String url, String content) {
-        return sendRequest(HttpMethod.PATCH, expectedStatus, TEST_USERNAME_ADMIN_1, url, content);
-    }
-
-    MockHttpServletResponse sendAdminPostRequest(HttpStatus expectedStatus, String url, String content) {
-        return sendRequest(HttpMethod.POST, expectedStatus, TEST_USERNAME_ADMIN_1, url, content);
-    }
-
-    MockHttpServletResponse sendAdminGetRequest(HttpStatus expectedStatus, String url, String content) {
-        return sendRequest(HttpMethod.GET, expectedStatus, TEST_USERNAME_ADMIN_1, url, content);
-    }
-
-    MockHttpServletResponse sendAdminDeleteRequest(HttpStatus expectedStatus, String url, String content) {
-        return sendRequest(HttpMethod.DELETE, expectedStatus, TEST_USERNAME_ADMIN_1, url, content);
     }
 
 
@@ -153,7 +138,8 @@ class _BaseIT {
     @SneakyThrows
     int deleteUser(Integer userId) {
         return Integer.parseInt(
-                sendAdminDeleteRequest(HttpStatus.OK, "/user/" + userId, "").getContentAsString());
+                sendRequest(HttpMethod.DELETE, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/user/" + userId, "")
+                        .getContentAsString());
     }
 
     String getBasicAuthenticationHeader(String username) {
