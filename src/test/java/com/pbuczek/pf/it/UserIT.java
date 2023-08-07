@@ -204,14 +204,22 @@ class UserIT extends _BaseIT {
                         "/user/by-username/" + initialUser.getUsername(), "")));
     }
 
-    @SneakyThrows
     @Test
     void allUsersCanBeFoundByAdminOnly() {
-        enableUserAccount(createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1));
-        @SuppressWarnings("unchecked")
-        List<String> list = readObjectFromResponse(sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_ADMIN_1,
-                "/user", ""), List.class);
-        assertThat(list.toString()).contains(TEST_USERNAME_ADMIN_1).contains(TEST_USERNAME_STANDARD_1);
+        int adminId = userRepo.getIdByUsername(TEST_USERNAME_ADMIN_1);
+        int createdUserId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        enableUserAccount(createdUserId);
+
+        MockHttpServletResponse response =
+                sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_ADMIN_1, "/user", "");
+        List<User> listOfUsers = readListFromResponse(response, User.class);
+
+        User adminUser = getUserFromRepo(adminId);
+        User createdUser = getUserFromRepo(createdUserId);
+        adminUser.setPassword("[hidden for security reasons]");
+        createdUser.setPassword("[hidden for security reasons]");
+
+        assertThat(listOfUsers).contains(adminUser, createdUser);
 
         sendRequest(HttpMethod.GET, HttpStatus.FORBIDDEN, TEST_USERNAME_STANDARD_1, "/user", "");
     }
