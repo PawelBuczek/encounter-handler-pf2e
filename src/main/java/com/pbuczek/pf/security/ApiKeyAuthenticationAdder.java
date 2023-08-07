@@ -1,9 +1,11 @@
 package com.pbuczek.pf.security;
 
+import com.pbuczek.pf.apikey.ApiKey;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 
+@Slf4j
 public class ApiKeyAuthenticationAdder extends OncePerRequestFilter {
 
     private static UserDetailsService userDetailsService;
@@ -61,6 +64,7 @@ public class ApiKeyAuthenticationAdder extends OncePerRequestFilter {
             return;
         }
 
+        log.debug("Adding authentication for apiKey with identifier:" + apiKey.substring(0, ApiKey.IDENTIFIER_LENGTH));
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
                 apiKey,
                 "apiKey",
