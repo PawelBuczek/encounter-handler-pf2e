@@ -1,9 +1,11 @@
 package com.pbuczek.pf.it;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.pbuczek.pf.apikey.ApiKey;
 import com.pbuczek.pf.user.*;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -22,10 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDate;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -158,5 +157,10 @@ class _BaseIT {
         T object = mapper.readValue(response.getContentAsString(), returnedClass);
         assertThat(object).isNotNull();
         return object;
+    }
+
+    @SneakyThrows
+    <T> List<T> getListOfObjectsFromResponse(MockHttpServletResponse response, TypeReference<List<T>> typeReference) {
+        return mapper.readValue(response.getContentAsString(), typeReference);
     }
 }

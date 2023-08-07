@@ -1,5 +1,6 @@
 package com.pbuczek.pf.it;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.pbuczek.pf.apikey.ApiKey;
 import com.pbuczek.pf.apikey.ApiKeyRepository;
 import com.pbuczek.pf.user.PaymentPlan;
@@ -92,7 +93,6 @@ public class ApiKeyIT extends _BaseIT {
         });
     }
 
-    @SneakyThrows
     @Test
     void apiKeysCanBeFoundByUserId() {
         int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
@@ -104,13 +104,13 @@ public class ApiKeyIT extends _BaseIT {
         MockHttpServletResponse response =
                 sendRequest(HttpMethod.GET, HttpStatus.OK, TEST_USERNAME_STANDARD_1, "/apikey/" + userId, "");
 
-        @SuppressWarnings("unchecked")
-        List<String> apiKeys = (List<String>) getObjectFromResponse(response, List.class);
+        List<ApiKey> listOfApiKeys = getListOfObjectsFromResponse(response, new TypeReference<>() {
+        });
 
-        assertThat(apiKeys).hasSize(2);
-        assertThat(apiKeys.toString())
-                .contains(apiKeyPass1.substring(0, ApiKey.IDENTIFIER_LENGTH))
-                .contains(apiKeyPass2.substring(0, ApiKey.IDENTIFIER_LENGTH));
+        assertThat(listOfApiKeys).hasSize(2);
+        listOfApiKeys.forEach(apiKey -> assertThat(apiKey.getIdentifier())
+                .containsAnyOf(apiKeyPass1.substring(0, ApiKey.IDENTIFIER_LENGTH),
+                        apiKeyPass2.substring(0, ApiKey.IDENTIFIER_LENGTH)));
     }
 
     @Test
