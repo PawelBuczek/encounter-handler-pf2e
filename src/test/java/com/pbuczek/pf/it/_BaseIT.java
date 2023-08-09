@@ -28,7 +28,6 @@ import java.util.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SuppressWarnings("SameParameterValue")
 @AutoConfigureObservability
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -45,8 +44,7 @@ class _BaseIT {
     String TEST_EMAIL_STANDARD_1;
     String TEST_USERNAME_STANDARD_2;
     String TEST_EMAIL_STANDARD_2;
-    // this length is max for BCryptPasswordEncoder to actually hash consistently
-    String TEST_PASSWORD = "aB@1" + RandomStringUtils.random(26);
+    String TEST_PASSWORD = "aB@1" + RandomStringUtils.random(50);
 
     @Autowired
     MockMvc mockMvc;
