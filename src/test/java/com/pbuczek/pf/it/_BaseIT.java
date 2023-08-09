@@ -45,7 +45,8 @@ class _BaseIT {
     String TEST_EMAIL_STANDARD_1;
     String TEST_USERNAME_STANDARD_2;
     String TEST_EMAIL_STANDARD_2;
-    String TEST_PASSWORD = "aB@1" + RandomStringUtils.random(50);
+    // this length is max for BCryptPasswordEncoder to actually hash
+    String TEST_PASSWORD = "aB@1" + RandomStringUtils.random(26);
 
     @Autowired
     MockMvc mockMvc;

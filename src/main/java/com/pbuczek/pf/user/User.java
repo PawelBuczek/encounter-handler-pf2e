@@ -25,7 +25,7 @@ public class User implements JpaEntity {
     public User(String username, String email, String password) {
         this.username = username == null ? "" : username.trim();
         this.email = email == null ? "" : email.trim();
-        this.password = passwordEncoder.encode(password + "sdssd");
+        this.password = passwordEncoder.encode(password);
         this.timeCreated = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
         this.passwordLastUpdatedDate = LocalDate.now(ZoneOffset.UTC);
     }
