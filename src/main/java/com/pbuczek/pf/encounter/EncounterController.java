@@ -101,7 +101,7 @@ public class EncounterController {
 
         checkDescription(description);
 
-//        encounter.setDescription(description);
+        encounter.setDescription(description);
         return encounterRepo.save(encounter);
     }
 
