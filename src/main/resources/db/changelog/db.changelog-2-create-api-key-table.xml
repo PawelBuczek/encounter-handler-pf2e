@@ -9,7 +9,7 @@
             <column name="identifier" type="CHAR(35)">
                 <constraints nullable="false" primaryKey="true" unique="true"/>
             </column>
-            <column name="api_key_value" type="CHAR(60)">
+            <column name="api_key_value" type="VARCHAR(128)">
                 <constraints nullable="false" unique="true"/>
             </column>
             <column name="user_id" type="INTEGER">
