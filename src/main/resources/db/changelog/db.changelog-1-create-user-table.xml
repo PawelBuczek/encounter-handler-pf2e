@@ -24,7 +24,7 @@
             <column name="time_created" type="TIMESTAMP(0)">
                 <constraints nullable="false"/>
             </column>
-            <column name="password" type="CHAR(60)">
+            <column name="password" type="VARCHAR(128)">
                 <constraints nullable="false"/>
             </column>
             <column name="password_last_updated_date" type="DATE">

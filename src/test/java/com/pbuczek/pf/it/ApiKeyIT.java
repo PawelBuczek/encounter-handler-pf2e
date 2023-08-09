@@ -54,7 +54,7 @@ public class ApiKeyIT extends _BaseIT {
                 () -> assertThat(apiKey.getValidTillDate()).isBeforeOrEqualTo(LocalDate.now().plusYears(1)),
                 () -> assertThat(apiKey.getIdentifier()).isNotEmpty().isAlphanumeric().hasSize(ApiKey.IDENTIFIER_LENGTH)
                         .doesNotContainAnyWhitespaces().hasLineCount(1),
-                () -> assertThat(apiKey.getApiKeyValue()).hasSize(60)
+                () -> assertThat(apiKey.getApiKeyValue())
                         .doesNotContainAnyWhitespaces().hasLineCount(1));
     }
 
