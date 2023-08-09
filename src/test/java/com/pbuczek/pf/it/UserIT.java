@@ -190,6 +190,15 @@ class UserIT extends _BaseIT {
     }
 
     @Test
+    void userCanUpdateHisOwnUsername() {
+        int userId = createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1);
+        enableUserAccount(userId);
+
+        sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_STANDARD_1,
+                "/user/username/" + userId + "/" + TEST_USERNAME_STANDARD_1.substring(0,38), "");
+    }
+
+    @Test
     void userCanBeFound() {
         User initialUser = getUserFromRepo(createUser(TEST_USERNAME_STANDARD_1, TEST_EMAIL_STANDARD_1));
 
