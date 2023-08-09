@@ -39,12 +39,12 @@ class _BaseIT {
     static final ObjectMapper mapper = new ObjectMapper();
     static ObjectWriter ow;
 
-    String TEST_USERNAME_ADMIN_1 = "";
-    String TEST_EMAIL_ADMIN_1 = "";
-    String TEST_USERNAME_STANDARD_1 = "";
-    String TEST_EMAIL_STANDARD_1 = "";
-    String TEST_USERNAME_STANDARD_2 = "";
-    String TEST_EMAIL_STANDARD_2 = "";
+    String TEST_USERNAME_ADMIN_1;
+    String TEST_EMAIL_ADMIN_1;
+    String TEST_USERNAME_STANDARD_1;
+    String TEST_EMAIL_STANDARD_1;
+    String TEST_USERNAME_STANDARD_2;
+    String TEST_EMAIL_STANDARD_2;
     String TEST_PASSWORD = "aB@1" + RandomStringUtils.random(50);
 
     @Autowired
