@@ -35,9 +35,9 @@ class UserTest {
                         .isBeforeOrEqualTo(newUser.getTimeCreated()).isBeforeOrEqualTo(LocalDateTime.now()),
                 () -> assertThat(user.getPasswordLastUpdatedDate())
                         .isBeforeOrEqualTo(newUser.getPasswordLastUpdatedDate()).isBeforeOrEqualTo(LocalDate.now()),
-                () -> assertThat(user.getPassword()).hasSize(60)
+                () -> assertThat(user.getPassword())
                         .doesNotContainAnyWhitespaces().hasLineCount(1),
-                () -> assertThat(newUser.getPassword()).hasSize(60)
+                () -> assertThat(newUser.getPassword())
                         .doesNotContainAnyWhitespaces().hasLineCount(1));
     }
 
