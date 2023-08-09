@@ -15,6 +15,8 @@ jobs:
       DB_USER: root
       DB_PASSWORD: root
     steps:
+      - name: Shutdown default Ubuntu MySQL
+        run: sudo service mysql stop
       - name: Start MariaDB
         uses: getong/mariadb-action@v1.1
         with:
@@ -36,6 +38,8 @@ jobs:
           cache: maven
       - name: Build with Maven
         run: mvn -B package --file pom.xml -DskipTests
+      - name: Run ApplicationTests
+        run: mvn -Dtest=com/pbuczek/pf/ApplicationTests.java test
       - name: Run UnitTests
         run: mvn -Dtest=com/pbuczek/pf/UnitTests.java test
       - name: Run IntegrationTests
