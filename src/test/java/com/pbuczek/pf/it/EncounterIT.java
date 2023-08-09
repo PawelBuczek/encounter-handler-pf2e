@@ -141,7 +141,6 @@ class EncounterIT extends _BaseIT {
         enableUserAccount(userId);
 
         createEncounter(userId, "test", HttpStatus.OK);
-        createEncounter(userId, "test", HttpStatus.OK);
 
         sendRequest(HttpMethod.GET, HttpStatus.FORBIDDEN, TEST_USERNAME_STANDARD_1, "/encounter", "");
     }
