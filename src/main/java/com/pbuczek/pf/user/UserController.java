@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -106,7 +105,7 @@ public class UserController {
         User user = securityHelper.getContextCurrentUser();
 
         securityHelper.ensureRequestIsNotByApiKey();
-        if (!BCrypt.checkpw(passwordDto.getCurrentPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(passwordDto.getCurrentPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "provided current password is not correct");
         }
 
