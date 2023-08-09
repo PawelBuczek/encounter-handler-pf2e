@@ -23,9 +23,6 @@ import java.util.Set;
 import static com.pbuczek.pf.encounter.Encounter.MAX_DESCRIPTION_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("IntegrationTest")
 class EncounterIT extends _BaseIT {
@@ -241,8 +238,7 @@ class EncounterIT extends _BaseIT {
     }
 
     @SneakyThrows
-    private MockHttpServletResponse createEncounter(
-            Integer userId, String description, HttpStatus expectedStatus) {
+    private MockHttpServletResponse createEncounter(Integer userId, String description, HttpStatus expectedStatus) {
 
         MockHttpServletResponse response = sendRequest(HttpMethod.POST, expectedStatus, TEST_USERNAME_ADMIN_1,
                 "/encounter", ow.writeValueAsString(new EncounterDto(ENC_NAME, userId, description)));
@@ -262,15 +258,14 @@ class EncounterIT extends _BaseIT {
     private MockHttpServletResponse getResponseForGetEncounterRequest(
             Integer encounterId, String username, HttpStatus expectedStatus) {
 
-        return this.mockMvc.perform(get("/encounter/" + encounterId)
-                        .header("Authorization", getBasicAuthenticationHeader(username)))
-                .andExpect(status().is(expectedStatus.value())).andReturn().getResponse();
+        return sendRequest(HttpMethod.GET, expectedStatus, username,
+                "/encounter/" + encounterId, "");
     }
 
     @SneakyThrows
     private void publishUnpublishEncounter(int encounterId) {
-        this.mockMvc.perform(patch("/encounter/published/" + encounterId)
-                .header("Authorization", getBasicAuthenticationHeader(TEST_USERNAME_ADMIN_1)));
+        sendRequest(HttpMethod.PATCH, HttpStatus.OK, TEST_USERNAME_ADMIN_1,
+                "/encounter/published/" + encounterId, "");
     }
 
     @SneakyThrows
