@@ -29,6 +29,12 @@ Recommended to install first:
 leave `Database` blank  
 _note: for some tools it may be required to set driver property `allowPublicKeyRetrieval` to `true`_
 
+# Containerization with Docker (not yet fully established):
+1. Run Maven goal: `mvn clean package -DskipTests`
+2. Build Docker image locally: `docker build -t pbuczek/encounter-handler-pf2e-back .`
+3. Run Docker image `docker run -p 8080:8080 pbuczek/encounter-handler-pf2e-back`  
+   (it will fail for now because it cannot connect to database)
+
 # Notes about usage:
 - there are 2 User types, STANDARD and ADMIN
 - when creating new User, it will always have STANDARD type
