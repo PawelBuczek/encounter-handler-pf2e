@@ -1,5 +1,16 @@
+version: '3'
 services:
   web:
     build: .
     ports:
       - "8080:8080"
+  mariadb:
+    image: mariadb
+    environment:
+      CHARACTER_SET_SERVER: utf8
+      COLLATION_SERVER: utf8_general_ci
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pf
+      MYSQL_USER: root
+    ports:
+      - "3306:3306"
