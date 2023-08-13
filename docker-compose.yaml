@@ -10,6 +10,7 @@ services:
       - db:pf
     environment:
       - WAIT_HOSTS=db:3306
+      - SPRING.DATASOURCE.URL=jdbc:mariadb://db:3306/pf?createDatabaseIfNotExist=true
   db:
     image: mariadb
     restart: always
