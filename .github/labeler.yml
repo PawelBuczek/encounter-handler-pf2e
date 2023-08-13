@@ -1,4 +1,4 @@
-github: /.github/**
+github: .github/**
 
 core: src/main/java/**
 resources: src/main/resources/**
@@ -13,4 +13,5 @@ user: src/main/java/com/pbuczek/pf/user/**
 
 bash: '**/*.sh'
 pom: 'pom.xml'
+properties: 'src/main/resources/application.properties'
 anyChange: '**'
