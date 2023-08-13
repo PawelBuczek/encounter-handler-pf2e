@@ -15,7 +15,10 @@ services:
     image: mariadb
     restart: always
     environment:
+      CHARACTER_SET_SERVER: utf8
+      COLLATION_SERVER: utf8_general_ci
       MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: root
       MYSQL_DATABASE: pf
     ports:
       - "3306:3306"
