@@ -13,4 +13,5 @@ user: src/main/java/com/pbuczek/pf/user/**
 
 bash: '**/*.sh'
 pom: 'pom.xml'
+properties: 'src/main/resources/application.properties'
 anyChange: '**'
