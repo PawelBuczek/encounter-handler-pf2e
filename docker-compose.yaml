@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3'
 services:
   app:
     depends_on:
@@ -6,15 +6,15 @@ services:
     build: .
     ports:
       - "8080:8080"
-    stdin_open: true
-    tty: true
+    links:
+      - db:pf
+    environment:
+      - WAIT_HOSTS=db:3306
   db:
     image: mariadb
+    restart: always
     environment:
-      CHARACTER_SET_SERVER: utf8
-      COLLATION_SERVER: utf8_general_ci
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: pf
-      MYSQL_USER: root
     ports:
       - "3306:3306"
