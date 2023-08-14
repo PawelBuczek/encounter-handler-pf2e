@@ -6,11 +6,11 @@ services:
     build: .
     ports:
       - "8080:8080"
-    links:
-      - db:pf
     environment:
-      - WAIT_HOSTS=db:3306
       - SPRING.DATASOURCE.URL=jdbc:mariadb://db:3306/pf?createDatabaseIfNotExist=true
+    # it may fail on first try, as db needs some time to start working.
+    # tried healthcheck and stuff, but nothing really worked well.
+    restart: on-failure
   db:
     image: mariadb
     restart: always
