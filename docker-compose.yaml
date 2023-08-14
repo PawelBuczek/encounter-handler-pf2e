@@ -1,19 +1,16 @@
 version: '3'
 services:
-#  even with depends_on and links and WAIT_HOSTS app can still be build too fast
-#  maybe just try restarting it like 3 times on startup?
-#  I need to read up on solutions to this problem
   app:
     depends_on:
       - db
     build: .
     ports:
       - "8080:8080"
-    links:
-      - db:pf
     environment:
-      - WAIT_HOSTS=db:3306
       - SPRING.DATASOURCE.URL=jdbc:mariadb://db:3306/pf?createDatabaseIfNotExist=true
+    # it may fail on first try, as db needs some time to start working.
+    # tried healthcheck and stuff, but nothing really worked well.
+    restart: on-failure
   db:
     image: mariadb
     restart: always
