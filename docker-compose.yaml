@@ -1,5 +1,8 @@
 version: '3'
 services:
+#  even with depends_on and links and WAIT_HOSTS app can still be build too fast
+#  maybe just try restarting it like 3 times on startup?
+#  I need to read up on solutions to this problem
   app:
     depends_on:
       - db
