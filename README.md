@@ -42,3 +42,4 @@ _note: for some tools it may be required to set driver property `allowPublicKeyR
   so if you want to test out ADMIN only endpoints you need to change user type in database
 - authentication & authorization can be done by Basic Auth (providing username and password)
   or by API Key (using X-API-KEY header). API Keys are always bound to a User and have the same authorities
+  or by using Oauth 2.0 JWT Token (as usual with Refresh Tokens and Access Tokens) 
