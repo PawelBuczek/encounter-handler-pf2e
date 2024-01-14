@@ -11,9 +11,7 @@ Recommended to install first:
 - git (with Git Bash)
 
 # How to set up locally:
-1. Download https://github.com/PawelBuczek/encounter-handler-pf2e-back (this repo)  
-   and https://github.com/PawelBuczek/encounter-handler-pf2e-front (front-end part)  
-   *For setup of `encounter-handler-pf2e-front` please refer to README in that repository*
+1. Download https://github.com/PawelBuczek/encounter-handler-pf2e-back (this repo)
 2. For now the only external dependency is MariaDB database.  
    You may install it locally if you want to, matching it with src/main/resources/application.properties file.  
    But it's easier with docker:  
