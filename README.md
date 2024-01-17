@@ -1,5 +1,5 @@
 # encounterhandlerpf2e
-Encounter Handler for TTRPG system Pathfinder 2e  
+Encounter Handler for TTRPG system Pathfinder 2e (remaster)
 
 This is done as a training exercise.  
 System logic will be based on: https://2e.aonprd.com/  
