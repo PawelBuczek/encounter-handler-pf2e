@@ -9,10 +9,10 @@
             <column name="id" type="INTEGER" autoIncrement="true">
                 <constraints nullable="false" primaryKey="true" unique="true"/>
             </column>
-            <column name="type" type="VARCHAR(255)">
+            <column name="type" type="ENUM('STANDARD','ADMIN')">
                 <constraints nullable="false"/>
             </column>
-            <column name="payment_plan" type="VARCHAR(255)">
+            <column name="payment_plan" type="ENUM('FREE','ADVENTURER','HERO')">
                 <constraints nullable="false"/>
             </column>
             <column name="username" type="VARCHAR(40)">
