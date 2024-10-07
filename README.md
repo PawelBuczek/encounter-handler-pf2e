@@ -7,8 +7,9 @@ Using MariaDB database.
 
 
 Recommended to install first:
-- Java (17)
+- Java (21)
 - git (with Git Bash)
+- some docker tool (for example Docker Desktop)
 
 # How to set up locally:
 1. Download https://github.com/PawelBuczek/encounter-handler-pf2e-back (this repo)
@@ -18,8 +19,8 @@ Recommended to install first:
    - install (and run) rancher desktop or docker desktop or any other docker tool that you like
    - download mariadb image with command `docker pull mariadb`  
      if you want, you can read more about this image on https://hub.docker.com/_/mariadb
-   - now we need to run this image in a container. You can do it yourself if you want to, but...  
-     you can also run bash script `docker-images-setup.sh` for that, it is in repository root of this project
+   - now we need to run this image in a container. For example running db in `docker-compose.yaml` file.
+     (you can also run app there if you prefer, then probably ignore step 3)
 3. Run `src/main/java/com/pbuczek/pf/Application.java` *(database structure will be created by Liquibase)*
 
 # DBeaver (or other db management tool) connection properties to connect with MariaDB server:
@@ -28,11 +29,15 @@ Recommended to install first:
 leave `Database` blank  
 _note: for some tools it may be required to set driver property `allowPublicKeyRetrieval` to `true`_
 
-# Containerization with Docker (not yet fully established):
+# Containerization with Docker:
 1. Run Maven goal: `mvn clean package -DskipTests`
-2. Build Docker image locally: `docker build -t pbuczek/encounter-handler-pf2e-back .`
-3. Run Docker image `docker run -p 8080:8080 pbuczek/encounter-handler-pf2e-back`  
-   (it will fail for now because it cannot connect to database)
+2. Build Docker images locally: using `docker-compose.yaml`
+
+# Running tests:
+- Tests are divided into UnitTests, ApplicationTests and IntegrationTests
+- UnitTests can be run on their own
+- in order to run ApplicationTests or IntegrationTests, MariaDB database needs to be accessible
+  (for example by running db in `docker-compose.yaml`)
 
 # Notes about usage:
 - there are 2 User types, STANDARD and ADMIN
